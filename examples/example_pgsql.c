@@ -1,8 +1,9 @@
 #include <stdio.h>
+#define _HOEL_PGSQL
 #include "../src/hoel.h"
 
 void print_result(struct _h_result result) {
-  int col, row;
+  int col, row, i;
   char buf[64];
   printf("rows: %d, col: %d\n", result.nb_rows, result.nb_columns);
   for (row = 0; row<result.nb_rows; row++) {
@@ -18,8 +19,12 @@ void print_result(struct _h_result result) {
           printf("| %s ", ((struct _h_type_text *)result.data[row][col].t_data)->value);
           break;
         case HOEL_COL_TYPE_BLOB:
-          // FIXME
-          printf("| %s ", (char*)((struct _h_type_blob *)result.data[row][col].t_data)->value);
+          for (i=0; i<((struct _h_type_blob *)result.data[row][col].t_data)->length; i++) {
+            printf("%c", *((char*)(((struct _h_type_blob *)result.data[row][col].t_data)->value+i)));
+            if (i%80 == 0 && i>0) {
+              printf("\n");
+            }
+          }
           break;
         case HOEL_COL_TYPE_DATE:
           strftime(buf, 64, "%Y-%m-%d %H:%M:%S", &((struct _h_type_datetime *)result.data[row][col].t_data)->value);
@@ -37,7 +42,7 @@ int main(int argc, char ** argv) {
   struct _h_result result;
   struct _h_connection * conn;
   char * query = "select * from test", * connectionstring = "host=localhost dbname=test user=test password=test";
-  int res, port = 0;
+  int res;
   
   conn = h_connect_pgsql(connectionstring);
   

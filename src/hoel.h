@@ -24,7 +24,7 @@
 #ifndef __HOEL_H__
 #define __HOEL_H__
 
-#define HOEL_VERSION 0.5
+#define HOEL_VERSION 0.7
 
 #include <string.h>
 
@@ -32,8 +32,14 @@
 #include <time.h>
 
 #define HOEL_DB_TYPE_SQLITE  0
+
+#ifdef _HOEL_MARIADB
 #define HOEL_DB_TYPE_MARIADB 1
+#endif
+
+#ifdef _HOEL_PGSQL
 #define HOEL_DB_TYPE_PGSQL   2
+#endif
 
 #define HOEL_COL_TYPE_INT    0
 #define HOEL_COL_TYPE_DOUBLE 1
@@ -129,19 +135,23 @@ struct _h_result {
  */
 struct _h_connection * h_connect_sqlite(const char * db_path);
 
+#ifdef _HOEL_MARIADB
 /**
  * h_connect_mariadb
  * Opens a database connection to a mariadb server
  * return H_OK on success
  */
 struct _h_connection * h_connect_mariadb(char * host, char * user, char * passwd, char * db, unsigned int port, char * unix_socket);
+#endif
 
+#ifdef _HOEL_PGSQL
 /**
  * h_connect_pgsql
  * Opens a database connection to a PostgreSQL server
  * return H_OK on success
  */
 struct _h_connection * h_connect_pgsql(char * conninfo);
+#endif
 
 /**
  * Close a database connection
@@ -173,6 +183,7 @@ int h_execute_query(const struct _h_connection * conn, const char * query, struc
  */
 int h_execute_query_sqlite(const struct _h_connection * conn, const char * query, struct _h_result * result);
 
+#ifdef _HOEL_MARIADB
 /**
  * h_execute_query_mariadb
  * Execute a query on a mariadb connection, set the result structure with the returned values
@@ -183,6 +194,15 @@ int h_execute_query_sqlite(const struct _h_connection * conn, const char * query
 int h_execute_query_mariadb(const struct _h_connection * conn, const char * query, struct _h_result * result);
 
 /**
+ * h_get_mariadb_value
+ * convert value into a struct _h_data * depening on the m_type given
+ * returned value must be free'd with h_clean_data_full after use
+ */
+struct _h_data * h_get_mariadb_value(const char * value, const unsigned long length, const int m_type);
+#endif
+
+#ifdef _HOEL_PGSQL
+/**
  * h_execute_query_pgsql
  * Execute a query on a pgsql connection, set the result structure with the returned values
  * Should not be executed by the user because all parameters are supposed to be correct
@@ -190,6 +210,7 @@ int h_execute_query_mariadb(const struct _h_connection * conn, const char * quer
  * return H_OK on success
  */
 int h_execute_query_pgsql(const struct _h_connection * conn, const char * query, struct _h_result * result);
+#endif
 
 /**
  * h_query_insert
@@ -203,7 +224,7 @@ int h_query_insert(const struct _h_connection * conn, const char * query);
  * return the id of the last inserted value
  * return H_OK on success
  */
-struct _h_data * h_last_insert_id(const struct _h_connection * conn, struct _h_result * result);
+struct _h_data * h_last_insert_id(const struct _h_connection * conn);
 
 /**
  * h_query_update
@@ -307,12 +328,5 @@ int h_clean_data_full(struct _h_data * data);
  * return H_OK on success
  */
 int h_clean_connection(struct _h_connection * conn);
-
-/**
- * h_get_mariadb_value
- * convert value into a struct _h_data * depening on the m_type given
- * returned value must be free'd with h_clean_data_full after use
- */
-struct _h_data * h_get_mariadb_value(const char * value, const unsigned long length, const int m_type);
 
 #endif // __HOEL_H__

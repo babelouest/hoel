@@ -19,13 +19,13 @@
 # License along with this library.	If not, see <http://www.gnu.org/licenses/>.
 #
 CC=gcc
-CFLAGS=-c -fPIC -Wall -D_REENTRANT $(ADDITIONALFLAGS) -I/usr/include/postgresql/ -I/usr/include/mysql/
+CFLAGS=-c -fPIC -Wall -D_HOEL_PGSQL -D_HOEL_MARIADB -D_REENTRANT $(ADDITIONALFLAGS) -I/usr/include/postgresql/ -I/usr/include/mysql/
 LIBS_MYSQL=-lmysqlclient
 LIBS_PGSQL=-lpq
 LIBS_SQLITE=-lsqlite3
 LIBS=-lc $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MYSQL)
 OUTPUT=libhoel.so
-VERSION=0.5
+VERSION=0.7
 PREFIX=/usr/local
 
 all: release

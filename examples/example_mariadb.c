@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#define _HOEL_MARIADB
 #include "../src/hoel.h"
 
 void print_result(struct _h_result result) {
-  int col, row, i;
+  int col, row;
+  char buf[64];
+  int i;
   printf("rows: %d, col: %d\n", result.nb_rows, result.nb_columns);
   for (row = 0; row<result.nb_rows; row++) {
     for (col=0; col<result.nb_columns; col++) {
@@ -25,8 +28,11 @@ void print_result(struct _h_result result) {
             }
           }
           break;
+        case HOEL_COL_TYPE_DATE:
+          strftime(buf, 64, "%Y-%m-%d %H:%M:%S", &((struct _h_type_datetime *)result.data[row][col].t_data)->value);
+          printf("| %s ", buf);
         case HOEL_COL_TYPE_NULL:
-          printf("| null ");
+          printf("| [null] ");
           break;
       }
     }
@@ -151,9 +157,8 @@ void unit_tests(struct _h_connection * conn) {
 
 int main(int argc, char ** argv) {
   struct _h_connection * conn;
-  char * db_file = "/tmp/test.db";
   
-  conn = h_connect_sqlite(db_file);
+  conn = h_connect_mariadb("lohot", "test_hoel", "test_hoel", "test_hoel", 0, NULL);
   
   if (conn != NULL) {
     unit_tests(conn);

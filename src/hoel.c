@@ -20,18 +20,24 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  */
-
 #include "hoel.h"
-
-// MariaDB library Includes
-#include <my_global.h>
-#include <mysql.h>
 
 // SQLite library includes
 #include <sqlite3.h>
 
+#ifdef _HOEL_MARIADB
+// MariaDB library Includes
+#include <my_global.h>
+#include <mysql.h>
+#endif
+
+#ifdef _HOEL_PGSQL
 // PostgreSQL library includes
 #include <libpq-fe.h>
+#endif
+
+// Get rid of noisy warning
+char * strcasestr (const char *haystack, const char *needle);
 
 /**
  * SQLite handle
@@ -40,6 +46,7 @@ struct _h_sqlite {
   sqlite3 * db_handle;
 };
 
+#ifdef _HOEL_MARIADB
 /**
  * MariaDB handle
  */
@@ -53,7 +60,9 @@ struct _h_mariadb {
   unsigned long flags;
   MYSQL * db_handle;
 };
+#endif
 
+#ifdef _HOEL_PGSQL
 /**
  * Postgre SQL handle
  */
@@ -61,6 +70,7 @@ struct _h_pgsql {
   char * conninfo;
   PGconn * db_handle;
 };
+#endif
 
 /**
  * h_connect_sqlite
@@ -93,6 +103,7 @@ struct _h_connection * h_connect_sqlite(const char * db_path) {
   return conn;
 }
 
+#ifdef _HOEL_MARIADB
 /**
  * h_connect_mariadb
  * Opens a database connection to a mariadb server
@@ -127,7 +138,9 @@ struct _h_connection * h_connect_mariadb(char * host, char * user, char * passwd
   }
   return conn;
 }
+#endif
 
+#ifdef _HOEL_PGSQL
 /**
  * h_connect_pgsql
  * Opens a database connection to a PostgreSQL server
@@ -160,6 +173,7 @@ struct _h_connection * h_connect_pgsql(char * conninfo) {
   }
   return conn;
 }
+#endif
 
 /**
  * Close a database connection
@@ -171,13 +185,17 @@ int h_close_db(struct _h_connection * conn) {
       if (conn->type == HOEL_DB_TYPE_SQLITE) {
         sqlite3_close_v2(((struct _h_sqlite *)conn->connection)->db_handle);
         return H_OK;
+#ifdef _HOEL_MARIADB
       } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
         mysql_close(((struct _h_mariadb *)conn->connection)->db_handle);
         mysql_library_end();
         return H_OK;
+#endif
+#ifdef _HOEL_PGSQL
       } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
         PQfinish(((struct _h_pgsql *)conn->connection)->db_handle);
         return H_OK;
+#endif
       } else {
         return H_ERROR_PARAMS;
       }
@@ -206,6 +224,7 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe) {
         escaped = strdup(tmp);
         sqlite3_free(tmp);
         return escaped;
+#ifdef _HOEL_MARIADB
       } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
         escaped = malloc(2 * strlen(unsafe) + sizeof(char));
         if (escaped == NULL) {
@@ -213,8 +232,11 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe) {
         }
         mysql_real_escape_string(((struct _h_mariadb *)conn->connection)->db_handle, escaped, unsafe, strlen(unsafe));
         return escaped;
+#endif
+#ifdef _HOEL_PGSQL
       } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
         return PQescapeLiteral(((struct _h_pgsql *)conn->connection)->db_handle, unsafe, strlen(unsafe));
+#endif
       } else {
         return NULL;
       }
@@ -233,14 +255,18 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe) {
  * return H_OK on success
  */
 int h_execute_query(const struct _h_connection * conn, const char * query, struct _h_result * result) {
-  if (conn != NULL && conn->connection != NULL && query != NULL && result != NULL) {
+  if (conn != NULL && conn->connection != NULL && query != NULL) {
     if (conn->enabled) {
       if (conn->type == HOEL_DB_TYPE_SQLITE) {
         return h_execute_query_sqlite(conn, query, result);
+#ifdef _HOEL_MARIADB
       } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
         return h_execute_query_mariadb(conn, query, result);
+#endif
+#ifdef _HOEL_PGSQL
       } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
         return h_execute_query_pgsql(conn, query, result);
+#endif
       } else {
         return H_ERROR_PARAMS;
       }
@@ -423,6 +449,7 @@ int h_execute_query_sqlite(const struct _h_connection * conn, const char * query
   }
 }
 
+#ifdef _HOEL_MARIADB
 /**
  * h_execute_query_mariadb
  * Execute a query on a mariadb connection, set the result structure with the returned values
@@ -575,7 +602,9 @@ struct _h_data * h_get_mariadb_value(const char * value, const unsigned long len
   }
   return data;
 }
+#endif
 
+#ifdef _HOEL_PGSQL
 /**
  * h_execute_query_pgsql
  * Execute a query on a pgsql connection, set the result structure with the returned values
@@ -625,6 +654,7 @@ int h_execute_query_pgsql(const struct _h_connection * conn, const char * query,
   PQclear(res);
   return H_OK;
 }
+#endif
 
 /**
  * h_query_insert
@@ -632,20 +662,9 @@ int h_execute_query_pgsql(const struct _h_connection * conn, const char * query,
  * return H_OK on success
  */
 int h_query_insert(const struct _h_connection * conn, const char * query) {
-  if (conn != NULL && conn->connection != NULL) {
+  if (conn != NULL && conn->connection != NULL && query != NULL && strcasestr(query, "insert") != NULL) {
     if (conn->enabled) {
-      if (conn->type == HOEL_DB_TYPE_SQLITE) {
-        // TODO
-        return H_OK;
-      } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
-        // TODO
-        return H_OK;
-      } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
-        // TODO
-        return H_OK;
-      } else {
-        return H_ERROR_PARAMS;
-      }
+      return h_execute_query(conn, query, NULL);
     } else {
       return H_ERROR_DISABLED;
     }
@@ -659,27 +678,38 @@ int h_query_insert(const struct _h_connection * conn, const char * query) {
  * return the id of the last inserted value
  * return H_OK on success
  */
-struct _h_data * h_last_insert_id(const struct _h_connection * conn, struct _h_result * result) {
+struct _h_data * h_last_insert_id(const struct _h_connection * conn) {
+  struct _h_data * data = NULL;
   if (conn != NULL && conn->connection != NULL) {
     if (conn->enabled) {
       if (conn->type == HOEL_DB_TYPE_SQLITE) {
-        // TODO
-        return NULL;
+        int last_id = sqlite3_last_insert_rowid(((struct _h_sqlite *)conn->connection)->db_handle);
+        if (last_id > 0) {
+          data = h_new_data_int(last_id);
+        } else {
+          data = h_new_data_null();
+        }
+#ifdef _HOEL_MARIADB
       } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
-        // TODO
-        return NULL;
+        int last_id = mysql_insert_id(((struct _h_mariadb *)conn->connection)->db_handle);
+        if (last_id > 0) {
+          data = h_new_data_int(last_id);
+        } else {
+          data = h_new_data_null();
+        }
+#endif
+#ifdef _HOEL_PGSQL
       } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
         // TODO
-        return NULL;
+        // Not possible ?
+        data = h_new_data_null();
+#endif
       } else {
-        return NULL;
+        data = h_new_data_null();
       }
-    } else {
-      return NULL;
     }
-  } else {
-    return NULL;
   }
+  return data;
 }
 
 /**
@@ -688,20 +718,9 @@ struct _h_data * h_last_insert_id(const struct _h_connection * conn, struct _h_r
  * return H_OK on success
  */
 int h_query_update(const struct _h_connection * conn, const char * query) {
-  if (conn != NULL && conn->connection != NULL) {
+  if (conn != NULL && conn->connection != NULL && query != NULL && strcasestr(query, "update") != NULL) {
     if (conn->enabled) {
-      if (conn->type == HOEL_DB_TYPE_SQLITE) {
-        // TODO
-        return H_OK;
-      } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
-        // TODO
-        return H_OK;
-      } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
-        // TODO
-        return H_OK;
-      } else {
-        return H_ERROR_PARAMS;
-      }
+      return h_execute_query(conn, query, NULL);
     } else {
       return H_ERROR_DISABLED;
     }
@@ -716,20 +735,9 @@ int h_query_update(const struct _h_connection * conn, const char * query) {
  * return H_OK on success
  */
 int h_query_delete(const struct _h_connection * conn, const char * query) {
-  if (conn != NULL && conn->connection != NULL) {
+  if (conn != NULL && conn->connection != NULL && query != NULL && strcasestr(query, "delete") != NULL) {
     if (conn->enabled) {
-      if (conn->type == HOEL_DB_TYPE_SQLITE) {
-        // TODO
-        return H_OK;
-      } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
-        // TODO
-        return H_OK;
-      } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
-        // TODO
-        return H_OK;
-      } else {
-        return H_ERROR_PARAMS;
-      }
+      return h_execute_query(conn, query, NULL);
     } else {
       return H_ERROR_DISABLED;
     }
@@ -744,20 +752,9 @@ int h_query_delete(const struct _h_connection * conn, const char * query) {
  * return H_OK on success
  */
 int h_query_select(const struct _h_connection * conn, const char * query, struct _h_result * result) {
-  if (conn != NULL && conn->connection != NULL) {
+  if (conn != NULL && conn->connection != NULL && query != NULL && strcasestr(query, "select") != NULL) {
     if (conn->enabled) {
-      if (conn->type == HOEL_DB_TYPE_SQLITE) {
-        // TODO
-        return H_OK;
-      } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
-        // TODO
-        return H_OK;
-      } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
-        // TODO
-        return H_OK;
-      } else {
-        return H_ERROR_PARAMS;
-      }
+      return h_execute_query(conn, query, result);
     } else {
       return H_ERROR_DISABLED;
     }
