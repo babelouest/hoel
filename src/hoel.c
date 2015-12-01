@@ -22,8 +22,10 @@
  */
 #include "hoel.h"
 
+#ifdef _HOEL_SQLITE
 // SQLite library includes
 #include <sqlite3.h>
+#endif
 
 #ifdef _HOEL_MARIADB
 // MariaDB library Includes
@@ -39,12 +41,14 @@
 // Get rid of noisy warning
 char * strcasestr (const char *haystack, const char *needle);
 
+#ifdef _HOEL_SQLITE
 /**
  * SQLite handle
  */
 struct _h_sqlite {
   sqlite3 * db_handle;
 };
+#endif
 
 #ifdef _HOEL_MARIADB
 /**
@@ -72,6 +76,7 @@ struct _h_pgsql {
 };
 #endif
 
+#ifdef _HOEL_SQLITE
 /**
  * h_connect_sqlite
  * Opens a database connection to a sqlite3 db file
@@ -102,6 +107,7 @@ struct _h_connection * h_connect_sqlite(const char * db_path) {
   }
   return conn;
 }
+#endif
 
 #ifdef _HOEL_MARIADB
 /**
@@ -182,9 +188,13 @@ struct _h_connection * h_connect_pgsql(char * conninfo) {
 int h_close_db(struct _h_connection * conn) {
   if (conn != NULL && conn->connection != NULL) {
     if (conn->enabled) {
-      if (conn->type == HOEL_DB_TYPE_SQLITE) {
+      if (0) {
+        // Not happening
+#ifdef _HOEL_SQLITE
+      } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
         sqlite3_close_v2(((struct _h_sqlite *)conn->connection)->db_handle);
         return H_OK;
+#endif
 #ifdef _HOEL_MARIADB
       } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
         mysql_close(((struct _h_mariadb *)conn->connection)->db_handle);
@@ -216,7 +226,10 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe) {
   char * escaped = NULL;
   if (conn != NULL && conn->connection != NULL && unsafe != NULL) {
     if (conn->enabled) {
-      if (conn->type == HOEL_DB_TYPE_SQLITE) {
+      if (0) {
+        // Not happening
+#ifdef _HOEL_SQLITE
+      } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
         char * tmp = sqlite3_mprintf("%q", unsafe);
         if (tmp == NULL) {
           return NULL;
@@ -224,6 +237,7 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe) {
         escaped = strdup(tmp);
         sqlite3_free(tmp);
         return escaped;
+#endif
 #ifdef _HOEL_MARIADB
       } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
         escaped = malloc(2 * strlen(unsafe) + sizeof(char));
@@ -257,8 +271,12 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe) {
 int h_execute_query(const struct _h_connection * conn, const char * query, struct _h_result * result) {
   if (conn != NULL && conn->connection != NULL && query != NULL) {
     if (conn->enabled) {
-      if (conn->type == HOEL_DB_TYPE_SQLITE) {
+      if (0) {
+        // Not happening
+#ifdef _HOEL_SQLITE
+      } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
         return h_execute_query_sqlite(conn, query, result);
+#endif
 #ifdef _HOEL_MARIADB
       } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
         return h_execute_query_mariadb(conn, query, result);
@@ -377,6 +395,7 @@ int h_result_add_row(struct _h_result * result, struct _h_data * row, int rows) 
   }
 }
 
+#ifdef _HOEL_SQLITE
 /**
  * h_execute_query_sqlite
  * Execute a query on a sqlite connection, set the result structure with the returned values
@@ -448,6 +467,7 @@ int h_execute_query_sqlite(const struct _h_connection * conn, const char * query
     return H_ERROR_QUERY;
   }
 }
+#endif
 
 #ifdef _HOEL_MARIADB
 /**
@@ -682,13 +702,17 @@ struct _h_data * h_last_insert_id(const struct _h_connection * conn) {
   struct _h_data * data = NULL;
   if (conn != NULL && conn->connection != NULL) {
     if (conn->enabled) {
-      if (conn->type == HOEL_DB_TYPE_SQLITE) {
+      if (0) {
+        // Not happening
+#ifdef _HOEL_SQLITE
+      } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
         int last_id = sqlite3_last_insert_rowid(((struct _h_sqlite *)conn->connection)->db_handle);
         if (last_id > 0) {
           data = h_new_data_int(last_id);
         } else {
           data = h_new_data_null();
         }
+#endif
 #ifdef _HOEL_MARIADB
       } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
         int last_id = mysql_insert_id(((struct _h_mariadb *)conn->connection)->db_handle);
