@@ -19,10 +19,20 @@
 # License along with this library.	If not, see <http://www.gnu.org/licenses/>.
 #
 CC=gcc
-CFLAGS=-c -fPIC -Wall -D_HOEL_PGSQL -D_HOEL_MARIADB -D_REENTRANT $(ADDITIONALFLAGS) -I/usr/include/postgresql/ -I/usr/include/mysql/
+
+# uncomment these lines if you want sqlite support
+# HAS_SQLITE=-D_HOEL_SQLITE
+# LIBS_SQLITE=-lsqlite3
+
+# uncomment these lines if you want sqlite support
+HAS_MARIADB=-D_HOEL_MARIADB
 LIBS_MYSQL=-lmysqlclient
-LIBS_PGSQL=-lpq
-LIBS_SQLITE=-lsqlite3
+
+# uncomment these lines if you want sqlite support
+# HAS_PGSQL=-D_HOEL_PGSQL
+# LIBS_PGSQL=-lpq
+
+CFLAGS=-c -fPIC -Wall $(HAS_SQLITE) $(HAS_MARIADB) $(HAS_PGSQL) -D_REENTRANT $(ADDITIONALFLAGS) -I/usr/include/postgresql/ -I/usr/include/mysql/
 LIBS=-lc $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MYSQL)
 OUTPUT=libhoel.so
 VERSION=0.7
@@ -39,14 +49,16 @@ libhoel.so: hoel.o
 
 clean:
 	rm -f *.o *.so $(OUTPUT) $(OUTPUT).$(VERSION)
-	rm -f $(PREFIX)/lib/$(OUTPUT)
-	rm -f $(PREFIX)/lib/$(OUTPUT).$(VERSION)
-	rm -f $(PREFIX)/include/hoel.h
 
 install: all
 	cp $(OUTPUT).$(VERSION) $(PREFIX)/lib
 	cp hoel.h $(PREFIX)/include
 	ldconfig
+
+uninstall:
+	rm -f $(PREFIX)/lib/$(OUTPUT)
+	rm -f $(PREFIX)/lib/$(OUTPUT).$(VERSION)
+	rm -f $(PREFIX)/include/hoel.h
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 
