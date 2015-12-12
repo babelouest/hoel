@@ -21,16 +21,16 @@
 CC=gcc
 
 # uncomment these lines if you want sqlite support
-# HAS_SQLITE=-D_HOEL_SQLITE
-# LIBS_SQLITE=-lsqlite3
+HAS_SQLITE=-D_HOEL_SQLITE
+LIBS_SQLITE=-lsqlite3
 
 # uncomment these lines if you want sqlite support
 HAS_MARIADB=-D_HOEL_MARIADB
 LIBS_MYSQL=-lmysqlclient
 
 # uncomment these lines if you want sqlite support
-# HAS_PGSQL=-D_HOEL_PGSQL
-# LIBS_PGSQL=-lpq
+HAS_PGSQL=-D_HOEL_PGSQL
+LIBS_PGSQL=-lpq
 
 CFLAGS=-c -fPIC -Wall $(HAS_SQLITE) $(HAS_MARIADB) $(HAS_PGSQL) -D_REENTRANT $(ADDITIONALFLAGS) -I/usr/include/postgresql/ -I/usr/include/mysql/
 LIBS=-lc $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MYSQL)
@@ -57,7 +57,7 @@ install: all
 
 uninstall:
 	rm -f $(PREFIX)/lib/$(OUTPUT)
-	rm -f $(PREFIX)/lib/$(OUTPUT).$(VERSION)
+	rm -f $(PREFIX)/lib/$(OUTPUT).*
 	rm -f $(PREFIX)/include/hoel.h
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
