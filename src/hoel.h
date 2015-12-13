@@ -31,7 +31,9 @@
 #define __USE_XOPEN
 #include <time.h>
 
+#ifdef _HOEL_SQLITE
 #define HOEL_DB_TYPE_SQLITE  0
+#endif
 
 #ifdef _HOEL_MARIADB
 #define HOEL_DB_TYPE_MARIADB 1
@@ -48,13 +50,13 @@
 #define HOEL_COL_TYPE_BLOB   4
 #define HOEL_COL_TYPE_NULL   5
 
-#define H_OK                0
-#define H_ERROR             1
-#define H_ERROR_PARAMS      2
-#define H_ERROR_CONNECTION  3
-#define H_ERROR_DISABLED    4
-#define H_ERROR_QUERY       5
-#define H_ERROR_MEMORY      99
+#define H_OK                0  // No error
+#define H_ERROR             1  // Generic error
+#define H_ERROR_PARAMS      2  // Error in input parameters
+#define H_ERROR_CONNECTION  3  // Error in database connection
+#define H_ERROR_DISABLED    4  // Database connection is disabled
+#define H_ERROR_QUERY       5  // Error executing query
+#define H_ERROR_MEMORY      99 // Error allocating memory
 
 /**
  * handle container
@@ -63,15 +65,6 @@ struct _h_connection {
   int type;
   int enabled;
   void * connection;
-};
-
-/**
- * query structure
- */
-struct _h_query {
-  int type;
-  unsigned int length;
-  char * query;
 };
 
 /**
@@ -124,22 +117,23 @@ struct _h_data {
 struct _h_result {
   unsigned int nb_rows;
   unsigned int nb_columns;
-  int result_query;
   struct _h_data ** data;
 };
 
+#ifdef _HOEL_SQLITE
 /**
  * h_connect_sqlite
  * Opens a database connection to a sqlite3 db file
- * return H_OK on success
+ * return pointer to a struct _h_connection * on sucess, NULL on error
  */
 struct _h_connection * h_connect_sqlite(const char * db_path);
+#endif
 
 #ifdef _HOEL_MARIADB
 /**
  * h_connect_mariadb
  * Opens a database connection to a mariadb server
- * return H_OK on success
+ * return pointer to a struct _h_connection * on sucess, NULL on error
  */
 struct _h_connection * h_connect_mariadb(char * host, char * user, char * passwd, char * db, unsigned int port, char * unix_socket);
 #endif
@@ -148,7 +142,7 @@ struct _h_connection * h_connect_mariadb(char * host, char * user, char * passwd
 /**
  * h_connect_pgsql
  * Opens a database connection to a PostgreSQL server
- * return H_OK on success
+ * return pointer to a struct _h_connection * on sucess, NULL on error
  */
 struct _h_connection * h_connect_pgsql(char * conninfo);
 #endif
@@ -174,6 +168,7 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe);
  */
 int h_execute_query(const struct _h_connection * conn, const char * query, struct _h_result * result);
 
+#ifdef _HOEL_SQLITE
 /**
  * h_execute_query_sqlite
  * Execute a query on a sqlite connection, set the result structure with the returned values
@@ -182,6 +177,7 @@ int h_execute_query(const struct _h_connection * conn, const char * query, struc
  * return H_OK on success
  */
 int h_execute_query_sqlite(const struct _h_connection * conn, const char * query, struct _h_result * result);
+#endif
 
 #ifdef _HOEL_MARIADB
 /**
@@ -222,7 +218,7 @@ int h_query_insert(const struct _h_connection * conn, const char * query);
 /**
  * h_last_insert_id
  * return the id of the last inserted value
- * return H_OK on success
+ * return a pointer to `struct _h_data *` on success, NULL otherwise.
  */
 struct _h_data * h_last_insert_id(const struct _h_connection * conn);
 

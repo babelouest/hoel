@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#define _HOEL_SQLITE
 #include "../src/hoel.h"
 
 void print_result(struct _h_result result) {
