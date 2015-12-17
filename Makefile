@@ -27,10 +27,10 @@ clean:
 	cd $(EXAMPLE_LOCATION) && $(MAKE) clean
 
 libhoel.so:
-	cd $(EXAMPLE_LOCATION) && $(MAKE)
+	cd $(LIBHOEL_LOCATION) && $(MAKE)
 
 simple_example:
-	cd $(LIBHOEL_LOCATION) && $(MAKE)
+	cd $(EXAMPLE_LOCATION) && $(MAKE)
 
 example_sqlite3:
 	cd $(EXAMPLE_LOCATION) && $(MAKE) example_sqlite3
