@@ -27,6 +27,7 @@
 #define HOEL_VERSION 0.7
 
 #include <string.h>
+#include <jansson.h>
 
 #define __USE_XOPEN
 #include <time.h>
@@ -54,8 +55,7 @@
 #define H_ERROR             1  // Generic error
 #define H_ERROR_PARAMS      2  // Error in input parameters
 #define H_ERROR_CONNECTION  3  // Error in database connection
-#define H_ERROR_DISABLED    4  // Database connection is disabled
-#define H_ERROR_QUERY       5  // Error executing query
+#define H_ERROR_QUERY       4  // Error executing query
 #define H_ERROR_MEMORY      99 // Error allocating memory
 
 /**
@@ -63,7 +63,6 @@
  */
 struct _h_connection {
   int type;
-  int enabled;
   void * connection;
 };
 
@@ -168,6 +167,13 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe);
  */
 int h_execute_query(const struct _h_connection * conn, const char * query, struct _h_result * result);
 
+/**
+ * h_execute_query_json
+ * Execute a query, set the returned values in the json result
+ * return H_OK on success
+ */
+int h_execute_query_json(const struct _h_connection * conn, const char * query, json_t ** j_result);
+
 #ifdef _HOEL_SQLITE
 /**
  * h_execute_query_sqlite
@@ -177,6 +183,14 @@ int h_execute_query(const struct _h_connection * conn, const char * query, struc
  * return H_OK on success
  */
 int h_execute_query_sqlite(const struct _h_connection * conn, const char * query, struct _h_result * result);
+
+/**
+ * h_execute_query_json_sqlite
+ * Execute a query on a sqlite connection, set the returned values in the json result
+ * Should not be executed by the user because all parameters are supposed to be correct
+ * return H_OK on success
+ */
+int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * query, json_t ** j_result);
 #endif
 
 #ifdef _HOEL_MARIADB
@@ -188,6 +202,14 @@ int h_execute_query_sqlite(const struct _h_connection * conn, const char * query
  * return H_OK on success
  */
 int h_execute_query_mariadb(const struct _h_connection * conn, const char * query, struct _h_result * result);
+
+/**
+ * h_execute_query_json_mariadb
+ * Execute a query on a mariadb connection, set the returned values in the json result
+ * Should not be executed by the user because all parameters are supposed to be correct
+ * return H_OK on success
+ */
+int h_execute_query_json_mariadb(const struct _h_connection * conn, const char * query, json_t ** j_result);
 
 /**
  * h_get_mariadb_value
@@ -206,6 +228,14 @@ struct _h_data * h_get_mariadb_value(const char * value, const unsigned long len
  * return H_OK on success
  */
 int h_execute_query_pgsql(const struct _h_connection * conn, const char * query, struct _h_result * result);
+
+/**
+ * h_execute_query_json_pgsql
+ * Execute a query on a pgsql connection, set the returned values in the json results
+ * Should not be executed by the user because all parameters are supposed to be correct
+ * return H_OK on success
+ */
+int h_execute_query_json_pgsql(const struct _h_connection * conn, const char * query, json_t ** j_result);
 #endif
 
 /**
@@ -237,11 +267,18 @@ int h_query_update(const struct _h_connection * conn, const char * query);
 int h_query_delete(const struct _h_connection * conn, const char * query);
 
 /**
- * h_execute_query
+ * h_query_select
  * Execute a select query, set the result structure with the returned values
  * return H_OK on success
  */
 int h_query_select(const struct _h_connection * conn, const char * query, struct _h_result * result);
+
+/**
+ * h_query_select_json
+ * Execute a select query, set the returned values in the json results
+ * return H_OK on success
+ */
+int h_query_select_json(const struct _h_connection * conn, const char * query, json_t ** j_result);
 
 /**
  * Add a new struct _h_data * to an array of struct _h_data *, which already has cols columns

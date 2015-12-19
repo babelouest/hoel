@@ -91,7 +91,6 @@ struct _h_connection * h_connect_sqlite(const char * db_path) {
     }
     
     conn->type = HOEL_DB_TYPE_SQLITE;
-    conn->enabled = 1;
     conn->connection = malloc(sizeof(struct _h_sqlite));
     if (conn->connection == NULL) {
       free(conn);
@@ -99,7 +98,7 @@ struct _h_connection * h_connect_sqlite(const char * db_path) {
     }
     if (sqlite3_open_v2(db_path, &((struct _h_sqlite *)conn->connection)->db_handle, SQLITE_OPEN_READWRITE, NULL) != SQLITE_OK) {
       sqlite3_close_v2(((struct _h_sqlite *)conn->connection)->db_handle);
-      conn->enabled = 0;
+      free(conn);
       return NULL;
     } else {
       return conn;
@@ -124,7 +123,6 @@ struct _h_connection * h_connect_mariadb(char * host, char * user, char * passwd
     }
     
     conn->type = HOEL_DB_TYPE_MARIADB;
-    conn->enabled = 1;
     conn->connection = malloc(sizeof(struct _h_mariadb));
     if (conn->connection == NULL) {
       free(conn);
@@ -162,7 +160,6 @@ struct _h_connection * h_connect_pgsql(char * conninfo) {
     }
     
     conn->type = HOEL_DB_TYPE_PGSQL;
-    conn->enabled = 1;
     conn->connection = malloc(sizeof(struct _h_pgsql));
     if (conn->connection == NULL) {
       free(conn);
@@ -187,30 +184,26 @@ struct _h_connection * h_connect_pgsql(char * conninfo) {
  */
 int h_close_db(struct _h_connection * conn) {
   if (conn != NULL && conn->connection != NULL) {
-    if (conn->enabled) {
-      if (0) {
-        // Not happening
+    if (0) {
+      // Not happening
 #ifdef _HOEL_SQLITE
-      } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
-        sqlite3_close_v2(((struct _h_sqlite *)conn->connection)->db_handle);
-        return H_OK;
+    } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
+      sqlite3_close_v2(((struct _h_sqlite *)conn->connection)->db_handle);
+      return H_OK;
 #endif
 #ifdef _HOEL_MARIADB
-      } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
-        mysql_close(((struct _h_mariadb *)conn->connection)->db_handle);
-        mysql_library_end();
-        return H_OK;
+    } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
+      mysql_close(((struct _h_mariadb *)conn->connection)->db_handle);
+      mysql_library_end();
+      return H_OK;
 #endif
 #ifdef _HOEL_PGSQL
-      } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
-        PQfinish(((struct _h_pgsql *)conn->connection)->db_handle);
-        return H_OK;
+    } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
+      PQfinish(((struct _h_pgsql *)conn->connection)->db_handle);
+      return H_OK;
 #endif
-      } else {
-        return H_ERROR_PARAMS;
-      }
     } else {
-      return H_ERROR_DISABLED;
+      return H_ERROR_PARAMS;
     }
   } else {
     return H_ERROR_PARAMS;
@@ -225,35 +218,31 @@ int h_close_db(struct _h_connection * conn) {
 char * h_escape_string(const struct _h_connection * conn, const char * unsafe) {
   char * escaped = NULL;
   if (conn != NULL && conn->connection != NULL && unsafe != NULL) {
-    if (conn->enabled) {
-      if (0) {
-        // Not happening
+    if (0) {
+      // Not happening
 #ifdef _HOEL_SQLITE
-      } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
-        char * tmp = sqlite3_mprintf("%q", unsafe);
-        if (tmp == NULL) {
-          return NULL;
-        }
-        escaped = strdup(tmp);
-        sqlite3_free(tmp);
-        return escaped;
-#endif
-#ifdef _HOEL_MARIADB
-      } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
-        escaped = malloc(2 * strlen(unsafe) + sizeof(char));
-        if (escaped == NULL) {
-          return NULL;
-        }
-        mysql_real_escape_string(((struct _h_mariadb *)conn->connection)->db_handle, escaped, unsafe, strlen(unsafe));
-        return escaped;
-#endif
-#ifdef _HOEL_PGSQL
-      } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
-        return PQescapeLiteral(((struct _h_pgsql *)conn->connection)->db_handle, unsafe, strlen(unsafe));
-#endif
-      } else {
+    } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
+      char * tmp = sqlite3_mprintf("%q", unsafe);
+      if (tmp == NULL) {
         return NULL;
       }
+      escaped = strdup(tmp);
+      sqlite3_free(tmp);
+      return escaped;
+#endif
+#ifdef _HOEL_MARIADB
+    } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
+      escaped = malloc(2 * strlen(unsafe) + sizeof(char));
+      if (escaped == NULL) {
+        return NULL;
+      }
+      mysql_real_escape_string(((struct _h_mariadb *)conn->connection)->db_handle, escaped, unsafe, strlen(unsafe));
+      return escaped;
+#endif
+#ifdef _HOEL_PGSQL
+    } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
+      return PQescapeLiteral(((struct _h_pgsql *)conn->connection)->db_handle, unsafe, strlen(unsafe));
+#endif
     } else {
       return NULL;
     }
@@ -270,26 +259,51 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe) {
  */
 int h_execute_query(const struct _h_connection * conn, const char * query, struct _h_result * result) {
   if (conn != NULL && conn->connection != NULL && query != NULL) {
-    if (conn->enabled) {
-      if (0) {
-        // Not happening
+    if (0) {
+      // Not happening
 #ifdef _HOEL_SQLITE
-      } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
-        return h_execute_query_sqlite(conn, query, result);
+    } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
+      return h_execute_query_sqlite(conn, query, result);
 #endif
 #ifdef _HOEL_MARIADB
-      } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
-        return h_execute_query_mariadb(conn, query, result);
+    } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
+      return h_execute_query_mariadb(conn, query, result);
 #endif
 #ifdef _HOEL_PGSQL
-      } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
-        return h_execute_query_pgsql(conn, query, result);
+    } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
+      return h_execute_query_pgsql(conn, query, result);
 #endif
-      } else {
-        return H_ERROR_PARAMS;
-      }
     } else {
-      return H_ERROR_DISABLED;
+      return H_ERROR_PARAMS;
+    }
+  } else {
+    return H_ERROR_PARAMS;
+  }
+}
+
+/**
+ * h_execute_query_json
+ * Execute a query, set the returned values in the json result
+ * return H_OK on success
+ */
+int h_execute_query_json(const struct _h_connection * conn, const char * query, json_t ** j_result) {
+  if (conn != NULL && conn->connection != NULL && query != NULL) {
+    if (0) {
+      // Not happening
+#ifdef _HOEL_SQLITE
+    } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
+      return h_execute_query_json_sqlite(conn, query, j_result);
+#endif
+#ifdef _HOEL_MARIADB
+    } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
+      return h_execute_query_json_mariadb(conn, query, j_result);
+#endif
+#ifdef _HOEL_PGSQL
+    } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
+      return h_execute_query_json_pgsql(conn, query, j_result);
+#endif
+    } else {
+      return H_ERROR_PARAMS;
     }
   } else {
     return H_ERROR_PARAMS;
@@ -412,9 +426,10 @@ int h_execute_query_sqlite(const struct _h_connection * conn, const char * query
   
   if (sql_result == SQLITE_OK) {
     nb_columns = sqlite3_column_count(stmt);
-    row_result = sqlite3_step(stmt);
     row = 0;
     if (result != NULL) {
+      row_result = sqlite3_step(stmt);
+      // Filling result object with results in array format
       result->nb_rows = 0;
       result->nb_columns = nb_columns;
       result->data = NULL;
@@ -456,12 +471,73 @@ int h_execute_query_sqlite(const struct _h_connection * conn, const char * query
         row_result = sqlite3_step(stmt);
         row++;
       }
-      sqlite3_finalize(stmt);
-      return H_OK;
-    } else {
-      sqlite3_finalize(stmt);
-      return H_OK;
     }
+    sqlite3_finalize(stmt);
+    return H_OK;
+  } else {
+    sqlite3_finalize(stmt);
+    return H_ERROR_QUERY;
+  }
+}
+
+/**
+ * h_execute_query_json_sqlite
+ * Execute a query on a sqlite connection, set the returned values in the json result
+ * Should not be executed by the user because all parameters are supposed to be correct
+ * return H_OK on success
+ */
+int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * query, json_t ** j_result) {
+  sqlite3_stmt *stmt;
+  int sql_result, row_result, nb_columns, col;
+  json_t * j_data;
+  
+  if (j_result == NULL) {
+    return H_ERROR_PARAMS;
+  }
+  
+  sql_result = sqlite3_prepare_v2(((struct _h_sqlite *)conn->connection)->db_handle, query, strlen(query)+1, &stmt, NULL);
+  
+  if (sql_result == SQLITE_OK) {
+    nb_columns = sqlite3_column_count(stmt);
+    // Filling j_result with results in json format
+    *j_result = json_array();
+    if (*j_result == NULL) {
+      sqlite3_finalize(stmt);
+      return H_ERROR_MEMORY;
+    }
+    row_result = sqlite3_step(stmt);
+    while (row_result == SQLITE_ROW) {
+      j_data = json_object();
+      if (j_data == NULL) {
+        json_decref(*j_result);
+        return H_ERROR_MEMORY;
+      }
+      for (col = 0; col < nb_columns; col++) {
+        switch (sqlite3_column_type(stmt, col)) {
+          case SQLITE_INTEGER:
+            json_object_set_new(j_data, sqlite3_column_name(stmt, col), json_integer(sqlite3_column_int(stmt, col)));
+            break;
+          case SQLITE_FLOAT:
+            json_object_set_new(j_data, sqlite3_column_name(stmt, col), json_real(sqlite3_column_double(stmt, col)));
+            break;
+          case SQLITE_BLOB:
+            json_object_set_new(j_data, sqlite3_column_name(stmt, col), json_stringn(sqlite3_column_blob(stmt, col), sqlite3_column_bytes(stmt, col)));
+            break;
+          case SQLITE3_TEXT:
+            json_object_set_new(j_data, sqlite3_column_name(stmt, col), json_string((char*)sqlite3_column_text(stmt, col)));
+            break;
+          case SQLITE_NULL:
+            json_object_set_new(j_data, sqlite3_column_name(stmt, col), json_null());
+          default:
+            break;
+        }
+      }
+      json_array_append_new(*j_result, j_data);
+      j_data = NULL;
+      row_result = sqlite3_step(stmt);
+    }
+    sqlite3_finalize(stmt);
+    return H_OK;
   } else {
     sqlite3_finalize(stmt);
     return H_ERROR_QUERY;
@@ -523,6 +599,84 @@ int h_execute_query_mariadb(const struct _h_connection * conn, const char * quer
     }
     mysql_free_result(result);
   }
+  
+  return H_OK;
+}
+
+/**
+ * h_execute_query_json_mariadb
+ * Execute a query on a mariadb connection, set the returned values in the json result
+ * Should not be executed by the user because all parameters are supposed to be correct
+ * return H_OK on success
+ */
+int h_execute_query_json_mariadb(const struct _h_connection * conn, const char * query, json_t ** j_result) {
+  MYSQL_RES * result;
+  uint num_fields, col, row;
+  MYSQL_ROW m_row;
+  MYSQL_FIELD * fields;
+  unsigned long * lengths;
+  json_t * j_data;
+  struct _h_data * h_data;
+  char date_stamp[20];
+  
+  if (j_result == NULL) {
+    return H_ERROR_PARAMS;
+  }
+  
+  *j_result = json_array();
+  if (*j_result == NULL) {
+    return H_ERROR_MEMORY;
+  }
+
+  if (mysql_query(((struct _h_mariadb *)conn->connection)->db_handle, query)) {
+    return H_ERROR_QUERY;
+  }
+  
+  result = mysql_store_result(((struct _h_mariadb *)conn->connection)->db_handle);
+  
+  if (result == NULL) {
+    return H_ERROR_QUERY;
+  }
+  
+  num_fields = mysql_num_fields(result);
+  fields = mysql_fetch_fields(result);
+  
+  for (row = 0; (m_row = mysql_fetch_row(result)) != NULL; row++) {
+    j_data = json_object();
+    if (j_data == NULL) {
+      json_decref(*j_result);
+      return H_ERROR_MEMORY;
+    }
+    lengths = mysql_fetch_lengths(result);
+    for (col=0; col<num_fields; col++) {
+      h_data = h_get_mariadb_value(m_row[col], lengths[col], fields[col].type);
+      switch (h_data->type) {
+        case HOEL_COL_TYPE_INT:
+          json_object_set_new(j_data, fields[col].name, json_integer(((struct _h_type_int *)h_data->t_data)->value));
+          break;
+        case HOEL_COL_TYPE_DOUBLE:
+          json_object_set_new(j_data, fields[col].name, json_real(((struct _h_type_double *)h_data->t_data)->value));
+          break;
+        case HOEL_COL_TYPE_TEXT:
+          json_object_set_new(j_data, fields[col].name, json_string(((struct _h_type_text *)h_data->t_data)->value));
+          break;
+        case HOEL_COL_TYPE_DATE:
+          strftime (date_stamp, sizeof(date_stamp), "%FT%TZ", &((struct _h_type_datetime *)h_data->t_data)->value);
+          json_object_set_new(j_data, fields[col].name, json_string(date_stamp));
+          break;
+        case HOEL_COL_TYPE_BLOB:
+          json_object_set_new(j_data, fields[col].name, json_stringn(((struct _h_type_blob *)h_data->t_data)->value, ((struct _h_type_blob *)h_data->t_data)->length));
+          break;
+        case HOEL_COL_TYPE_NULL:
+          json_object_set_new(j_data, fields[col].name, json_null());
+          break;
+      }
+      h_clean_data_full(h_data);
+    }
+    json_array_append_new(*j_result, j_data);
+    j_data = NULL;
+  }
+  mysql_free_result(result);
   
   return H_OK;
 }
@@ -674,6 +828,54 @@ int h_execute_query_pgsql(const struct _h_connection * conn, const char * query,
   PQclear(res);
   return H_OK;
 }
+
+/**
+ * h_execute_query_json_pgsql
+ * Execute a query on a pgsql connection, set the returned values in the json results
+ * Should not be executed by the user because all parameters are supposed to be correct
+ * return H_OK on success
+ */
+int h_execute_query_json_pgsql(const struct _h_connection * conn, const char * query, json_t ** j_result) {
+  PGresult *res;
+  int nfields, ntuples, i, j;
+  json_t * j_data;
+  
+  if (j_result == NULL) {
+    return H_ERROR_PARAMS;
+  }
+  
+  *j_result = json_array();
+  if (*j_result == NULL) {
+    return H_ERROR_MEMORY;
+  }
+  
+  res = PQexec(((struct _h_pgsql *)conn->connection)->db_handle, query);
+  if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+    return H_ERROR_QUERY;
+  }
+  nfields = PQnfields(res);
+  ntuples = PQntuples(res);
+
+  for(i = 0; i < ntuples; i++) {
+    j_data = json_object();
+    if (j_data == NULL) {
+      PQclear(res);
+      return H_ERROR_MEMORY;
+    }
+    for(j = 0; j < nfields; j++) {
+      char * val = PQgetvalue(res, i, j);
+      if (val == NULL || strlen(val) == 0) {
+        json_object_set_new(j_data, PQfname(res, j), json_null());
+      } else {
+        json_object_set_new(j_data, PQfname(res, j), json_string(PQgetvalue(res, i, j)));
+      }
+    }
+    json_array_append_new(*j_result, j_data);
+    j_data = NULL;
+  }
+  PQclear(res);
+  return H_OK;
+}
 #endif
 
 /**
@@ -683,11 +885,7 @@ int h_execute_query_pgsql(const struct _h_connection * conn, const char * query,
  */
 int h_query_insert(const struct _h_connection * conn, const char * query) {
   if (conn != NULL && conn->connection != NULL && query != NULL && strcasestr(query, "insert") != NULL) {
-    if (conn->enabled) {
-      return h_execute_query(conn, query, NULL);
-    } else {
-      return H_ERROR_DISABLED;
-    }
+    return h_execute_query(conn, query, NULL);
   } else {
     return H_ERROR_PARAMS;
   }
@@ -701,36 +899,35 @@ int h_query_insert(const struct _h_connection * conn, const char * query) {
 struct _h_data * h_last_insert_id(const struct _h_connection * conn) {
   struct _h_data * data = NULL;
   if (conn != NULL && conn->connection != NULL) {
-    if (conn->enabled) {
-      if (0) {
-        // Not happening
+    if (0) {
+      // Not happening
 #ifdef _HOEL_SQLITE
-      } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
-        int last_id = sqlite3_last_insert_rowid(((struct _h_sqlite *)conn->connection)->db_handle);
-        if (last_id > 0) {
-          data = h_new_data_int(last_id);
-        } else {
-          data = h_new_data_null();
-        }
-#endif
-#ifdef _HOEL_MARIADB
-      } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
-        int last_id = mysql_insert_id(((struct _h_mariadb *)conn->connection)->db_handle);
-        if (last_id > 0) {
-          data = h_new_data_int(last_id);
-        } else {
-          data = h_new_data_null();
-        }
-#endif
-#ifdef _HOEL_PGSQL
-      } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
-        // TODO
-        // Not possible ?
-        data = h_new_data_null();
-#endif
+    } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
+      int last_id = sqlite3_last_insert_rowid(((struct _h_sqlite *)conn->connection)->db_handle);
+      printf("row id is %d\n", last_id);
+      if (last_id > 0) {
+        data = h_new_data_int(last_id);
       } else {
         data = h_new_data_null();
       }
+#endif
+#ifdef _HOEL_MARIADB
+    } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
+      int last_id = mysql_insert_id(((struct _h_mariadb *)conn->connection)->db_handle);
+      if (last_id > 0) {
+        data = h_new_data_int(last_id);
+      } else {
+        data = h_new_data_null();
+      }
+#endif
+#ifdef _HOEL_PGSQL
+    } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
+      // TODO
+      // Not possible ?
+      data = h_new_data_null();
+#endif
+    } else {
+      data = h_new_data_null();
     }
   }
   return data;
@@ -743,11 +940,7 @@ struct _h_data * h_last_insert_id(const struct _h_connection * conn) {
  */
 int h_query_update(const struct _h_connection * conn, const char * query) {
   if (conn != NULL && conn->connection != NULL && query != NULL && strcasestr(query, "update") != NULL) {
-    if (conn->enabled) {
-      return h_execute_query(conn, query, NULL);
-    } else {
-      return H_ERROR_DISABLED;
-    }
+    return h_execute_query(conn, query, NULL);
   } else {
     return H_ERROR_PARAMS;
   }
@@ -760,11 +953,7 @@ int h_query_update(const struct _h_connection * conn, const char * query) {
  */
 int h_query_delete(const struct _h_connection * conn, const char * query) {
   if (conn != NULL && conn->connection != NULL && query != NULL && strcasestr(query, "delete") != NULL) {
-    if (conn->enabled) {
-      return h_execute_query(conn, query, NULL);
-    } else {
-      return H_ERROR_DISABLED;
-    }
+    return h_execute_query(conn, query, NULL);
   } else {
     return H_ERROR_PARAMS;
   }
@@ -777,11 +966,20 @@ int h_query_delete(const struct _h_connection * conn, const char * query) {
  */
 int h_query_select(const struct _h_connection * conn, const char * query, struct _h_result * result) {
   if (conn != NULL && conn->connection != NULL && query != NULL && strcasestr(query, "select") != NULL) {
-    if (conn->enabled) {
-      return h_execute_query(conn, query, result);
-    } else {
-      return H_ERROR_DISABLED;
-    }
+    return h_execute_query(conn, query, result);
+  } else {
+    return H_ERROR_PARAMS;
+  }
+}
+
+/**
+ * h_query_select_json
+ * Execute a select query, set the returned values in the json results
+ * return H_OK on success
+ */
+int h_query_select_json(const struct _h_connection * conn, const char * query, json_t ** j_result) {
+  if (conn != NULL && conn->connection != NULL && query != NULL && strcasestr(query, "select") != NULL) {
+    return h_execute_query_json(conn, query, j_result);
   } else {
     return H_ERROR_PARAMS;
   }
