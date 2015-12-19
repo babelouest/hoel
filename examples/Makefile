@@ -16,30 +16,30 @@
 CC=gcc
 CFLAGS=-c -Wall -D_REENTRANT $(ADDITIONALFLAGS)
 HOEL_LOCATION=../src
-LIBS=-lc -lhoel -L$(HOEL_LOCATION)
+LIBS=-lc -lhoel -ljansson -L$(HOEL_LOCATION)
 ADDITIONALFLAGS=-O3
 
-all: example_sqlite3 example_mariadb example_pgsql
+all: libhoel.so example_sqlite3 example_mariadb example_pgsql
 
 clean:
 	rm -f *.o example_sqlite3 example_mariadb example_pgsql
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 
-debug: example_sqlite3 example_mariadb example_pgsql
+debug: libhoel.so example_sqlite3 example_mariadb example_pgsql
 
 libhoel.so:
 	cd $(HOEL_LOCATION) && $(MAKE) debug
 
-example_sqlite3: libhoel.so example_sqlite3.c
+example_sqlite3: example_sqlite3.c
 	$(CC) -c $(CFLAGS) example_sqlite3.c
 	$(CC) -o example_sqlite3 example_sqlite3.o $(LIBS)
 
-example_mariadb: libhoel.so example_mariadb.c
+example_mariadb: example_mariadb.c
 	$(CC) -c $(CFLAGS) example_mariadb.c
 	$(CC) -o example_mariadb example_mariadb.o $(LIBS)
 
-example_pgsql: libhoel.so example_pgsql.c
+example_pgsql: example_pgsql.c
 	$(CC) -c $(CFLAGS) example_pgsql.c
 	$(CC) -o example_pgsql example_pgsql.o $(LIBS)
 

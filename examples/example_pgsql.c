@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <jansson.h>
 #define _HOEL_PGSQL
 #include "../src/hoel.h"
 
@@ -41,8 +42,9 @@ void print_result(struct _h_result result) {
 int main(int argc, char ** argv) {
   struct _h_result result;
   struct _h_connection * conn;
-  char * query = "select * from test", * connectionstring = "host=localhost dbname=test user=test password=test";
+  char * query = "select * from test", * connectionstring = "host=localhost dbname=test user=test password=test", * dump = NULL;
   int res;
+  json_t * j_result;
   
   conn = h_connect_pgsql(connectionstring);
   
@@ -53,6 +55,17 @@ int main(int argc, char ** argv) {
     h_clean_result(&result);
   } else {
     printf("Error executing query: %d\n", res);
+  }
+  
+  res = h_execute_query_json(conn, query, &j_result);
+  
+  if (res == H_OK) {
+    dump = json_dumps(j_result, JSON_INDENT(2));
+    printf("json result is\n%s\n", dump);
+    json_decref(j_result);
+    free(dump);
+  } else {
+    printf("Error executing json query: %d\n", res);
   }
   h_close_db(conn);
   return h_clean_connection(conn);
