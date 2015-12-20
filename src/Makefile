@@ -35,7 +35,7 @@ LIBS_PGSQL=-lpq
 CFLAGS=-c -fPIC -Wall $(HAS_SQLITE) $(HAS_MARIADB) $(HAS_PGSQL) -D_REENTRANT $(ADDITIONALFLAGS) -I/usr/include/postgresql/ -I/usr/include/mysql/
 LIBS=-lc -ljansson $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MYSQL)
 OUTPUT=libhoel.so
-VERSION=0.7
+VERSION=0.8
 PREFIX=/usr/local
 
 all: release
