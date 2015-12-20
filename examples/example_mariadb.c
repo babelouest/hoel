@@ -9,7 +9,7 @@
  * because life is too short to use 3 lines instead of 1
  * but don't forget to free the returned value after use!
  */
-char * msprintf(const char * message, ...) {
+char * cur_msprintf(const char * message, ...) {
   va_list argp, argp_cpy;
   size_t out_len = 0;
   char * out = NULL;
@@ -70,7 +70,7 @@ void unit_tests(struct _h_connection * conn) {
   char * query = NULL, * sanitized = NULL, * dump, * table = "other_test";
   int last_id = -1;
   
-  query = msprintf("select * from %s", table);
+  query = cur_msprintf("select * from %s", table);
   if (h_query_select_json(conn, query, &j_result) == H_OK) {
     dump = json_dumps(j_result, JSON_INDENT(2));
     printf("json result is\n%s\n", dump);
@@ -82,12 +82,12 @@ void unit_tests(struct _h_connection * conn) {
   free(query);
   
   sanitized = h_escape_string(conn, "Hodor son of H'rtp'ss");
-  query = msprintf("insert into %s (name, age, temperature, birthdate) values ('%s', %d, %f, '%s')", table, sanitized, 33, 37.2, "1412-03-08 12:00:22");
+  query = cur_msprintf("insert into %s (name, age, temperature, birthdate) values ('%s', %d, %f, '%s')", table, sanitized, 33, 37.2, "1412-03-08 12:00:22");
   printf("insert result: %d\n", h_query_insert(conn, query));
   free(sanitized);
   free(query);
   
-  query = msprintf("select * from %s", table);
+  query = cur_msprintf("select * from %s", table);
   if (h_query_select(conn, query, &result) == H_OK) {
     print_result(result);
     h_clean_result(&result);
@@ -97,13 +97,13 @@ void unit_tests(struct _h_connection * conn) {
   free(query);
   
   sanitized = h_escape_string(conn, "Ygritte you know nothing");
-  query = msprintf("insert into %s (name, age, temperature, birthdate) values ('%s', %d, %f, '%s')", table, sanitized, 25, 30.1, "1424-06-01 03:05:11");
+  query = cur_msprintf("insert into %s (name, age, temperature, birthdate) values ('%s', %d, %f, '%s')", table, sanitized, 25, 30.1, "1424-06-01 03:05:11");
   printf("insert result: %d\n", h_query_insert(conn, query));
   printf("COIN COIN COIN\n");
   free(sanitized);
   free(query);
   
-  query = msprintf("select * from %s", table);
+  query = cur_msprintf("select * from %s", table);
   if (h_query_select(conn, query, &result) == H_OK) {
     print_result(result);
     h_clean_result(&result);
@@ -113,7 +113,7 @@ void unit_tests(struct _h_connection * conn) {
   free(query);
   
   sanitized = h_escape_string(conn, "Littlefinger I will betray you");
-  query = msprintf("insert into %s (name, age, temperature, birthdate) values ('%s', %d, %f, '%s')", table, sanitized, 44, 40.5, "1410-10-25 14:30:00");
+  query = cur_msprintf("insert into %s (name, age, temperature, birthdate) values ('%s', %d, %f, '%s')", table, sanitized, 44, 40.5, "1410-10-25 14:30:00");
   printf("insert result: %d\n", h_query_insert(conn, query));
   free(sanitized);
   free(query);
@@ -124,7 +124,7 @@ void unit_tests(struct _h_connection * conn) {
   h_clean_data_full(data);
   printf("last id is %d\n", last_id);
   
-  query = msprintf("select * from %s", table);
+  query = cur_msprintf("select * from %s", table);
   if (h_query_select(conn, query, &result) == H_OK) {
     print_result(result);
     h_clean_result(&result);
@@ -134,12 +134,12 @@ void unit_tests(struct _h_connection * conn) {
   free(query);
   
   sanitized = h_escape_string(conn, "Littlefinger I am nothing");
-  query = msprintf("update %s set name='%s' where id=%d", table, sanitized, last_id);
+  query = cur_msprintf("update %s set name='%s' where id=%d", table, sanitized, last_id);
   printf("update result: %d\n", h_query_update(conn, query));
   free(sanitized);
   free(query);
 
-  query = msprintf("select * from %s", table);
+  query = cur_msprintf("select * from %s", table);
   if (h_query_select(conn, query, &result) == H_OK) {
     print_result(result);
     h_clean_result(&result);
@@ -148,11 +148,11 @@ void unit_tests(struct _h_connection * conn) {
   }
   free(query);
   
-  query = msprintf("delete from %s where id=%d", table, last_id);
+  query = cur_msprintf("delete from %s where id=%d", table, last_id);
   printf("delete result: %d\n", h_query_delete(conn, query));
   free(query);
   
-  query = msprintf("select * from %s", table);
+  query = cur_msprintf("select * from %s", table);
   if (h_query_select_json(conn, query, &j_result) == H_OK) {
     dump = json_dumps(j_result, JSON_INDENT(2));
     printf("json result is\n%s\n", dump);
@@ -167,10 +167,12 @@ void unit_tests(struct _h_connection * conn) {
 int main(int argc, char ** argv) {
   struct _h_connection * conn;
   
-  conn = h_connect_mariadb("localhost", "test_hoel", "test_hoel", "test_hoel", 0, NULL);
+  conn = h_connect_mariadb("lohot", "test_hoel", "test_hoel", "test_hoel", 0, NULL);
   
   if (conn != NULL) {
     unit_tests(conn);
+  } else {
+    printf("Error connecting to database\n");
   }
   h_close_db(conn);
   return h_clean_connection(conn);

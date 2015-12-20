@@ -281,6 +281,38 @@ int h_query_select(const struct _h_connection * conn, const char * query, struct
 int h_query_select_json(const struct _h_connection * conn, const char * query, json_t ** j_result);
 
 /**
+ * h_select
+ * Execute a select using a table name for the FROM keyword, a json array for the columns, and a json object for the WHERE keyword
+ * where must be a where_type json object
+ * return H_OK on success
+ */
+int h_select(const struct _h_connection * conn, const char * table, json_t * cols, json_t * where, json_t ** j_result);
+
+/**
+ * h_insert
+ * Insert data using a json object and a table name
+ * data must be an object or an array of objects
+ * return H_OK on success
+ */
+int h_insert(const struct _h_connection * conn, const char * table, json_t * data);
+
+/**
+ * h_update
+ * Update data using a json object and a table name and a where clause
+ * data must be an object, where must be a where_type json object
+ * return H_OK on success
+ */
+int h_update(const struct _h_connection * conn, const char * table, json_t * set, json_t * where);
+
+/**
+ * h_delete
+ * Delete data using a table name and a where clause
+ * where must be a where_type json object
+ * return H_OK on success
+ */
+int h_delete(const struct _h_connection * conn, const char * table, json_t * where);
+
+/**
  * Add a new struct _h_data * to an array of struct _h_data *, which already has cols columns
  * return H_OK on success
  */

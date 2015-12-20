@@ -21,6 +21,7 @@
  * 
  */
 #include "hoel.h"
+#include <ctype.h>
 
 #ifdef _HOEL_SQLITE
 // SQLite library includes
@@ -40,6 +41,28 @@
 
 // Get rid of noisy warning
 char * strcasestr (const char *haystack, const char *needle);
+
+/**
+ * Implementation of sprintf that return a malloc'd char *  with the string construction
+ * because life is too short to use 3 lines instead of 1
+ * but don't forget to free the returned value after use!
+ */
+char * msprintf(const char * message, ...) {
+  va_list argp, argp_cpy;
+  size_t out_len = 0;
+  char * out = NULL;
+  va_start(argp, message);
+  va_copy(argp_cpy, argp);
+  out_len = vsnprintf(NULL, 0, message, argp);
+  out = malloc(out_len+sizeof(char));
+  if (out == NULL) {
+    return NULL;
+  }
+  vsnprintf(out, (out_len+sizeof(char)), message, argp_cpy);
+  va_end(argp);
+  va_end(argp_cpy);
+  return out;
+}
 
 #ifdef _HOEL_SQLITE
 /**
@@ -983,6 +1006,372 @@ int h_query_select_json(const struct _h_connection * conn, const char * query, j
   } else {
     return H_ERROR_PARAMS;
   }
+}
+
+/**
+ * trim_whitespace_and_double_quotes
+ * Return the string without its beginning and ending whitespaces or double quotes
+ */
+char * trim_whitespace_and_double_quotes(char *str) {
+  char *end;
+
+  // Trim leading space
+  while(isspace(*str) || *str == '"') str++;
+
+  if(*str == 0)  // All spaces?
+    return str;
+
+  // Trim trailing space
+  end = str + strlen(str) - 1;
+  while(end > str && (isspace(*end) || *end == '"')) end--;
+
+  // Write new null terminator
+  *(end+1) = 0;
+
+  return str;
+}
+
+/**
+ * Builds an insert query from a json object and a table name
+ * Returned value must be free'd after use
+ */
+char * h_get_insert_query_from_json_object(const struct _h_connection * conn, json_t * data, const char * table) {
+  char * key, * insert_cols, * insert_data, * escape, * dump, * to_return;
+  int i = 0;
+  json_t * value;
+  
+  json_object_foreach(data, key, value) {
+    if (i == 0) {
+      dump = json_dumps(value, JSON_ENCODE_ANY);
+      escape = h_escape_string(conn, trim_whitespace_and_double_quotes(dump));
+      free(dump);
+      if (escape == NULL) {
+        return NULL;
+      }
+      insert_cols = malloc(strlen(key)+1);
+      if (insert_cols == NULL) {
+        free(escape);
+        return NULL;
+      }
+      insert_data = malloc(strlen(escape)+3);
+      if (insert_data == NULL) {
+        free(escape);
+        free(insert_cols);
+        return NULL;
+      }
+      strcpy(insert_cols, key);
+      strcpy(insert_data, "'");
+      strcat(insert_data, escape);
+      strcat(insert_data, "'");
+    } else {
+      dump = json_dumps(value, JSON_ENCODE_ANY);
+      escape = h_escape_string(conn, trim_whitespace_and_double_quotes(dump));
+      free(dump);
+      if (escape == NULL) {
+        free(insert_cols);
+        free(insert_data);
+        return NULL;
+      }
+      insert_cols = realloc(insert_cols, strlen(insert_cols)+strlen(key)+2);
+      if (insert_cols == NULL) {
+        free(escape);
+        free(insert_data);
+        return NULL;
+      }
+      insert_data = realloc(insert_data, strlen(insert_data)+strlen(escape)+4);
+      if (insert_data == NULL) {
+        free(escape);
+        free(insert_cols);
+        return NULL;
+      }
+      strcat(insert_cols, ",");
+      strcat(insert_cols, key);
+      strcat(insert_data, ",");
+      strcat(insert_data, "'");
+      strcat(insert_data, escape);
+      strcat(insert_data, "'");
+    }
+    free(escape);
+    i++;
+  }
+  to_return = msprintf("INSERT INTO %s (%s) VALUES (%s)", table, insert_cols, insert_data);
+  free(insert_cols);
+  free(insert_data);
+  return to_return;
+}
+
+/**
+ * h_insert
+ * Insert data as a json object in table name on the specified conenction
+ * data must be an object or an array of objects
+ * return H_OK on success
+ */
+int h_insert(const struct _h_connection * conn, const char * table, json_t * data) {
+  char * query;
+  size_t index;
+  json_t * j_row;
+  int res;
+  
+  if (conn != NULL && data != NULL && table != NULL) {
+    // Construct query
+    switch json_typeof(data) {
+      case JSON_OBJECT:
+        query = h_get_insert_query_from_json_object(conn, data, table);
+        if (query != NULL) {
+          res = h_query_insert(conn, query);
+          free(query);
+          return res;
+        } else {
+          return H_ERROR_MEMORY;
+        }
+        break;
+      case JSON_ARRAY:
+        json_array_foreach(data, index, j_row) {
+          query = h_get_insert_query_from_json_object(conn, j_row, table);
+          if (query != NULL) {
+            if (h_query_insert(conn, query) != H_OK) {
+              return H_ERROR_QUERY;
+            }
+          } else {
+            return H_ERROR_MEMORY;
+          }
+        }
+        return H_OK;
+        break;
+      default:
+        return H_ERROR_PARAMS;
+        break;
+    }
+  } else {
+    return H_ERROR_PARAMS;
+  }
+}
+
+/**
+ * Generates a where clause based on a json object
+ * the where object is a simple object like
+ * {
+ *   col1: "value1",
+ *   col2: "value2"
+ * }
+ * the output is a WHERE query will use only '=' and 'AND' keywords
+ * col1='value1' AND col2='value2'
+ * return a char * containing the WHERE clause, NULL on error
+ * the returned value must be free'd after use
+ */
+char * h_get_where_clause_from_json_object(const struct _h_connection * conn, json_t * where) {
+  const char * key;
+  json_t * value;
+  char * where_clause = NULL, * dump = NULL, * escape = NULL, * tmp;
+  int i = 0;
+  if (conn == NULL) {
+    return NULL;
+  } else if (where == NULL || (json_is_object(where) && json_object_size(where) == 0)) {
+    return strdup("1=1");
+  } else {
+    json_object_foreach(where, key, value) {
+      if (!json_is_string(value) && !json_is_real(value) && !json_is_integer(value)) {
+        free(where_clause);
+        return NULL;
+      } else {
+        dump = json_dumps(value, JSON_ENCODE_ANY);
+        escape = h_escape_string(conn, trim_whitespace_and_double_quotes(dump));
+        if (i == 0) {
+          where_clause = msprintf("%s='%s'", key, escape);
+          if (where_clause == NULL) {
+            return NULL;
+          }
+          i = 1;
+        } else {
+          tmp = msprintf("%s AND %s='%s'", where_clause, key, escape);
+          free(where_clause);
+          if (tmp == NULL) {
+            return NULL;
+          }
+          where_clause = tmp;
+        }
+        free(dump);
+        free(escape);
+      }
+    }
+    return where_clause;
+  }
+}
+
+/**
+ * Generates a set clause based on a json object
+ * the where object is a simple object like
+ * {
+ *   col1: "value1",
+ *   col2: "value2"
+ * }
+ * the output is a WHERE query will use only '=' and 'AND' keywords
+ * col1='value1', col2='value2'
+ * return a char * containing the WHERE clause, NULL on error
+ * the returned value must be free'd after use
+ */
+char * h_get_set_clause_from_json_object(const struct _h_connection * conn, json_t * set) {
+  const char * key;
+  json_t * value;
+  char * where_clause = NULL, * dump = NULL, * escape = NULL, * tmp;
+  int i = 0;
+  
+  if (conn == NULL || set == NULL || !json_is_object(set)) {
+    return NULL;
+  } else {
+    json_object_foreach(set, key, value) {
+      if (!json_is_string(value) && !json_is_real(value) && !json_is_integer(value)) {
+        free(where_clause);
+        return NULL;
+      } else {
+        dump = json_dumps(value, JSON_ENCODE_ANY);
+        escape = h_escape_string(conn, trim_whitespace_and_double_quotes(dump));
+        if (i == 0) {
+          where_clause = msprintf("%s='%s'", key, escape);
+          if (where_clause == NULL) {
+            return NULL;
+          }
+          i = 1;
+        } else {
+          tmp = msprintf("%s, %s='%s'", where_clause, key, escape);
+          free(where_clause);
+          if (tmp == NULL) {
+            return NULL;
+          }
+          where_clause = tmp;
+        }
+        free(dump);
+        free(escape);
+      }
+    }
+    return where_clause;
+  }
+}
+
+/**
+ * h_select
+ * Execute a select using a table name for the FROM keyword, a json array for the columns, and a json object for the WHERE keyword
+ * where must be a where_type json object
+ * return H_OK on success
+ */
+int h_select(const struct _h_connection * conn, const char * table, json_t * cols, json_t * where, json_t ** j_result) {
+  char * query, * columns, * where_clause, * tmp, * dump, * escape;
+  size_t index;
+  json_t * value;
+  int res;
+
+  where_clause = h_get_where_clause_from_json_object(conn, where);
+  if (where_clause == NULL) {
+    return H_ERROR_PARAMS;
+  }
+  if (cols == NULL) {
+    columns = strdup("*");
+  } else if (json_is_array(cols)) {
+    json_array_foreach(cols, index, value) {
+      if (json_is_string(value)) {
+        if (index == 0) {
+          dump = json_dumps(value, JSON_ENCODE_ANY);
+          escape = h_escape_string(conn, trim_whitespace_and_double_quotes(dump));
+          if (escape == NULL) {
+            free(where_clause);
+            return H_ERROR_MEMORY;
+          }
+          columns = strdup(escape);
+        } else {
+          dump = json_dumps(value, JSON_ENCODE_ANY);
+          escape = h_escape_string(conn, trim_whitespace_and_double_quotes(dump));
+          if (escape == NULL) {
+            free(where_clause);
+            free(columns);
+            free(dump);
+            return H_ERROR_MEMORY;
+          }
+          tmp = msprintf("%s, %s", columns, escape);
+          if (tmp == NULL) {
+            free(where_clause);
+            free(columns);
+            free(dump);
+            free(escape);
+            return H_ERROR_MEMORY;
+          }
+          free(columns);
+          columns = tmp;
+        }
+        free(dump);
+        free(escape);
+      } else {
+        free(where_clause);
+        return H_ERROR_PARAMS;
+      }
+    }
+  } else {
+    free(where_clause);
+    return H_ERROR_PARAMS;
+  }
+  query = msprintf("SELECT %s FROM %s WHERE %s", columns, table, where_clause);
+  if (query == NULL) {
+    free(columns);
+    free(where_clause);
+    return H_ERROR_MEMORY;
+  } else {
+    res = h_query_select_json(conn, query, j_result);
+    free(columns);
+    free(where_clause);
+    free(query);
+    return res;
+  }
+}
+
+/**
+ * h_update
+ * Update data using a json object and a table name and a where clause
+ * data must be an object, where must be a where_type json object
+ * return H_OK on success
+ */
+int h_update(const struct _h_connection * conn, const char * table, json_t * set, json_t * where) {
+  char * set_clause, * where_clause, * query;
+  int res;
+  
+  set_clause = h_get_set_clause_from_json_object(conn, set);
+  where_clause = h_get_where_clause_from_json_object(conn, where);
+  
+  if (set_clause == NULL || where_clause == NULL) {
+    return H_ERROR_PARAMS;
+  }
+  query = msprintf("UPDATE %s SET %s WHERE %s", table, set_clause, where_clause);
+  free(set_clause);
+  free(where_clause);
+  if (query == NULL) {
+    return H_ERROR_MEMORY;
+  }
+  res = h_query_update(conn, query);
+  free(query);
+  return res;
+}
+
+/**
+ * h_delete
+ * Delete data using a table name and a where clause
+ * where must be a where_type json object
+ * return H_OK on success
+ */
+int h_delete(const struct _h_connection * conn, const char * table, json_t * where) {
+  char * where_clause, * query;
+  int res;
+  
+  where_clause = h_get_where_clause_from_json_object(conn, where);
+  
+  if (where_clause == NULL) {
+    return H_ERROR_PARAMS;
+  }
+  query = msprintf("DELETE FROM %s WHERE %s", table, where_clause);
+  free(where_clause);
+  if (query == NULL) {
+    return H_ERROR_MEMORY;
+  }
+  res = h_query_delete(conn, query);
+  free(query);
+  return res;
 }
 
 /**

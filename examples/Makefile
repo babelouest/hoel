@@ -19,14 +19,14 @@ HOEL_LOCATION=../src
 LIBS=-lc -lhoel -ljansson -L$(HOEL_LOCATION)
 ADDITIONALFLAGS=-O3
 
-all: libhoel.so example_sqlite3 example_mariadb example_pgsql
+all: libhoel.so example_sqlite3 example_mariadb example_pgsql example_mariadb_json
 
 clean:
 	rm -f *.o example_sqlite3 example_mariadb example_pgsql
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 
-debug: libhoel.so example_sqlite3 example_mariadb example_pgsql
+debug: libhoel.so example_sqlite3 example_mariadb example_pgsql example_mariadb_json
 
 libhoel.so:
 	cd $(HOEL_LOCATION) && $(MAKE) debug
@@ -43,7 +43,12 @@ example_pgsql: example_pgsql.c
 	$(CC) -c $(CFLAGS) example_pgsql.c
 	$(CC) -o example_pgsql example_pgsql.o $(LIBS)
 
+example_mariadb_json: example_mariadb_json.c
+	$(CC) -c $(CFLAGS) example_mariadb_json.c
+	$(CC) -o example_mariadb_json example_mariadb_json.o $(LIBS)
+
 test: example_sqlite3 example_mariadb example_pgsql
 	LD_LIBRARY_PATH=$(HOEL_LOCATION):${LD_LIBRARY_PATH} ./example_pgsql
 	LD_LIBRARY_PATH=$(HOEL_LOCATION):${LD_LIBRARY_PATH} ./example_mariadb
 	LD_LIBRARY_PATH=$(HOEL_LOCATION):${LD_LIBRARY_PATH} ./example_sqlite3
+	LD_LIBRARY_PATH=$(HOEL_LOCATION):${LD_LIBRARY_PATH} ./example_mariadb_json
