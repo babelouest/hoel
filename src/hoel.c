@@ -1036,7 +1036,7 @@ char * trim_whitespace_and_double_quotes(char *str) {
  * Returned value must be free'd after use
  */
 char * h_get_insert_query_from_json_object(const struct _h_connection * conn, json_t * data, const char * table) {
-  char * key, * insert_cols, * insert_data, * escape, * dump, * to_return;
+  char * key, * insert_cols = NULL, * insert_data = NULL, * escape, * dump, * to_return;
   int i = 0;
   json_t * value;
   
@@ -1255,7 +1255,7 @@ char * h_get_set_clause_from_json_object(const struct _h_connection * conn, json
  * return H_OK on success
  */
 int h_select(const struct _h_connection * conn, const char * table, json_t * cols, json_t * where, json_t ** j_result) {
-  char * query, * columns, * where_clause, * tmp, * dump, * escape;
+  char * query, * columns = NULL, * where_clause = NULL, * tmp, * dump, * escape;
   size_t index;
   json_t * value;
   int res;
