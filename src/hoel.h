@@ -167,13 +167,6 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe);
  */
 int h_execute_query(const struct _h_connection * conn, const char * query, struct _h_result * result);
 
-/**
- * h_execute_query_json
- * Execute a query, set the returned values in the json result
- * return H_OK on success
- */
-int h_execute_query_json(const struct _h_connection * conn, const char * query, json_t ** j_result);
-
 #ifdef _HOEL_SQLITE
 /**
  * h_execute_query_sqlite
@@ -272,6 +265,13 @@ int h_query_delete(const struct _h_connection * conn, const char * query);
  * return H_OK on success
  */
 int h_query_select(const struct _h_connection * conn, const char * query, struct _h_result * result);
+
+/**
+ * h_execute_query_json
+ * Execute a query, set the returned values in the json result
+ * return H_OK on success
+ */
+int h_execute_query_json(const struct _h_connection * conn, const char * query, json_t ** j_result);
 
 /**
  * h_query_select_json

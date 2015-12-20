@@ -12,6 +12,12 @@ Download hoel from github repository.
 $ git clone https://github.com/babelouest/hoel.git
 ```
 
+Install [Jansson](http://www.digip.org/jansson/) library for json manipulation. On a debian-based platform, run the following command:
+
+```shell
+$ sudo apt-get install libjansson-dev
+```
+
 Compile hoel for the backend you need:
 
 ## SQLite 3
@@ -278,6 +284,54 @@ int h_query_delete(const struct _h_connection * conn, const char * query);
  * return H_OK on success
  */
 int h_query_select(const struct _h_connection * conn, const char * query, struct _h_result * result);
+```
+### Simple json queries
+
+Hoel allows to use json objects for simple queries with `jansson` library. In the simple json queries, json objects are used for `where` clauses, `set` clauses, `select` columns and `results`.
+
+**Warning**: In the simple json queries, the where clause can only be of the form `WHERE a=b AND c=d`, no other operators are available. If you want to have a json output with a less simple query, you can build your query and use the function `h_execute_query_json`.
+
+The simple json queries functions are:
+
+```c
+/**
+ * h_execute_query_json
+ * Execute a query, set the returned values in the json result
+ * return H_OK on success
+ */
+int h_execute_query_json(const struct _h_connection * conn, const char * query, json_t ** j_result);
+
+/**
+ * h_select
+ * Execute a select using a table name for the FROM keyword, a json array for the columns, and a json object for the WHERE keyword
+ * where must be a where_type json object
+ * return H_OK on success
+ */
+int h_select(const struct _h_connection * conn, const char * table, json_t * cols, json_t * where, json_t ** j_result);
+
+/**
+ * h_insert
+ * Insert data using a json object and a table name
+ * data must be an object or an array of objects
+ * return H_OK on success
+ */
+int h_insert(const struct _h_connection * conn, const char * table, json_t * data);
+
+/**
+ * h_update
+ * Update data using a json object and a table name and a where clause
+ * data must be an object, where must be a where_type json object
+ * return H_OK on success
+ */
+int h_update(const struct _h_connection * conn, const char * table, json_t * set, json_t * where);
+
+/**
+ * h_delete
+ * Delete data using a table name and a where clause
+ * where must be a where_type json object
+ * return H_OK on success
+ */
+int h_delete(const struct _h_connection * conn, const char * table, json_t * where);
 ```
 
 ### Example source code

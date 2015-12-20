@@ -167,7 +167,7 @@ void unit_tests(struct _h_connection * conn) {
 int main(int argc, char ** argv) {
   struct _h_connection * conn;
   
-  conn = h_connect_mariadb("lohot", "test_hoel", "test_hoel", "test_hoel", 0, NULL);
+  conn = h_connect_mariadb("localhost", "test_hoel", "test_hoel", "test_hoel", 0, NULL);
   
   if (conn != NULL) {
     unit_tests(conn);

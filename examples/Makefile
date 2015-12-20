@@ -22,7 +22,7 @@ ADDITIONALFLAGS=-O3
 all: libhoel.so example_sqlite3 example_mariadb example_pgsql example_mariadb_json
 
 clean:
-	rm -f *.o example_sqlite3 example_mariadb example_pgsql
+	rm -f *.o example_sqlite3 example_mariadb example_pgsql example_mariadb_json
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 
