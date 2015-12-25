@@ -2,14 +2,17 @@
 
 Database abstraction library written in C.
 
-Simple and easy to use database access library. Works with SQLite 3, MariaDB/Mysql and PostgreSQL databases.
+Simple and easy to use database access library. Works with SQLite 3, MariaDB/Mysql and (barely) PostgreSQL databases.
 
 # Installation
 
-Download hoel from github repository.
+Clone, compile and install yder library.
 
 ```shell
-$ git clone https://github.com/babelouest/hoel.git
+$ git clone https://github.com/babelouest/yder.git
+$ cd yder
+$ make
+$ sudo make install
 ```
 
 Install [Jansson](http://www.digip.org/jansson/) library for json manipulation. On a debian-based platform, run the following command:
@@ -18,7 +21,13 @@ Install [Jansson](http://www.digip.org/jansson/) library for json manipulation. 
 $ sudo apt-get install libjansson-dev
 ```
 
-Compile hoel for the backend you need:
+Download hoel from github repository.
+
+```shell
+$ git clone https://github.com/babelouest/hoel.git
+```
+
+Compile hoel for the backend you need, go to hoel source folder, depending on your database backend needs, follow these instructions.
 
 ## SQLite 3
 
@@ -34,7 +43,7 @@ Install libsqlite3-dev and uncomment the following lines in the `src/Makefile`
 Install libmysqlclient-dev and uncomment the following lines in the `src/Makefile`
 
 ```Makefile
-# HAS_MARIADB=-D_HOEL_MARIADB
+# FLAGS_MARIADB=-D_HOEL_MARIADB -I/usr/include/mysql/
 # LIBS_MYSQL=-lmysqlclient
 ```
 
@@ -43,11 +52,17 @@ Install libmysqlclient-dev and uncomment the following lines in the `src/Makefil
 Install libpq-dev and uncomment the following lines in the `src/Makefile`
 
 ```Makefile
-# HAS_PGSQL=-D_HOEL_PGSQL
+# HAS_PGSQL=-D_HOEL_PGSQL -I/usr/include/postgresql/
 # LIBS_PGSQL=-lpq
 ```
 
-You can use different backends at the same time, simply install the required libraries and uncomment all the backend requirements in the `src/Makefile`.
+### Postgre SQL limitations
+
+For some reasons, the Postgre SQL backend has some limitations. The `h_last_insert_id` doesn't work, and a select statement returns only string values. The reason is I couldn't find on the documentation how to implement those...
+
+### Use different backends
+
+You can use different backends at the same time, simply install the required libraries and uncomment all the required backend requirements in the `src/Makefile`.
 
 ## Compile and install
 
@@ -95,7 +110,7 @@ When specified, some functions return `H_OK` on success, and other values otherw
 #define H_ERROR_MEMORY      99 // Error allocating memory
 ```
 
-### Initialization
+### Initialisation
 
 To generate a connection to a database, use its dedicated function
 
@@ -136,7 +151,7 @@ int h_close_db(struct _h_connection * conn);
 
 ### Execute a SQL query
 
-To execute a SQL query, you have can use the function `h_execute_query` which will run the query in the database specified by the parameter conn. If a result parameter is specified, the result of the query (if any) will be stored in the `result` structure.
+To execute a SQL query, you can use the function `h_execute_query` which will run the query in the database specified by the parameter `conn`. If a `result` parameter is specified, the result of the query (if any) will be stored in the `result` structure.
 
 ```c
 /**
@@ -239,6 +254,26 @@ struct _h_type_blob {
 };
 ```
 
+### Clean results or data
+
+To clean a result or a data structure, you can use its dedicated functions:
+
+```c
+/**
+ * h_clean_result
+ * Free all the memory allocated by the struct _h_result
+ * return H_OK on success
+ */
+int h_clean_result(struct _h_result * result);
+
+/**
+ * h_clean_data
+ * Free memory allocated by the struct _h_data
+ * return H_OK on success
+ */
+int h_clean_data(struct _h_data * data);
+```
+
 ### Get last id inserted
 
 If you need the last id generated after an insert query, you can use the following function:
@@ -285,11 +320,51 @@ int h_query_delete(const struct _h_connection * conn, const char * query);
  */
 int h_query_select(const struct _h_connection * conn, const char * query, struct _h_result * result);
 ```
+
 ### Simple json queries
 
 Hoel allows to use json objects for simple queries with `jansson` library. In the simple json queries, json objects are used for `where` clauses, `set` clauses, `select` columns and `results`.
 
-**Warning**: In the simple json queries, the where clause can only be of the form `WHERE a=b AND c=d`, no other operators are available. If you want to have a json output with a less simple query, you can build your query and use the function `h_execute_query_json`.
+#### Where clause construction
+
+A `where` clause is a json object containing a series of clauses. A clause can have 2 different forms:
+
+- `col_name: value`
+- `col_name: {operator: "operator_value", value: value}`
+
+In the first case, `col_name: value`, the clause becomes `col_name = value`.
+
+In the second case, `col_name: {operator: "operator_value", value: value}`, the clause becomes `col_name operator_value value`.
+
+All clauses are separated by an `AND` operator. All clauses values are automatically escaped.
+
+As en axample, here is a json object and its generated where clause:
+
+JSON object:
+```json
+{
+  col1: "value1",
+  col2: 42,
+  col3: {
+    operator: ">=",
+    value: 55.5
+  },
+  col4: {
+    operator: "LIKE",
+    value: "%alu%"
+  }
+}
+```
+
+SQL Where clause:
+```sql
+WHERE col1 = 'value1'
+  AND col2 = 42
+  AND col3 >= 55.5
+  AND col4 LIKE '%alu%'
+```
+
+If you need less simple clauses, you can build it on your own and use the `h_execute_query` or the `h_execute_query_json` functions.
 
 The simple json queries functions are:
 

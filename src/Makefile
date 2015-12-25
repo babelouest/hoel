@@ -21,34 +21,46 @@
 CC=gcc
 
 # uncomment these lines if you want sqlite support
-HAS_SQLITE=-D_HOEL_SQLITE
+FLAGS_SQLITE=-D_HOEL_SQLITE
 LIBS_SQLITE=-lsqlite3
 
 # uncomment these lines if you want sqlite support
-HAS_MARIADB=-D_HOEL_MARIADB
-LIBS_MYSQL=-lmysqlclient
+FLAGS_MARIADB=-D_HOEL_MARIADB -I/usr/include/mysql/
+LIBS_MARIADB=-lmysqlclient
 
 # uncomment these lines if you want sqlite support
-HAS_PGSQL=-D_HOEL_PGSQL
+FLAGS_PGSQL=-D_HOEL_PGSQL -I/usr/include/postgresql/
 LIBS_PGSQL=-lpq
 
-CFLAGS=-c -fPIC -Wall $(HAS_SQLITE) $(HAS_MARIADB) $(HAS_PGSQL) -D_REENTRANT $(ADDITIONALFLAGS) -I/usr/include/postgresql/ -I/usr/include/mysql/
-LIBS=-lc -ljansson $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MYSQL)
-OUTPUT=libhoel.so
-VERSION=0.8
 PREFIX=/usr/local
+CFLAGS=-c -fPIC -Wall -I$(PREFIX)/include $(FLAGS_SQLITE) $(FLAGS_MARIADB) $(FLAGS_PGSQL) -D_REENTRANT $(ADDITIONALFLAGS)
+LIBS=-lc -ljansson -lyder $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MARIADB)
+OUTPUT=libhoel.so
+VERSION=0.9
 
 all: release
 
 hoel.o: hoel.c hoel.h
 	$(CC) $(CFLAGS) hoel.c
 
-libhoel.so: hoel.o
-	$(CC) -shared -Wl,-soname,$(OUTPUT) -o $(OUTPUT).$(VERSION) hoel.o $(LIBS)
+hoel-sqlite.o: hoel-sqlite.c hoel.h
+	$(CC) $(CFLAGS) hoel-sqlite.c
+
+hoel-mariadb.o: hoel-mariadb.c hoel.h
+	$(CC) $(CFLAGS) hoel-mariadb.c
+
+hoel-pgsql.o: hoel-pgsql.c hoel.h
+	$(CC) $(CFLAGS) hoel-pgsql.c
+
+hoel-simple-json.o: hoel-simple-json.c hoel.h
+	$(CC) $(CFLAGS) hoel-simple-json.c
+
+libhoel.so: hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
+	$(CC) -shared -Wl,-soname,$(OUTPUT) -o $(OUTPUT).$(VERSION) hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o $(LIBS)
 	ln -sf $(OUTPUT).$(VERSION) $(OUTPUT)
 
 clean:
-	rm -f *.o *.so $(OUTPUT) $(OUTPUT).$(VERSION)
+	rm -f *.o *.so $(OUTPUT) $(OUTPUT).*
 
 install: all
 	cp $(OUTPUT).$(VERSION) $(PREFIX)/lib

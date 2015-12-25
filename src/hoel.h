@@ -24,13 +24,15 @@
 #ifndef __HOEL_H__
 #define __HOEL_H__
 
-#define HOEL_VERSION 0.8
+#define HOEL_VERSION 0.9
 
 #include <string.h>
 #include <jansson.h>
 
 #define __USE_XOPEN
 #include <time.h>
+
+#include <yder.h>
 
 #ifdef _HOEL_SQLITE
 #define HOEL_DB_TYPE_SQLITE  0
@@ -119,33 +121,6 @@ struct _h_result {
   struct _h_data ** data;
 };
 
-#ifdef _HOEL_SQLITE
-/**
- * h_connect_sqlite
- * Opens a database connection to a sqlite3 db file
- * return pointer to a struct _h_connection * on sucess, NULL on error
- */
-struct _h_connection * h_connect_sqlite(const char * db_path);
-#endif
-
-#ifdef _HOEL_MARIADB
-/**
- * h_connect_mariadb
- * Opens a database connection to a mariadb server
- * return pointer to a struct _h_connection * on sucess, NULL on error
- */
-struct _h_connection * h_connect_mariadb(char * host, char * user, char * passwd, char * db, unsigned int port, char * unix_socket);
-#endif
-
-#ifdef _HOEL_PGSQL
-/**
- * h_connect_pgsql
- * Opens a database connection to a PostgreSQL server
- * return pointer to a struct _h_connection * on sucess, NULL on error
- */
-struct _h_connection * h_connect_pgsql(char * conninfo);
-#endif
-
 /**
  * Close a database connection
  * return H_OK on success
@@ -166,70 +141,6 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe);
  * return H_OK on success
  */
 int h_execute_query(const struct _h_connection * conn, const char * query, struct _h_result * result);
-
-#ifdef _HOEL_SQLITE
-/**
- * h_execute_query_sqlite
- * Execute a query on a sqlite connection, set the result structure with the returned values
- * Should not be executed by the user because all parameters are supposed to be correct
- * if result is NULL, the query is executed but no value will be returned
- * return H_OK on success
- */
-int h_execute_query_sqlite(const struct _h_connection * conn, const char * query, struct _h_result * result);
-
-/**
- * h_execute_query_json_sqlite
- * Execute a query on a sqlite connection, set the returned values in the json result
- * Should not be executed by the user because all parameters are supposed to be correct
- * return H_OK on success
- */
-int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * query, json_t ** j_result);
-#endif
-
-#ifdef _HOEL_MARIADB
-/**
- * h_execute_query_mariadb
- * Execute a query on a mariadb connection, set the result structure with the returned values
- * Should not be executed by the user because all parameters are supposed to be correct
- * if result is NULL, the query is executed but no value will be returned
- * return H_OK on success
- */
-int h_execute_query_mariadb(const struct _h_connection * conn, const char * query, struct _h_result * result);
-
-/**
- * h_execute_query_json_mariadb
- * Execute a query on a mariadb connection, set the returned values in the json result
- * Should not be executed by the user because all parameters are supposed to be correct
- * return H_OK on success
- */
-int h_execute_query_json_mariadb(const struct _h_connection * conn, const char * query, json_t ** j_result);
-
-/**
- * h_get_mariadb_value
- * convert value into a struct _h_data * depening on the m_type given
- * returned value must be free'd with h_clean_data_full after use
- */
-struct _h_data * h_get_mariadb_value(const char * value, const unsigned long length, const int m_type);
-#endif
-
-#ifdef _HOEL_PGSQL
-/**
- * h_execute_query_pgsql
- * Execute a query on a pgsql connection, set the result structure with the returned values
- * Should not be executed by the user because all parameters are supposed to be correct
- * if result is NULL, the query is executed but no value will be returned
- * return H_OK on success
- */
-int h_execute_query_pgsql(const struct _h_connection * conn, const char * query, struct _h_result * result);
-
-/**
- * h_execute_query_json_pgsql
- * Execute a query on a pgsql connection, set the returned values in the json results
- * Should not be executed by the user because all parameters are supposed to be correct
- * return H_OK on success
- */
-int h_execute_query_json_pgsql(const struct _h_connection * conn, const char * query, json_t ** j_result);
-#endif
 
 /**
  * h_query_insert
@@ -393,5 +304,145 @@ int h_clean_data_full(struct _h_data * data);
  * return H_OK on success
  */
 int h_clean_connection(struct _h_connection * conn);
+
+/**
+ * trim_whitespace_and_double_quotes
+ * Return the string without its beginning and ending whitespaces or double quotes
+ */
+char * trim_whitespace_and_double_quotes(char *str);
+
+/**
+ * Implementation of sprintf that return a malloc'd char *  with the string construction
+ * because life is too short to use 3 lines instead of 1
+ * but don't forget to free the returned value after use!
+ */
+char * h_msprintf(const char * message, ...);
+
+#ifdef _HOEL_SQLITE
+/**
+ * h_connect_sqlite
+ * Opens a database connection to a sqlite3 db file
+ * return pointer to a struct _h_connection * on sucess, NULL on error
+ */
+struct _h_connection * h_connect_sqlite(const char * db_path);
+
+/**
+ * close a sqlite3 connection
+ */
+void h_close_sqlite(struct _h_connection * conn);
+
+/**
+ * escape a string
+ * returned value must be free'd after use
+ */
+char * h_escape_string_sqlite(const struct _h_connection * conn, const char * unsafe);
+
+/**
+ * Return the id of the last inserted value
+ */
+int h_last_insert_id_sqlite(const struct _h_connection * conn);
+
+/**
+ * h_execute_query_sqlite
+ * Execute a query on a sqlite connection, set the result structure with the returned values
+ * Should not be executed by the user because all parameters are supposed to be correct
+ * if result is NULL, the query is executed but no value will be returned
+ * return H_OK on success
+ */
+int h_execute_query_sqlite(const struct _h_connection * conn, const char * query, struct _h_result * result);
+
+/**
+ * h_execute_query_json_sqlite
+ * Execute a query on a sqlite connection, set the returned values in the json result
+ * Should not be executed by the user because all parameters are supposed to be correct
+ * return H_OK on success
+ */
+int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * query, json_t ** j_result);
+#endif
+
+#ifdef _HOEL_MARIADB
+/**
+ * h_connect_mariadb
+ * Opens a database connection to a mariadb server
+ * return pointer to a struct _h_connection * on sucess, NULL on error
+ */
+struct _h_connection * h_connect_mariadb(char * host, char * user, char * passwd, char * db, unsigned int port, char * unix_socket);
+
+/**
+ * close connection to database
+ */
+void h_close_mariadb(struct _h_connection * conn);
+
+/**
+ * escape a string
+ * returned value must be free'd after use
+ */
+char * h_escape_string_mariadb(const struct _h_connection * conn, const char * unsafe);
+
+/**
+ * Return the id of the last inserted value
+ */
+int h_last_insert_id_mariadb(const struct _h_connection * conn);
+/**
+ * h_execute_query_mariadb
+ * Execute a query on a mariadb connection, set the result structure with the returned values
+ * Should not be executed by the user because all parameters are supposed to be correct
+ * if result is NULL, the query is executed but no value will be returned
+ * return H_OK on success
+ */
+int h_execute_query_mariadb(const struct _h_connection * conn, const char * query, struct _h_result * result);
+
+/**
+ * h_execute_query_json_mariadb
+ * Execute a query on a mariadb connection, set the returned values in the json result
+ * Should not be executed by the user because all parameters are supposed to be correct
+ * return H_OK on success
+ */
+int h_execute_query_json_mariadb(const struct _h_connection * conn, const char * query, json_t ** j_result);
+
+/**
+ * h_get_mariadb_value
+ * convert value into a struct _h_data * depening on the m_type given
+ * returned value must be free'd with h_clean_data_full after use
+ */
+struct _h_data * h_get_mariadb_value(const char * value, const unsigned long length, const int m_type);
+#endif
+
+#ifdef _HOEL_PGSQL
+/**
+ * h_connect_pgsql
+ * Opens a database connection to a PostgreSQL server
+ * return pointer to a struct _h_connection * on sucess, NULL on error
+ */
+struct _h_connection * h_connect_pgsql(char * conninfo);
+
+/**
+ * h_execute_query_pgsql
+ * Execute a query on a pgsql connection, set the result structure with the returned values
+ * Should not be executed by the user because all parameters are supposed to be correct
+ * if result is NULL, the query is executed but no value will be returned
+ * return H_OK on success
+ */
+int h_execute_query_pgsql(const struct _h_connection * conn, const char * query, struct _h_result * result);
+
+/**
+ * h_execute_query_json_pgsql
+ * Execute a query on a pgsql connection, set the returned values in the json results
+ * Should not be executed by the user because all parameters are supposed to be correct
+ * return H_OK on success
+ */
+int h_execute_query_json_pgsql(const struct _h_connection * conn, const char * query, json_t ** j_result);
+
+/**
+ * close a pgsql connection
+ */
+void h_close_pgsql(struct _h_connection * conn);
+
+/**
+ * escape a string
+ * returned value must be free'd after use
+ */
+char * h_escape_string_pgsql(const struct _h_connection * conn, const char * unsafe);
+#endif
 
 #endif // __HOEL_H__

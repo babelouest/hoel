@@ -7,7 +7,22 @@
 void unit_tests(struct _h_connection * conn) {
   json_t * j_result, * j_where, * j_array, * j_set, * j_data;
   char * table = "other_test", * dump;
+  int res;
   
+  j_where = json_object();
+  json_object_set_new(j_where, "age", json_pack("{sssi}", "operator", ">", "value", 46));
+  json_object_set_new(j_where, "name", json_pack("{ssss}", "operator", "LIKE", "value", "Hodor%"));
+  res = h_select(conn, table, NULL, j_where, &j_result);
+  if (res == H_OK) {
+    dump = json_dumps(j_result, JSON_INDENT(2));
+    printf("json select result is\n%s\n", dump);
+    json_decref(j_result);
+    free(dump);
+  } else {
+    printf("Error executing select query: %d\n", res);
+  }
+  json_decref(j_where);
+
   j_data = json_object();
   json_object_set_new(j_data, "name", json_string("Ned Stark Winter is coming"));
   json_object_set_new(j_data, "age", json_integer(45));
@@ -55,7 +70,7 @@ void unit_tests(struct _h_connection * conn) {
   json_decref(j_where);
   
   j_where = json_object();
-  json_object_set_new(j_where, "age", json_integer(47));
+  json_object_set_new(j_where, "age", json_pack("{sssi}", "operator", ">", "value", 46));
   if (h_delete(conn, table, j_where) == H_OK) {
     printf("Delete query OK\n");
     if (h_select(conn, table, NULL, NULL, &j_result) == H_OK) {
@@ -75,7 +90,9 @@ void unit_tests(struct _h_connection * conn) {
 int main(int argc, char ** argv) {
   struct _h_connection * conn;
   
-  conn = h_connect_mariadb("localhost", "test_hoel", "test_hoel", "test_hoel", 0, NULL);
+  y_init_logs("test_hoel_mariadb_json", Y_LOG_MODE_CONSOLE, Y_LOG_LEVEL_DEBUG, NULL, "Starting test_hoel_mariadb_json");
+  
+  conn = h_connect_mariadb("lohot", "test_hoel", "test_hoel", "test_hoel", 0, NULL);
   
   if (conn != NULL) {
     unit_tests(conn);
@@ -83,5 +100,8 @@ int main(int argc, char ** argv) {
     printf("Error connecting to database\n");
   }
   h_close_db(conn);
+  
+  y_close_logs();
+  
   return h_clean_connection(conn);
 }

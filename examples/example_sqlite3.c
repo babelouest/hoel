@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <jansson.h>
+#include <yder.h>
 #define _HOEL_SQLITE
 #include "../src/hoel.h"
 
@@ -59,18 +60,16 @@ void print_result(struct _h_result result) {
 }
 
 void unit_tests(struct _h_connection * conn) {
-  json_t * j_result;
   struct _h_result result;
   struct _h_data * data;
-  char * query = NULL, * sanitized = NULL, * dump, * table = "test";
+  char * query = NULL, * sanitized = NULL, * table = "other_test";
   int last_id = -1;
   
   query = msprintf("select * from %s", table);
-  if (h_query_select_json(conn, query, &j_result) == H_OK) {
-    dump = json_dumps(j_result, JSON_INDENT(2));
-    printf("json result is\n%s\n", dump);
-    json_decref(j_result);
-    free(dump);
+  if (h_query_select(conn, query, &result) == H_OK) {
+    printf("\n\nIteration 1, initial status");
+    print_result(result);
+    h_clean_result(&result);
   } else {
     printf("Error executing query\n");
   }
@@ -84,6 +83,7 @@ void unit_tests(struct _h_connection * conn) {
   
   query = msprintf("select * from %s", table);
   if (h_query_select(conn, query, &result) == H_OK) {
+    printf("\n\nIteration 2, after insert");
     print_result(result);
     h_clean_result(&result);
   } else {
@@ -99,6 +99,7 @@ void unit_tests(struct _h_connection * conn) {
   
   query = msprintf("select * from %s", table);
   if (h_query_select(conn, query, &result) == H_OK) {
+    printf("\n\nIteration 3, after insert");
     print_result(result);
     h_clean_result(&result);
   } else {
@@ -120,6 +121,7 @@ void unit_tests(struct _h_connection * conn) {
   
   query = msprintf("select * from %s", table);
   if (h_query_select(conn, query, &result) == H_OK) {
+    printf("\n\nIteration 4, after inserts and last id");
     print_result(result);
     h_clean_result(&result);
   } else {
@@ -135,6 +137,7 @@ void unit_tests(struct _h_connection * conn) {
 
   query = msprintf("select * from %s", table);
   if (h_query_select(conn, query, &result) == H_OK) {
+    printf("\n\nIteration 5, after update");
     print_result(result);
     h_clean_result(&result);
   } else {
@@ -147,26 +150,30 @@ void unit_tests(struct _h_connection * conn) {
   free(query);
   
   query = msprintf("select * from %s", table);
-  if (h_query_select_json(conn, query, &j_result) == H_OK) {
-    dump = json_dumps(j_result, JSON_INDENT(2));
-    printf("json result is\n%s\n", dump);
-    json_decref(j_result);
-    free(dump);
+  if (h_query_select(conn, query, &result) == H_OK) {
+    printf("\n\nIteration 6, after delete");
+    print_result(result);
+    h_clean_result(&result);
   } else {
     printf("Error executing query\n");
   }
   free(query);
+  
 }
 
 int main(int argc, char ** argv) {
   struct _h_connection * conn;
   char * db_file = "/tmp/test.db";
   
+  y_init_logs("test_hoel_sqlite3", Y_LOG_MODE_CONSOLE, Y_LOG_LEVEL_DEBUG, NULL, "Starting test_hoel_sqlite3");
   conn = h_connect_sqlite(db_file);
   
   if (conn != NULL) {
     unit_tests(conn);
   }
   h_close_db(conn);
+  
+  y_close_logs();
+  
   return h_clean_connection(conn);
 }
