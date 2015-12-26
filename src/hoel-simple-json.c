@@ -22,6 +22,202 @@
  */
 #include "hoel.h"
 
+// internal functions declarations
+char * h_get_insert_query_from_json_object(const struct _h_connection * conn, json_t * data, const char * table);
+char * h_get_where_clause_from_json_object(const struct _h_connection * conn, json_t * where);
+char * h_get_set_clause_from_json_object(const struct _h_connection * conn, json_t * set);
+
+/**
+ * h_insert
+ * Insert data as a json object in table name on the specified conenction
+ * data must be an object or an array of objects
+ * return H_OK on success
+ */
+int h_insert(const struct _h_connection * conn, const char * table, json_t * data, char ** generated_query) {
+  char * query;
+  size_t index;
+  json_t * j_row;
+  int res;
+  
+  if (conn != NULL && data != NULL && table != NULL) {
+    // Construct query
+    switch json_typeof(data) {
+      case JSON_OBJECT:
+        query = h_get_insert_query_from_json_object(conn, data, table);
+        if (query != NULL) {
+          if (generated_query != NULL) {
+            *generated_query = strdup(query);
+          }
+          res = h_query_insert(conn, query);
+          free(query);
+          return res;
+        } else {
+          return H_ERROR_MEMORY;
+        }
+        break;
+      case JSON_ARRAY:
+        json_array_foreach(data, index, j_row) {
+          query = h_get_insert_query_from_json_object(conn, j_row, table);
+          if (query != NULL) {
+            if (generated_query != NULL && index == 0) {
+              // Export just the first query
+              *generated_query = strdup(query);
+            }
+            res = h_query_insert(conn, query);
+            free(query);
+            if (res != H_OK) {
+              return H_ERROR_QUERY;
+            }
+          } else {
+            return H_ERROR_MEMORY;
+          }
+        }
+        return H_OK;
+        break;
+      default:
+        return H_ERROR_PARAMS;
+        break;
+    }
+  } else {
+    return H_ERROR_PARAMS;
+  }
+}
+
+/**
+ * h_select
+ * Execute a select using a table name for the FROM keyword, a json array for the columns, and a json object for the WHERE keyword
+ * where must be a where_type json object
+ * return H_OK on success
+ */
+int h_select(const struct _h_connection * conn, const char * table, json_t * cols, json_t * where, json_t ** j_result, char ** generated_query) {
+  char * query, * columns = NULL, * where_clause = NULL, * tmp, * dump, * escape;
+  size_t index;
+  json_t * value;
+  int res;
+
+  where_clause = h_get_where_clause_from_json_object(conn, where);
+  if (where_clause == NULL) {
+    return H_ERROR_PARAMS;
+  }
+  if (cols == NULL) {
+    columns = strdup("*");
+  } else if (json_is_array(cols)) {
+    json_array_foreach(cols, index, value) {
+      if (json_is_string(value)) {
+        if (index == 0) {
+          dump = json_dumps(value, JSON_ENCODE_ANY);
+          escape = h_escape_string(conn, trim_whitespace_and_double_quotes(dump));
+          if (escape == NULL) {
+            free(where_clause);
+            return H_ERROR_MEMORY;
+          }
+          columns = strdup(escape);
+        } else {
+          dump = json_dumps(value, JSON_ENCODE_ANY);
+          escape = h_escape_string(conn, trim_whitespace_and_double_quotes(dump));
+          if (escape == NULL) {
+            free(where_clause);
+            free(columns);
+            free(dump);
+            return H_ERROR_MEMORY;
+          }
+          tmp = h_msprintf("%s, %s", columns, escape);
+          if (tmp == NULL) {
+            free(where_clause);
+            free(columns);
+            free(dump);
+            free(escape);
+            return H_ERROR_MEMORY;
+          }
+          free(columns);
+          columns = tmp;
+        }
+        free(dump);
+        free(escape);
+      } else {
+        free(where_clause);
+        return H_ERROR_PARAMS;
+      }
+    }
+  } else {
+    free(where_clause);
+    return H_ERROR_PARAMS;
+  }
+  query = h_msprintf("SELECT %s FROM %s WHERE %s", columns, table, where_clause);
+  if (query == NULL) {
+    free(columns);
+    free(where_clause);
+    return H_ERROR_MEMORY;
+  } else {
+    if (generated_query != NULL) {
+      *generated_query = strdup(query);
+    }
+    res = h_query_select_json(conn, query, j_result);
+    free(columns);
+    free(where_clause);
+    free(query);
+    return res;
+  }
+}
+
+/**
+ * h_update
+ * Update data using a json object and a table name and a where clause
+ * data must be an object, where must be a where_type json object
+ * return H_OK on success
+ */
+int h_update(const struct _h_connection * conn, const char * table, json_t * set, json_t * where, char ** generated_query) {
+  char * set_clause, * where_clause, * query;
+  int res;
+  
+  set_clause = h_get_set_clause_from_json_object(conn, set);
+  where_clause = h_get_where_clause_from_json_object(conn, where);
+  
+  if (set_clause == NULL || where_clause == NULL) {
+    return H_ERROR_PARAMS;
+  }
+  query = h_msprintf("UPDATE %s SET %s WHERE %s", table, set_clause, where_clause);
+  free(set_clause);
+  free(where_clause);
+  if (query == NULL) {
+    return H_ERROR_MEMORY;
+  }
+  if (generated_query != NULL) {
+    *generated_query = strdup(query);
+  }
+  res = h_query_update(conn, query);
+  free(query);
+  return res;
+}
+
+/**
+ * h_delete
+ * Delete data using a table name and a where clause
+ * where must be a where_type json object
+ * return H_OK on success
+ */
+int h_delete(const struct _h_connection * conn, const char * table, json_t * where, char ** generated_query) {
+  char * where_clause, * query;
+  int res;
+  
+  where_clause = h_get_where_clause_from_json_object(conn, where);
+  
+  if (where_clause == NULL) {
+    return H_ERROR_PARAMS;
+  }
+  query = h_msprintf("DELETE FROM %s WHERE %s", table, where_clause);
+  free(where_clause);
+  if (query == NULL) {
+    return H_ERROR_MEMORY;
+  }
+  if (generated_query != NULL) {
+    *generated_query = strdup(query);
+  }
+  res = h_query_delete(conn, query);
+  free(query);
+  return res;
+}
+
 /**
  * Builds an insert query from a json object and a table name
  * Returned value must be free'd after use
@@ -89,53 +285,6 @@ char * h_get_insert_query_from_json_object(const struct _h_connection * conn, js
   free(insert_cols);
   free(insert_data);
   return to_return;
-}
-
-/**
- * h_insert
- * Insert data as a json object in table name on the specified conenction
- * data must be an object or an array of objects
- * return H_OK on success
- */
-int h_insert(const struct _h_connection * conn, const char * table, json_t * data) {
-  char * query;
-  size_t index;
-  json_t * j_row;
-  int res;
-  
-  if (conn != NULL && data != NULL && table != NULL) {
-    // Construct query
-    switch json_typeof(data) {
-      case JSON_OBJECT:
-        query = h_get_insert_query_from_json_object(conn, data, table);
-        if (query != NULL) {
-          res = h_query_insert(conn, query);
-          free(query);
-          return res;
-        } else {
-          return H_ERROR_MEMORY;
-        }
-        break;
-      case JSON_ARRAY:
-        json_array_foreach(data, index, j_row) {
-          query = h_get_insert_query_from_json_object(conn, j_row, table);
-          if (query != NULL) {
-            if (h_query_insert(conn, query) != H_OK) {
-              return H_ERROR_QUERY;
-            }
-          } else {
-            return H_ERROR_MEMORY;
-          }
-        }
-        return H_OK;
-        break;
-      default:
-        return H_ERROR_PARAMS;
-        break;
-    }
-  } else {
-    return H_ERROR_PARAMS;
-  }
 }
 
 /**
@@ -258,130 +407,4 @@ char * h_get_set_clause_from_json_object(const struct _h_connection * conn, json
     }
     return where_clause;
   }
-}
-
-/**
- * h_select
- * Execute a select using a table name for the FROM keyword, a json array for the columns, and a json object for the WHERE keyword
- * where must be a where_type json object
- * return H_OK on success
- */
-int h_select(const struct _h_connection * conn, const char * table, json_t * cols, json_t * where, json_t ** j_result) {
-  char * query, * columns = NULL, * where_clause = NULL, * tmp, * dump, * escape;
-  size_t index;
-  json_t * value;
-  int res;
-
-  where_clause = h_get_where_clause_from_json_object(conn, where);
-  if (where_clause == NULL) {
-    return H_ERROR_PARAMS;
-  }
-  if (cols == NULL) {
-    columns = strdup("*");
-  } else if (json_is_array(cols)) {
-    json_array_foreach(cols, index, value) {
-      if (json_is_string(value)) {
-        if (index == 0) {
-          dump = json_dumps(value, JSON_ENCODE_ANY);
-          escape = h_escape_string(conn, trim_whitespace_and_double_quotes(dump));
-          if (escape == NULL) {
-            free(where_clause);
-            return H_ERROR_MEMORY;
-          }
-          columns = strdup(escape);
-        } else {
-          dump = json_dumps(value, JSON_ENCODE_ANY);
-          escape = h_escape_string(conn, trim_whitespace_and_double_quotes(dump));
-          if (escape == NULL) {
-            free(where_clause);
-            free(columns);
-            free(dump);
-            return H_ERROR_MEMORY;
-          }
-          tmp = h_msprintf("%s, %s", columns, escape);
-          if (tmp == NULL) {
-            free(where_clause);
-            free(columns);
-            free(dump);
-            free(escape);
-            return H_ERROR_MEMORY;
-          }
-          free(columns);
-          columns = tmp;
-        }
-        free(dump);
-        free(escape);
-      } else {
-        free(where_clause);
-        return H_ERROR_PARAMS;
-      }
-    }
-  } else {
-    free(where_clause);
-    return H_ERROR_PARAMS;
-  }
-  query = h_msprintf("SELECT %s FROM %s WHERE %s", columns, table, where_clause);
-  if (query == NULL) {
-    free(columns);
-    free(where_clause);
-    return H_ERROR_MEMORY;
-  } else {
-    res = h_query_select_json(conn, query, j_result);
-    free(columns);
-    free(where_clause);
-    free(query);
-    return res;
-  }
-}
-
-/**
- * h_update
- * Update data using a json object and a table name and a where clause
- * data must be an object, where must be a where_type json object
- * return H_OK on success
- */
-int h_update(const struct _h_connection * conn, const char * table, json_t * set, json_t * where) {
-  char * set_clause, * where_clause, * query;
-  int res;
-  
-  set_clause = h_get_set_clause_from_json_object(conn, set);
-  where_clause = h_get_where_clause_from_json_object(conn, where);
-  
-  if (set_clause == NULL || where_clause == NULL) {
-    return H_ERROR_PARAMS;
-  }
-  query = h_msprintf("UPDATE %s SET %s WHERE %s", table, set_clause, where_clause);
-  free(set_clause);
-  free(where_clause);
-  if (query == NULL) {
-    return H_ERROR_MEMORY;
-  }
-  res = h_query_update(conn, query);
-  free(query);
-  return res;
-}
-
-/**
- * h_delete
- * Delete data using a table name and a where clause
- * where must be a where_type json object
- * return H_OK on success
- */
-int h_delete(const struct _h_connection * conn, const char * table, json_t * where) {
-  char * where_clause, * query;
-  int res;
-  
-  where_clause = h_get_where_clause_from_json_object(conn, where);
-  
-  if (where_clause == NULL) {
-    return H_ERROR_PARAMS;
-  }
-  query = h_msprintf("DELETE FROM %s WHERE %s", table, where_clause);
-  free(where_clause);
-  if (query == NULL) {
-    return H_ERROR_MEMORY;
-  }
-  res = h_query_delete(conn, query);
-  free(query);
-  return res;
 }

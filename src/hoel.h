@@ -197,7 +197,7 @@ int h_query_select_json(const struct _h_connection * conn, const char * query, j
  * where must be a where_type json object
  * return H_OK on success
  */
-int h_select(const struct _h_connection * conn, const char * table, json_t * cols, json_t * where, json_t ** j_result);
+int h_select(const struct _h_connection * conn, const char * table, json_t * cols, json_t * where, json_t ** j_result, char ** generated_query);
 
 /**
  * h_insert
@@ -205,7 +205,7 @@ int h_select(const struct _h_connection * conn, const char * table, json_t * col
  * data must be an object or an array of objects
  * return H_OK on success
  */
-int h_insert(const struct _h_connection * conn, const char * table, json_t * data);
+int h_insert(const struct _h_connection * conn, const char * table, json_t * data, char ** generated_query);
 
 /**
  * h_update
@@ -213,7 +213,7 @@ int h_insert(const struct _h_connection * conn, const char * table, json_t * dat
  * data must be an object, where must be a where_type json object
  * return H_OK on success
  */
-int h_update(const struct _h_connection * conn, const char * table, json_t * set, json_t * where);
+int h_update(const struct _h_connection * conn, const char * table, json_t * set, json_t * where, char ** generated_query);
 
 /**
  * h_delete
@@ -221,7 +221,7 @@ int h_update(const struct _h_connection * conn, const char * table, json_t * set
  * where must be a where_type json object
  * return H_OK on success
  */
-int h_delete(const struct _h_connection * conn, const char * table, json_t * where);
+int h_delete(const struct _h_connection * conn, const char * table, json_t * where, char ** generated_query);
 
 /**
  * Add a new struct _h_data * to an array of struct _h_data *, which already has cols columns
