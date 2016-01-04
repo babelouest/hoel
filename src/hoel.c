@@ -4,7 +4,7 @@
  * 
  * hoel.c: main functions
  * 
- * Copyright 2015 Nicolas Mora <mail@babelouest.org>
+ * Copyright 2015-2016 Nicolas Mora <mail@babelouest.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -280,11 +280,11 @@ int h_query_insert(const struct _h_connection * conn, const char * query) {
 }
 
 /**
- * h_last_insert_id
+ * h_query_last_insert_id
  * return the id of the last inserted value
  * return H_OK on success
  */
-struct _h_data * h_last_insert_id(const struct _h_connection * conn) {
+struct _h_data * h_query_last_insert_id(const struct _h_connection * conn) {
   struct _h_data * data = NULL;
   if (conn != NULL && conn->connection != NULL) {
     if (0) {
@@ -348,7 +348,7 @@ int h_query_delete(const struct _h_connection * conn, const char * query) {
 }
 
 /**
- * h_execute_query
+ * h_query_select
  * Execute a select query, set the result structure with the returned values
  * return H_OK on success
  */
