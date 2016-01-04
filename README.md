@@ -415,8 +415,8 @@ The simple json queries functions are:
  * h_select
  * Execute a select query
  * Uses a json_t * parameter for the query parameters
- * Store the result of the query in j_result if specified
- * Duplicate the generated query in generated_query if specified
+ * Store the result of the query in j_result if specified. j_result must be decref'd after use
+ * Duplicate the generated query in generated_query if specified, must be free'd after use
  * return H_OK on success
  */
 int h_select(const struct _h_connection * conn, const json_t * j_query, json_t ** j_result, char ** generated_query);
@@ -425,7 +425,7 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
  * h_insert
  * Execute an insert query
  * Uses a json_t * parameter for the query parameters
- * Duplicate the generated query in generated_query if specified
+ * Duplicate the generated query in generated_query if specified, must be free'd after use
  * return H_OK on success
  */
 int h_insert(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
@@ -442,7 +442,7 @@ json_t * h_last_insert_id(const struct _h_connection * conn);
  * h_update
  * Execute an update query
  * Uses a json_t * parameter for the query parameters
- * Duplicate the generated query in generated_query if specified
+ * Duplicate the generated query in generated_query if specified, must be free'd after use
  * return H_OK on success
  */
 int h_update(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
@@ -451,7 +451,7 @@ int h_update(const struct _h_connection * conn, const json_t * j_query, char ** 
  * h_delete
  * Execute a delete query
  * Uses a json_t * parameter for the query parameters
- * Duplicate the generated query in generated_query if specified
+ * Duplicate the generated query in generated_query if specified, must be free'd after use
  * return H_OK on success
  */
 int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);

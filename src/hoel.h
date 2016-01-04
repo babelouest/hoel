@@ -195,8 +195,8 @@ int h_query_select_json(const struct _h_connection * conn, const char * query, j
  * json queries
  * The following functions run a sql query based on a json_t * object for input parameters
  * The input parameter is called j_query
- * If the j_query is well-formed, the query is executed and if available and specified, the result is stored into the j_result object.
- * Also, the sql query generated is stored into generated_query if specified
+ * If the j_query is well-formed, the query is executed and if available and specified, the result is stored into the j_result object. j_result must be decref'd after use
+ * Also, the sql query generated is stored into generated_query if specified, generated_query must be free'd after use
  * The query execution result is returned by the function
  * 
  * A j_query has the following form
@@ -241,8 +241,8 @@ int h_query_select_json(const struct _h_connection * conn, const char * query, j
  * h_select
  * Execute a select query
  * Uses a json_t * parameter for the query parameters
- * Store the result of the query in j_result if specified
- * Duplicate the generated query in generated_query if specified
+ * Store the result of the query in j_result if specified. j_result must be decref'd after use
+ * Duplicate the generated query in generated_query if specified, must be free'd after use
  * return H_OK on success
  */
 int h_select(const struct _h_connection * conn, const json_t * j_query, json_t ** j_result, char ** generated_query);
@@ -251,7 +251,7 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
  * h_insert
  * Execute an insert query
  * Uses a json_t * parameter for the query parameters
- * Duplicate the generated query in generated_query if specified
+ * Duplicate the generated query in generated_query if specified, must be free'd after use
  * return H_OK on success
  */
 int h_insert(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
@@ -268,7 +268,7 @@ json_t * h_last_insert_id(const struct _h_connection * conn);
  * h_update
  * Execute an update query
  * Uses a json_t * parameter for the query parameters
- * Duplicate the generated query in generated_query if specified
+ * Duplicate the generated query in generated_query if specified, must be free'd after use
  * return H_OK on success
  */
 int h_update(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
@@ -277,7 +277,7 @@ int h_update(const struct _h_connection * conn, const json_t * j_query, char ** 
  * h_delete
  * Execute a delete query
  * Uses a json_t * parameter for the query parameters
- * Duplicate the generated query in generated_query if specified
+ * Duplicate the generated query in generated_query if specified, must be free'd after use
  * return H_OK on success
  */
 int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
