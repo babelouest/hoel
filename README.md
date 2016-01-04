@@ -2,7 +2,7 @@
 
 Database abstraction library written in C.
 
-Simple and easy to use database access library. Works with SQLite 3, MariaDB/Mysql and (barely) PostgreSQL databases.
+Simple and easy to use database access library. Works with SQLite 3, MariaDB/Mysql and (barely) PostgreSQL databases. Uses a json-based language with `jansson` to execute simples queries based on one table.
 
 # Installation
 
@@ -58,7 +58,7 @@ Install libpq-dev and uncomment the following lines in the `src/Makefile`
 
 ### Postgre SQL limitations
 
-For some reasons, the Postgre SQL backend has some limitations. The `h_last_insert_id` doesn't work, and a select statement returns only string values. The reason is I couldn't find on the documentation how to implement those...
+For some reasons, the Postgre SQL backend has some limitations. The `*_last_insert_id` functions don't work, and a select statement returns only string values. The reason is I couldn't find on the documentation how to implement those, if it's possible...
 
 ### Use different backends
 
@@ -280,11 +280,11 @@ If you need the last id generated after an insert query, you can use the followi
 
 ```c
 /**
- * h_last_insert_id
+ * h_query_last_insert_id
  * return the id of the last inserted value
  * return a pointer to `struct _h_data *` on success, NULL otherwise.
  */
-struct _h_data * h_last_insert_id(const struct _h_connection * conn);
+struct _h_data * h_query_last_insert_id(const struct _h_connection * conn);
 ```
 
 ### Additional query functions
@@ -323,7 +323,46 @@ int h_query_select(const struct _h_connection * conn, const char * query, struct
 
 ### Simple json queries
 
-Hoel allows to use json objects for simple queries with `jansson` library. In the simple json queries, json objects are used for `where` clauses, `set` clauses, `select` columns and `results`.
+Hoel allows to use json objects for simple queries with `jansson` library. In the simple json queries, a json object called `json_t * j_query` used to generate the query.
+
+A `j_query` has the following form:
+```json
+{
+  "table": "table_name"             // String, mandatory, the table name where the query is executed
+  "columns": ["col1", "col2"]       // Array of strings, available for h_select, optional. If not specified,will be used
+  "order_by": "col_name [asc|desc]" // String, available for h_select, specify the order by clause, optional
+  "limit": integer_value            // Integer, available for h_select, specify the limit value, optional
+  "offset"                          // Integer, available for h_select, specify the limit value, optional but available only if limit is set
+  "values": [{                      // json object or json array of json objects, available for h_insert, mandatory, specify the values to update
+    "col1": "value1",               // Generates col1='value1' for an update query
+    "col2": value_integer,          // Generates col2=value_integer for an update query
+    "col3", "value3",               // Generates col3='value3' for an update query
+    "col4", null                    // Generates col4=NULL for an update query
+  }]
+  "set": {                          // json object, available for h_update, mandatory, specify the values to update
+    "col1": "value1",               // Generates col1='value1' for an update query
+    "col2": value_integer,          // Generates col2=value_integer for an update query
+    "col3", "value3",               // Generates col3='value3' for an update query
+    "col4", null                    // Generates col4=NULL for an update query
+  }
+  "where": {                        // json object, available for h_select, h_update and h_delete, mandatory, specify the where clause. All clauses are separated with an AND operator
+    "col1": "value1",               // Generates col1='value1'
+    "col2": value_integer,          // Generates col2=value_integer
+    "col3": null,                   // Generates col3=NULL
+    "col4", {                       // Generates col4<12
+      "operator": "<",
+      "value": 12
+    },
+    "col5", {                       // Generates col5 IS NOT NULL
+      "operator": "NOT NULL"
+    },
+    "col6", {                       // Generates col6 LIKE '%value6%'
+      "operator": "raw",
+      "value": "LIKE '%value6%'"
+    }
+  }
+}
+```
 
 #### Where clause construction
 
@@ -332,11 +371,14 @@ A `where` clause is a json object containing a series of clauses. A clause can h
 - `col_name: value`
 - `col_name: {operator: "operator_value", value: value}`
 
-In the first case, `col_name: value`, the clause becomes `col_name = value`.
+In the first case, `col_name: value`, the clause becomes `col_name = value`. Value is always escaped.
 
-In the second case, `col_name: {operator: "operator_value", value: value}`, the clause becomes `col_name operator_value value`.
+In the second case, `col_name: {operator: "operator_value", value: value}`, depending on the `operator` value, the clause can have different forms:
+- `operator: "NOT NULL"`, the clause becomes `col_name IS NOT NULL`
+- `operator: "raw"`, the `value` value becomes the clause itself, not escaped, for example in `{ "operator": "raw", "value": "LIKE '%value6%'" }`, the clause becomes `col6 LIKE '%value6%'`
+- otherwise, the clause becomes `col_name operator value`, value is escaped
 
-All clauses are separated by an `AND` operator. All clauses values are automatically escaped.
+All clauses are separated by an `AND` operator.
 
 As en axample, here is a json object and its generated where clause:
 
@@ -350,8 +392,8 @@ JSON object:
     value: 55.5
   },
   col4: {
-    operator: "LIKE",
-    value: "%alu%"
+    operator: "raw",
+    value: "LIKE '%alu%'"
   }
 }
 ```
@@ -370,43 +412,49 @@ The simple json queries functions are:
 
 ```c
 /**
- * h_execute_query_json
- * Execute a query, set the returned values in the json result
- * return H_OK on success
- */
-int h_execute_query_json(const struct _h_connection * conn, const char * query, json_t ** j_result);
-
-/**
  * h_select
- * Execute a select using a table name for the FROM keyword, a json array for the columns, and a json object for the WHERE keyword
- * where must be a where_type json object
+ * Execute a select query
+ * Uses a json_t * parameter for the query parameters
+ * Store the result of the query in j_result if specified
+ * Duplicate the generated query in generated_query if specified
  * return H_OK on success
  */
-int h_select(const struct _h_connection * conn, const char * table, json_t * cols, json_t * where, json_t ** j_result);
+int h_select(const struct _h_connection * conn, const json_t * j_query, json_t ** j_result, char ** generated_query);
 
 /**
  * h_insert
- * Insert data using a json object and a table name
- * data must be an object or an array of objects
+ * Execute an insert query
+ * Uses a json_t * parameter for the query parameters
+ * Duplicate the generated query in generated_query if specified
  * return H_OK on success
  */
-int h_insert(const struct _h_connection * conn, const char * table, json_t * data);
+int h_insert(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
+
+/**
+ * h_last_insert_id
+ * return the id of the last inserted value
+ * return a pointer to `json_t *` on success, NULL otherwise.
+ * The returned value is of type JSON_INTEGER
+ */
+json_t * h_last_insert_id(const struct _h_connection * conn);
 
 /**
  * h_update
- * Update data using a json object and a table name and a where clause
- * data must be an object, where must be a where_type json object
+ * Execute an update query
+ * Uses a json_t * parameter for the query parameters
+ * Duplicate the generated query in generated_query if specified
  * return H_OK on success
  */
-int h_update(const struct _h_connection * conn, const char * table, json_t * set, json_t * where);
+int h_update(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
 
 /**
  * h_delete
- * Delete data using a table name and a where clause
- * where must be a where_type json object
+ * Execute a delete query
+ * Uses a json_t * parameter for the query parameters
+ * Duplicate the generated query in generated_query if specified
  * return H_OK on success
  */
-int h_delete(const struct _h_connection * conn, const char * table, json_t * where);
+int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
 ```
 
 ### Example source code
