@@ -117,7 +117,7 @@ void unit_tests(struct _h_connection * conn) {
   printf("insert result: %d\n", h_query_insert(conn, query));
   free(sanitized);
   free(query);
-  data = h_last_insert_id(conn);
+  data = h_query_last_insert_id(conn);
   if (data->type == HOEL_COL_TYPE_INT) {
     last_id = ((struct _h_type_int *)data->t_data)->value;
   }
