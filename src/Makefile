@@ -21,20 +21,20 @@
 CC=gcc
 
 # uncomment these lines if you want sqlite support
-FLAGS_SQLITE=-D_HOEL_SQLITE
-LIBS_SQLITE=-lsqlite3
+# FLAGS_SQLITE=-D_HOEL_SQLITE
+# LIBS_SQLITE=-lsqlite3
 
 # uncomment these lines if you want sqlite support
-FLAGS_MARIADB=-D_HOEL_MARIADB -I/usr/include/mysql/
-LIBS_MARIADB=-lmysqlclient
+# FLAGS_MARIADB=-D_HOEL_MARIADB -I/usr/include/mysql/
+# LIBS_MARIADB=-lmysqlclient
 
 # uncomment these lines if you want sqlite support
-FLAGS_PGSQL=-D_HOEL_PGSQL -I/usr/include/postgresql/
-LIBS_PGSQL=-lpq
+# FLAGS_PGSQL=-D_HOEL_PGSQL -I/usr/include/postgresql/
+# LIBS_PGSQL=-lpq
 
 PREFIX=/usr/local
 CFLAGS=-c -fPIC -Wall -I$(PREFIX)/include $(FLAGS_SQLITE) $(FLAGS_MARIADB) $(FLAGS_PGSQL) -D_REENTRANT $(ADDITIONALFLAGS)
-LIBS=-lc -ljansson -lyder $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MARIADB)
+LIBS=-L$(PREFIX)/lib -lc -ljansson -lyder $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MARIADB)
 OUTPUT=libhoel.so
 VERSION=0.9
 
@@ -65,7 +65,7 @@ clean:
 install: all
 	cp $(OUTPUT).$(VERSION) $(PREFIX)/lib
 	cp hoel.h $(PREFIX)/include
-	ldconfig
+	ldconfig -r $(PREFIX)
 
 uninstall:
 	rm -f $(PREFIX)/lib/$(OUTPUT)
