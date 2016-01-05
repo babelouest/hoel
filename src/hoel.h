@@ -60,6 +60,10 @@
 #define H_ERROR_QUERY       4  // Error executing query
 #define H_ERROR_MEMORY      99 // Error allocating memory
 
+#define H_OPTION_NONE   0x0000 // Nothing whatsoever
+#define H_OPTION_SELECT 0x0001 // Execute a SELECT statement
+#define H_OPTION_EXEC   0x0010 // Execute an INSERT, UPDATE or DELETE statement
+
 /**
  * handle container
  */
@@ -136,11 +140,15 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe);
 
 /**
  * h_execute_query
- * Execute a query, set the result structure with the returned values
+ * Execute a query, set the result structure with the returned values if available
  * if result is NULL, the query is executed but no value will be returned
+ * options available
+ * H_OPTION_NONE (0): no option
+ * H_OPTION_SELECT: Execute a prepare statement (sqlite only)
+ * H_OPTION_EXEC: Execute an exec statement (sqlite only)
  * return H_OK on success
  */
-int h_execute_query(const struct _h_connection * conn, const char * query, struct _h_result * result);
+int h_execute_query(const struct _h_connection * conn, const char * query, struct _h_result * result, int options);
 
 /**
  * h_query_insert
@@ -402,13 +410,23 @@ char * h_escape_string_sqlite(const struct _h_connection * conn, const char * un
 int h_last_insert_id_sqlite(const struct _h_connection * conn);
 
 /**
- * h_execute_query_sqlite
- * Execute a query on a sqlite connection, set the result structure with the returned values
+ * h_select_query_sqlite
+ * Execute a select query on a sqlite connection, set the result structure with the returned values
  * Should not be executed by the user because all parameters are supposed to be correct
  * if result is NULL, the query is executed but no value will be returned
+ * Useful for SELECT statements
  * return H_OK on success
  */
-int h_execute_query_sqlite(const struct _h_connection * conn, const char * query, struct _h_result * result);
+int h_select_query_sqlite(const struct _h_connection * conn, const char * query, struct _h_result * result);
+
+/**
+ * h_exec_query_sqlite
+ * Execute a query on a sqlite connection
+ * Should not be executed by the user because all parameters are supposed to be correct
+ * No result is returned, useful for single INSERT, UPDATE or DELETE statements
+ * return H_OK on success
+ */
+int h_exec_query_sqlite(const struct _h_connection * conn, const char * query);
 
 /**
  * h_execute_query_json_sqlite

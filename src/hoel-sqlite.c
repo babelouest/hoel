@@ -103,13 +103,14 @@ int h_last_insert_id_sqlite(const struct _h_connection * conn) {
 }
 
 /**
- * h_execute_query_sqlite
- * Execute a query on a sqlite connection, set the result structure with the returned values
- * Should not be executed by the user because all parameters are supposed to be not null
+ * h_select_query_sqlite
+ * Execute a select query on a sqlite connection, set the result structure with the returned values
+ * Should not be executed by the user because all parameters are supposed to be correct
  * if result is NULL, the query is executed but no value will be returned
+ * Useful for SELECT statements
  * return H_OK on success
  */
-int h_execute_query_sqlite(const struct _h_connection * conn, const char * query, struct _h_result * result) {
+int h_select_query_sqlite(const struct _h_connection * conn, const char * query, struct _h_result * result) {
   sqlite3_stmt *stmt;
   int sql_result, row_result, nb_columns, col, row, res;
   struct _h_data * data = NULL, * cur_row = NULL;
@@ -175,6 +176,18 @@ int h_execute_query_sqlite(const struct _h_connection * conn, const char * query
     sqlite3_finalize(stmt);
     return H_ERROR_QUERY;
   }
+}
+
+/**
+ * h_exec_query_sqlite
+ * Execute a query on a sqlite connection
+ * Should not be executed by the user because all parameters are supposed to be correct
+ * No result is returned, useful for single INSERT, UPDATE or DELETE statements
+ * return H_OK on success
+ */
+int h_exec_query_sqlite(const struct _h_connection * conn, const char * query) {
+  return ((sqlite3_exec(((struct _h_sqlite *)conn->connection)->db_handle, query, NULL, NULL, NULL) == SQLITE_OK)?H_OK:H_ERROR_QUERY);
+  
 }
 
 /**

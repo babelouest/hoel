@@ -123,7 +123,7 @@ int main(int argc, char ** argv) {
   
   y_init_logs("test_hoel_mariadb_json", Y_LOG_MODE_CONSOLE, Y_LOG_LEVEL_DEBUG, NULL, "Starting test_hoel_mariadb_json");
   
-  conn = h_connect_mariadb("lohot", "test_hoel", "test_hoel", "test_hoel", 0, NULL);
+  conn = h_connect_mariadb("localhost", "test_hoel", "test_hoel", "test_hoel", 0, NULL);
   
   if (conn != NULL) {
     unit_tests(conn);

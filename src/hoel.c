@@ -110,17 +110,25 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe) {
 
 /**
  * h_execute_query
- * Execute a query, set the result structure with the returned values
+ * Execute a query, set the result structure with the returned values if available
  * if result is NULL, the query is executed but no value will be returned
+ * options available
+ * H_OPTION_NONE (0): no option
+ * H_OPTION_SELECT: Execute a prepare statement (sqlite only)
+ * H_OPTION_EXEC: Execute an exec statement (sqlite only)
  * return H_OK on success
  */
-int h_execute_query(const struct _h_connection * conn, const char * query, struct _h_result * result) {
+int h_execute_query(const struct _h_connection * conn, const char * query, struct _h_result * result, int options) {
   if (conn != NULL && conn->connection != NULL && query != NULL) {
     if (0) {
       // Not happening
 #ifdef _HOEL_SQLITE
     } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
-      return h_execute_query_sqlite(conn, query, result);
+      if (options & H_OPTION_EXEC) {
+        return h_exec_query_sqlite(conn, query);
+      } else {
+        return h_select_query_sqlite(conn, query, result);
+      }
 #endif
 #ifdef _HOEL_MARIADB
     } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
@@ -273,7 +281,7 @@ int h_result_add_row(struct _h_result * result, struct _h_data * row, int rows) 
  */
 int h_query_insert(const struct _h_connection * conn, const char * query) {
   if (conn != NULL && conn->connection != NULL && query != NULL && strcasestr(query, "insert") != NULL) {
-    return h_execute_query(conn, query, NULL);
+    return h_execute_query(conn, query, NULL, H_OPTION_EXEC);
   } else {
     return H_ERROR_PARAMS;
   }
@@ -328,7 +336,7 @@ struct _h_data * h_query_last_insert_id(const struct _h_connection * conn) {
  */
 int h_query_update(const struct _h_connection * conn, const char * query) {
   if (conn != NULL && conn->connection != NULL && query != NULL && strcasestr(query, "update") != NULL) {
-    return h_execute_query(conn, query, NULL);
+    return h_execute_query(conn, query, NULL, H_OPTION_EXEC);
   } else {
     return H_ERROR_PARAMS;
   }
@@ -341,7 +349,7 @@ int h_query_update(const struct _h_connection * conn, const char * query) {
  */
 int h_query_delete(const struct _h_connection * conn, const char * query) {
   if (conn != NULL && conn->connection != NULL && query != NULL && strcasestr(query, "delete") != NULL) {
-    return h_execute_query(conn, query, NULL);
+    return h_execute_query(conn, query, NULL, H_OPTION_EXEC);
   } else {
     return H_ERROR_PARAMS;
   }
@@ -354,7 +362,7 @@ int h_query_delete(const struct _h_connection * conn, const char * query) {
  */
 int h_query_select(const struct _h_connection * conn, const char * query, struct _h_result * result) {
   if (conn != NULL && conn->connection != NULL && query != NULL && strcasestr(query, "select") != NULL) {
-    return h_execute_query(conn, query, result);
+    return h_execute_query(conn, query, result, H_OPTION_SELECT);
   } else {
     return H_ERROR_PARAMS;
   }

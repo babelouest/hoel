@@ -156,11 +156,15 @@ To execute a SQL query, you can use the function `h_execute_query` which will ru
 ```c
 /**
  * h_execute_query
- * Execute a query, set the result structure with the returned values
+ * Execute a query, set the result structure with the returned values if available
  * if result is NULL, the query is executed but no value will be returned
+ * options available
+ * H_OPTION_NONE (0): no option
+ * H_OPTION_SELECT: Execute a prepare statement (sqlite only)
+ * H_OPTION_EXEC: Execute an exec statement (sqlite only)
  * return H_OK on success
  */
-int h_execute_query(const struct _h_connection * conn, const char * query, struct _h_result * result);
+int h_execute_query(const struct _h_connection * conn, const char * query, struct _h_result * result, int options);
 ```
 
 ### Escape string
