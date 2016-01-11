@@ -32,7 +32,9 @@
 #define __USE_XOPEN
 #include <time.h>
 
+/** Angharad libraries **/
 #include <yder.h>
+#include <orcania.h>
 
 #ifdef _HOEL_SQLITE
 #define HOEL_DB_TYPE_SQLITE  0
@@ -378,13 +380,6 @@ int h_clean_connection(struct _h_connection * conn);
  */
 char * trim_whitespace_and_double_quotes(char *str);
 
-/**
- * Implementation of sprintf that return a malloc'd char *  with the string construction
- * because life is too short to use 3 lines instead of 1
- * but don't forget to free the returned value after use!
- */
-char * h_msprintf(const char * message, ...);
-
 #ifdef _HOEL_SQLITE
 /**
  * h_connect_sqlite
@@ -443,7 +438,7 @@ int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * 
  * Opens a database connection to a mariadb server
  * return pointer to a struct _h_connection * on sucess, NULL on error
  */
-struct _h_connection * h_connect_mariadb(char * host, char * user, char * passwd, char * db, unsigned int port, char * unix_socket);
+struct _h_connection * h_connect_mariadb(const char * host, const char * user, const char * passwd, const char * db, const unsigned int port, const char * unix_socket);
 
 /**
  * close connection to database

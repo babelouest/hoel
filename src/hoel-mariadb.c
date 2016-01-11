@@ -39,6 +39,7 @@ struct _h_mariadb {
   char * unix_socket;
   unsigned long flags;
   MYSQL * db_handle;
+  pthread_mutex_t lock;
 };
 
 /**
@@ -46,8 +47,10 @@ struct _h_mariadb {
  * Opens a database connection to a mariadb server
  * return pointer to a struct _h_connection * on sucess, NULL on error
  */
-struct _h_connection * h_connect_mariadb(char * host, char * user, char * passwd, char * db, unsigned int port, char * unix_socket) {
+struct _h_connection * h_connect_mariadb(const char * host, const char * user, const char * passwd, const char * db, const unsigned int port, const char * unix_socket) {
   struct _h_connection * conn = NULL;
+  pthread_mutexattr_t mutexattr;
+
   if (host != NULL && db != NULL) {
     conn = malloc(sizeof(struct _h_connection));
     if (conn == NULL) {
@@ -58,6 +61,10 @@ struct _h_connection * h_connect_mariadb(char * host, char * user, char * passwd
     conn->connection = malloc(sizeof(struct _h_mariadb));
     if (conn->connection == NULL) {
       free(conn);
+      return NULL;
+    }
+    if (mysql_library_init(0, NULL, NULL)) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "mysql_library_init error, aborting");
       return NULL;
     }
     ((struct _h_mariadb *)conn->connection)->db_handle = mysql_init(NULL);
@@ -72,6 +79,13 @@ struct _h_connection * h_connect_mariadb(char * host, char * user, char * passwd
       mysql_close(((struct _h_mariadb *)conn->connection)->db_handle);
       return NULL;
     } else {
+      // Initialize MUTEX for connection
+      pthread_mutexattr_init ( &mutexattr );
+      pthread_mutexattr_settype( &mutexattr, PTHREAD_MUTEX_RECURSIVE );
+      if (pthread_mutex_init(&(((struct _h_mariadb *)conn->connection)->lock), &mutexattr) != 0) {
+        y_log_message(Y_LOG_LEVEL_ERROR, "Impossible to initialize Mutex Lock for MariaDB connection");
+      }
+      pthread_mutexattr_destroy( &mutexattr );
       return conn;
     }
   }
@@ -84,6 +98,7 @@ struct _h_connection * h_connect_mariadb(char * host, char * user, char * passwd
 void h_close_mariadb(struct _h_connection * conn) {
   mysql_close(((struct _h_mariadb *)conn->connection)->db_handle);
   mysql_library_end();
+  pthread_mutex_destroy(&((struct _h_mariadb *)conn->connection)->lock);
 }
 
 /**
@@ -129,10 +144,14 @@ int h_execute_query_mariadb(const struct _h_connection * conn, const char * quer
   unsigned long * lengths;
   int res;
   
+  if (pthread_mutex_lock(&(((struct _h_mariadb *)conn->connection)->lock))) {
+    return H_ERROR_QUERY;
+  }
   if (mysql_query(((struct _h_mariadb *)conn->connection)->db_handle, query)) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Error executing sql query");
     y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", mysql_error(((struct _h_mariadb *)conn->connection)->db_handle));
     y_log_message(Y_LOG_LEVEL_DEBUG, "Query: \"%s\"", query);
+    pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
     return H_ERROR_QUERY;
   }
   
@@ -142,6 +161,7 @@ int h_execute_query_mariadb(const struct _h_connection * conn, const char * quer
     if (result == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Error executing mysql_store_result");
       y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", mysql_error(((struct _h_mariadb *)conn->connection)->db_handle));
+      pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
       return H_ERROR_QUERY;
     }
     
@@ -160,18 +180,21 @@ int h_execute_query_mariadb(const struct _h_connection * conn, const char * quer
         h_clean_data_full(data);
         if (res != H_OK) {
           mysql_free_result(result);
+          pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
           return res;
         }
       }
       res = h_result_add_row(h_result, cur_row, row);
       if (res != H_OK) {
         mysql_free_result(result);
+        pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
         return res;
       }
     }
     mysql_free_result(result);
   }
   
+  pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
   return H_OK;
 }
 
@@ -191,12 +214,18 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
   struct _h_data * h_data;
   char date_stamp[20];
   
+  if (pthread_mutex_lock(&(((struct _h_mariadb *)conn->connection)->lock))) {
+    return H_ERROR_QUERY;
+  }
+
   if (j_result == NULL) {
+    pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
     return H_ERROR_PARAMS;
   }
   
   *j_result = json_array();
   if (*j_result == NULL) {
+    pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
     return H_ERROR_MEMORY;
   }
 
@@ -204,14 +233,16 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
     y_log_message(Y_LOG_LEVEL_ERROR, "Error executing sql query");
     y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", mysql_error(((struct _h_mariadb *)conn->connection)->db_handle));
     y_log_message(Y_LOG_LEVEL_DEBUG, "Query: \"%s\"", query);
+    pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
     return H_ERROR_QUERY;
   }
   
   result = mysql_store_result(((struct _h_mariadb *)conn->connection)->db_handle);
   
   if (result == NULL) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "Error executing mysql_store_result");
-      y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", mysql_error(((struct _h_mariadb *)conn->connection)->db_handle));
+    y_log_message(Y_LOG_LEVEL_ERROR, "Error executing mysql_store_result");
+    y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", mysql_error(((struct _h_mariadb *)conn->connection)->db_handle));
+    pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
     return H_ERROR_QUERY;
   }
   
@@ -222,6 +253,7 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
     j_data = json_object();
     if (j_data == NULL) {
       json_decref(*j_result);
+      pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
       return H_ERROR_MEMORY;
     }
     lengths = mysql_fetch_lengths(result);
@@ -254,6 +286,7 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
     j_data = NULL;
   }
   mysql_free_result(result);
+  pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
   
   return H_OK;
 }

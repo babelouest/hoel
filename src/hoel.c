@@ -27,28 +27,6 @@
 char * strcasestr (const char *haystack, const char *needle);
 
 /**
- * Implementation of sprintf that return a malloc'd char *  with the string construction
- * because life is too short to use 3 lines instead of 1
- * but don't forget to free the returned value after use!
- */
-char * h_msprintf(const char * message, ...) {
-  va_list argp, argp_cpy;
-  size_t out_len = 0;
-  char * out = NULL;
-  va_start(argp, message);
-  va_copy(argp_cpy, argp);
-  out_len = vsnprintf(NULL, 0, message, argp);
-  out = malloc(out_len+sizeof(char));
-  if (out == NULL) {
-    return NULL;
-  }
-  vsnprintf(out, (out_len+sizeof(char)), message, argp_cpy);
-  va_end(argp);
-  va_end(argp_cpy);
-  return out;
-}
-
-/**
  * Close a database connection
  * return H_OK on success
  */
