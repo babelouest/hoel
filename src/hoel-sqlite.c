@@ -43,21 +43,23 @@ struct _h_connection * h_connect_sqlite(const char * db_path) {
   if (db_path != NULL) {
     conn = malloc(sizeof(struct _h_connection));
     if (conn == NULL) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "h_connect_sqlite - Error allocating resources");
       return NULL;
     }
     
     conn->type = HOEL_DB_TYPE_SQLITE;
     conn->connection = malloc(sizeof(struct _h_sqlite));
     if (conn->connection == NULL) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "h_connect_sqlite - Error allocating resources");
       free(conn);
       return NULL;
     }
-    if (sqlite3_open_v2(db_path, &((struct _h_sqlite *)conn->connection)->db_handle, SQLITE_OPEN_READWRITE|SQLITE_CONFIG_SERIALIZED, NULL) != SQLITE_OK) {
+    if (sqlite3_open_v2(db_path, &((struct _h_sqlite *)conn->connection)->db_handle, SQLITE_OPEN_READWRITE, NULL) != SQLITE_OK) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Error connecting to sqlite3 database, path: %s", db_path);
       y_log_message(Y_LOG_LEVEL_DEBUG, "Error code: %d, message: \"%s\"", 
                              sqlite3_errcode(((struct _h_sqlite *)conn->connection)->db_handle), 
                              sqlite3_errmsg(((struct _h_sqlite *)conn->connection)->db_handle));
-      sqlite3_close_v2(((struct _h_sqlite *)conn->connection)->db_handle);
+      sqlite3_close(((struct _h_sqlite *)conn->connection)->db_handle);
       free(conn);
       return NULL;
     } else {
@@ -71,7 +73,7 @@ struct _h_connection * h_connect_sqlite(const char * db_path) {
  * close a sqlite3 connection
  */
 void h_close_sqlite(struct _h_connection * conn) {
-  sqlite3_close_v2(((struct _h_sqlite *)conn->connection)->db_handle);
+  sqlite3_close(((struct _h_sqlite *)conn->connection)->db_handle);
 }
 
 /**
@@ -87,10 +89,10 @@ char * h_escape_string_sqlite(const struct _h_connection * conn, const char * un
                            sqlite3_errmsg(((struct _h_sqlite *)conn->connection)->db_handle));
     return NULL;
   }
-  ret = strdup(tmp);
+  ret = nstrdup(tmp);
   sqlite3_free(tmp);
   if (ret == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "Error escaping (strdup)");
+    y_log_message(Y_LOG_LEVEL_ERROR, "Error escaping (nstrdup)");
   }
   return ret;
 }
@@ -147,6 +149,11 @@ int h_select_query_sqlite(const struct _h_connection * conn, const char * query,
               data = h_new_data_null();
             default:
               break;
+          }
+          if (data == NULL) {
+            sqlite3_finalize(stmt);
+            h_clean_data_full(data);
+            return H_ERROR_MEMORY;
           }
           res = h_row_add_data(&cur_row, data, col);
           h_clean_data_full(data);
@@ -212,6 +219,7 @@ int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * 
     // Filling j_result with results in json format
     *j_result = json_array();
     if (*j_result == NULL) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for *j_result");
       sqlite3_finalize(stmt);
       return H_ERROR_MEMORY;
     }
@@ -219,6 +227,7 @@ int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * 
     while (row_result == SQLITE_ROW) {
       j_data = json_object();
       if (j_data == NULL) {
+        y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for j_data");
         json_decref(*j_result);
         return H_ERROR_MEMORY;
       }

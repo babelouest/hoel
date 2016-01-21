@@ -161,6 +161,7 @@ int h_row_add_data(struct _h_data ** row, struct _h_data * data, int cols) {
   struct _h_data * tmp = realloc(*row, (cols+1)*sizeof(struct _h_data));
   * row = tmp;
   if (tmp == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for h_row_add_data");
     return H_ERROR_MEMORY;
   } else {
     switch (data->type) {
@@ -168,6 +169,7 @@ int h_row_add_data(struct _h_data ** row, struct _h_data * data, int cols) {
         tmp[cols].type = HOEL_COL_TYPE_INT;
         tmp[cols].t_data = malloc(sizeof(struct _h_type_int));
         if (tmp[cols].t_data == NULL) {
+          y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for tmp[cols].t_data");
           return H_ERROR_MEMORY;
         } else {
           ((struct _h_type_int *)tmp[cols].t_data)->value = ((struct _h_type_int *)data->t_data)->value;
@@ -178,6 +180,7 @@ int h_row_add_data(struct _h_data ** row, struct _h_data * data, int cols) {
         tmp[cols].type = HOEL_COL_TYPE_DOUBLE;
         tmp[cols].t_data = malloc(sizeof(struct _h_type_double));
         if (tmp[cols].t_data == NULL) {
+          y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for tmp[cols].t_data");
           return H_ERROR_MEMORY;
         } else {
           ((struct _h_type_double *)tmp[cols].t_data)->value = ((struct _h_type_double *)data->t_data)->value;
@@ -188,10 +191,12 @@ int h_row_add_data(struct _h_data ** row, struct _h_data * data, int cols) {
         tmp[cols].type = HOEL_COL_TYPE_TEXT;
         tmp[cols].t_data = malloc(sizeof(struct _h_type_text));
         if (tmp[cols].t_data == NULL) {
+          y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for tmp[cols].t_data");
           return H_ERROR_MEMORY;
         } else {
           ((struct _h_type_text *)tmp[cols].t_data)->value = malloc(strlen(((struct _h_type_text *)data->t_data)->value)+sizeof(char));
           if (((struct _h_type_text *)tmp[cols].t_data)->value == NULL) {
+            y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for ((struct _h_type_text *)tmp[cols].t_data)->value");
             free(tmp[cols].t_data);
             return H_ERROR_MEMORY;
           }
@@ -203,11 +208,13 @@ int h_row_add_data(struct _h_data ** row, struct _h_data * data, int cols) {
         tmp[cols].type = HOEL_COL_TYPE_BLOB;
         tmp[cols].t_data = malloc(sizeof(struct _h_type_blob));
         if (tmp[cols].t_data == NULL) {
+          y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for tmp[cols].t_data");
           return H_ERROR_MEMORY;
         } else {
           ((struct _h_type_blob *)tmp[cols].t_data)->length = ((struct _h_type_blob *)data->t_data)->length;
           ((struct _h_type_blob *)tmp[cols].t_data)->value = malloc(((struct _h_type_blob *)data->t_data)->length);
           if (((struct _h_type_blob *)tmp[cols].t_data)->value == NULL) {
+            y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for ((struct _h_type_blob *)tmp[cols].t_data)->value");
             free(tmp[cols].t_data);
             return H_ERROR_MEMORY;
           }
@@ -219,6 +226,7 @@ int h_row_add_data(struct _h_data ** row, struct _h_data * data, int cols) {
         tmp[cols].type = HOEL_COL_TYPE_DATE;
         tmp[cols].t_data = malloc(sizeof(struct _h_type_datetime));
         if (tmp[cols].t_data == NULL) {
+          y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for tmp[cols].t_data");
           return H_ERROR_MEMORY;
         } else {
           ((struct _h_type_datetime *)tmp[cols].t_data)->value = ((struct _h_type_datetime *)data->t_data)->value;
@@ -244,6 +252,7 @@ int h_row_add_data(struct _h_data ** row, struct _h_data * data, int cols) {
 int h_result_add_row(struct _h_result * result, struct _h_data * row, int rows) {
   result->data = realloc(result->data, (rows+1)*sizeof(struct _h_data *));
   if (result->data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for result->data");
     return H_ERROR_MEMORY;
   } else {
     result->data[rows] = row;
@@ -450,11 +459,14 @@ struct _h_data * h_new_data_int(const int value) {
   if (data != NULL) {
     data->t_data = malloc(sizeof(struct _h_type_int));
     if (data->t_data == NULL) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for data->t_data");
       free(data);
       return NULL;
     }
     data->type = HOEL_COL_TYPE_INT;
     ((struct _h_type_int *)data->t_data)->value = value;
+  } else {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for data");
   }
   return data;
 }
@@ -469,11 +481,14 @@ struct _h_data * h_new_data_double(const double value) {
   if (data != NULL) {
     data->t_data = malloc(sizeof(struct _h_type_double));
     if (data->t_data == NULL) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for data->t_data");
       free(data);
       return NULL;
     }
     data->type = HOEL_COL_TYPE_DOUBLE;
     ((struct _h_type_double *)data->t_data)->value = value;
+  } else {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for data");
   }
   return data;
 }
@@ -488,17 +503,21 @@ struct _h_data * h_new_data_text(const char * value) {
   if (data != NULL) {
     data->t_data = malloc(sizeof(struct _h_type_text));
     if (data->t_data == NULL) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for data->t_data");
       free(data);
       return NULL;
     }
     data->type = HOEL_COL_TYPE_TEXT;
     ((struct _h_type_text *)data->t_data)->value = malloc(strlen(value)+sizeof(char));
     if (((struct _h_type_text *)data->t_data)->value == NULL) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for data->t_data->value");
       free(data);
       return NULL;
     } else {
       strncpy(((struct _h_type_text *)data->t_data)->value, value, (strlen(value)+sizeof(char)));
     }
+  } else {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for data");
   }
   return data;
 }
@@ -513,6 +532,7 @@ struct _h_data * h_new_data_blob(const void * value, const size_t length) {
   if (data != NULL) {
     data->t_data = malloc(sizeof(struct _h_type_blob));
     if (data->t_data == NULL) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for data");
       free(data);
       return NULL;
     }
@@ -520,11 +540,14 @@ struct _h_data * h_new_data_blob(const void * value, const size_t length) {
     ((struct _h_type_blob *)data->t_data)->length = length;
     ((struct _h_type_blob *)data->t_data)->value = malloc(length);
     if (((struct _h_type_blob *)data->t_data)->value == NULL) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for t_data->value");
       free(data);
       return NULL;
     } else {
       memcpy(((struct _h_type_blob *)data->t_data)->value, value, length);
     }
+  } else {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for data");
   }
   return data;
 }
@@ -539,6 +562,8 @@ struct _h_data * h_new_data_null() {
   if (data != NULL) {
     data->type = HOEL_COL_TYPE_NULL;
     data->t_data = NULL;
+  } else {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for data");
   }
   return data;
 }
@@ -557,10 +582,13 @@ struct _h_data * h_new_data_datetime(const struct tm * datetime) {
       data->t_data = malloc(sizeof(struct _h_type_datetime));
       
       if (data->t_data == NULL) {
+        y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for data->t_data");
         free(data);
         return NULL;
       }
       ((struct _h_type_datetime *)data->t_data)->value = * datetime;
+    } else {
+      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for data");
     }
   }
   return data;

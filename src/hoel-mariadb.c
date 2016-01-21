@@ -50,16 +50,19 @@ struct _h_mariadb {
 struct _h_connection * h_connect_mariadb(const char * host, const char * user, const char * passwd, const char * db, const unsigned int port, const char * unix_socket) {
   struct _h_connection * conn = NULL;
   pthread_mutexattr_t mutexattr;
+  my_bool reconnect = 1;
 
   if (host != NULL && db != NULL) {
     conn = malloc(sizeof(struct _h_connection));
     if (conn == NULL) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for conn");
       return NULL;
     }
     
     conn->type = HOEL_DB_TYPE_MARIADB;
     conn->connection = malloc(sizeof(struct _h_mariadb));
     if (conn->connection == NULL) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for conn->connection");
       free(conn);
       return NULL;
     }
@@ -79,6 +82,8 @@ struct _h_connection * h_connect_mariadb(const char * host, const char * user, c
       mysql_close(((struct _h_mariadb *)conn->connection)->db_handle);
       return NULL;
     } else {
+      // Set MYSQL_OPT_RECONNECT to true to reconnect automatically when connection is closed by the server (to avoid CR_SERVER_GONE_ERROR)
+      mysql_options(((struct _h_mariadb *)conn->connection)->db_handle, MYSQL_OPT_RECONNECT, &reconnect);
       // Initialize MUTEX for connection
       pthread_mutexattr_init ( &mutexattr );
       pthread_mutexattr_settype( &mutexattr, PTHREAD_MUTEX_RECURSIVE );
@@ -108,8 +113,7 @@ void h_close_mariadb(struct _h_connection * conn) {
 char * h_escape_string_mariadb(const struct _h_connection * conn, const char * unsafe) {
   char * escaped = malloc(2 * strlen(unsafe) + sizeof(char));
   if (escaped == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "Error escaping string \"%s\"", unsafe);
-    y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", mysql_error(((struct _h_mariadb *)conn->connection)->db_handle));
+    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for escaped");
     return NULL;
   }
   mysql_real_escape_string(((struct _h_mariadb *)conn->connection)->db_handle, escaped, unsafe, strlen(unsafe));
@@ -225,6 +229,7 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
   
   *j_result = json_array();
   if (*j_result == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for *j_result");
     pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
     return H_ERROR_MEMORY;
   }
@@ -252,6 +257,7 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
   for (row = 0; (m_row = mysql_fetch_row(result)) != NULL; row++) {
     j_data = json_object();
     if (j_data == NULL) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for j_data");
       json_decref(*j_result);
       pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
       return H_ERROR_MEMORY;
