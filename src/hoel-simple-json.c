@@ -298,21 +298,26 @@ int h_update(const struct _h_connection * conn, const json_t * j_query, char ** 
   int res;
   json_t * set, * where;
   
-  if (j_query == NULL || !json_is_object(j_query) || !json_is_string(json_object_get(j_query, "table")) || !json_is_object(json_object_get(j_query, "set")) || !json_is_object(json_object_get(j_query, "where"))) {
+  if (j_query == NULL || !json_is_object(j_query) || !json_is_string(json_object_get(j_query, "table")) || !json_is_object(json_object_get(j_query, "set"))) {
     y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_update - Error invalid input parameters");
     return H_ERROR_PARAMS;
   }
   
   table = json_string_value((const json_t *)json_object_get(j_query, "table"));
+  
   set = json_object_get(j_query, "set");
-  where = json_object_get(j_query, "where");
-  
   set_clause = h_get_set_clause_from_json_object(conn, set);
-  where_clause = h_get_where_clause_from_json_object(conn, where);
   
-  query = msprintf("UPDATE %s SET %s WHERE %s", table, set_clause, where_clause);
+  if (json_is_object(json_object_get(j_query, "where")) && json_object_size(json_object_get(j_query, "where")) > 0) {
+    where = json_object_get(j_query, "where");
+    where_clause = h_get_where_clause_from_json_object(conn, where);
+    query = msprintf("UPDATE %s SET %s WHERE %s", table, set_clause, where_clause);
+    free(where_clause);
+  } else {
+    query = msprintf("UPDATE %s SET %s", table, set_clause);
+  }
+  
   free(set_clause);
-  free(where_clause);
   if (query == NULL) {
     y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_update - Error allocating query");
     return H_ERROR_MEMORY;
@@ -338,22 +343,27 @@ int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** 
   int res;
   json_t * where;
   
-  if (j_query == NULL || !json_is_object(j_query) || !json_is_string(json_object_get(j_query, "table")) || !json_is_object(json_object_get(j_query, "where"))) {
+  if (j_query == NULL || !json_is_object(j_query) || !json_is_string(json_object_get(j_query, "table"))) {
     y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_delete - Error invalid input parameters");
     return H_ERROR_PARAMS;
   }
   
   table = json_string_value((json_t *)json_object_get(j_query, "table"));
-  where = json_object_get(j_query, "where");
-
-  where_clause = h_get_where_clause_from_json_object(conn, where);
   
-  if (where_clause == NULL) {
-    y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_delete - Error invalid input parameters");
-    return H_ERROR_PARAMS;
+  if (json_is_object(json_object_get(j_query, "where")) && json_object_size(json_object_get(j_query, "where")) > 0) {
+    where = json_object_get(j_query, "where");
+    where_clause = h_get_where_clause_from_json_object(conn, where);
+    
+    if (where_clause == NULL) {
+      y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_delete - Error invalid input parameters");
+      return H_ERROR_PARAMS;
+    }
+    query = msprintf("DELETE FROM %s WHERE %s", table, where_clause);
+    free(where_clause);
+  } else {
+    query = msprintf("DELETE FROM %s", table);
   }
-  query = msprintf("DELETE FROM %s WHERE %s", table, where_clause);
-  free(where_clause);
+  
   if (query == NULL) {
     y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_delete - Error allocating query");
     return H_ERROR_MEMORY;
@@ -501,18 +511,22 @@ char * h_get_where_clause_from_json_object(const struct _h_connection * conn, co
           } else {
             if (0 == strcasecmp("NOT NULL", json_string_value(ope))) {
               clause = msprintf("%s IS NOT NULL", key);
-            } else if (0 == strcasecmp("raw", json_string_value(ope))) {
+            } else if (0 == strcasecmp("raw", json_string_value(ope)) && json_is_string(val)) {
               clause = msprintf("%s %s", key, json_string_value(val));
             } else {
-              dump = json_dumps(val, JSON_ENCODE_ANY);
-              escape = h_escape_string(conn, trim_whitespace_and_double_quotes(dump));
-              if (escape == NULL) {
-                y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error escape");
-                return NULL;
+              if (json_is_real(val)) {
+                clause = msprintf("%s %s %f", key, json_string_value(ope), json_real_value(val));
+              } else if (json_is_integer(val)) {
+                clause = msprintf("%s %s %d", key, json_string_value(ope), json_integer_value(val));
+              } else {
+                escape = h_escape_string(conn, json_string_value(val));
+                if (escape == NULL) {
+                  y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error escape");
+                  return NULL;
+                }
+                clause = msprintf("%s %s '%s'", key, json_string_value(ope), escape);
+                free(escape);
               }
-              clause = msprintf("%s %s '%s'", key, json_string_value(ope), json_string_value(val));
-              free(dump);
-              free(escape);
             }
             if (clause == NULL) {
               y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for clause");
