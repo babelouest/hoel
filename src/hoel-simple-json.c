@@ -308,6 +308,11 @@ int h_update(const struct _h_connection * conn, const json_t * j_query, char ** 
   set = json_object_get(j_query, "set");
   set_clause = h_get_set_clause_from_json_object(conn, set);
   
+  if (set_clause == NULL) {
+    y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_update - Error generating set clause");
+    return H_ERROR_PARAMS;
+  }
+  
   if (json_is_object(json_object_get(j_query, "where")) && json_object_size(json_object_get(j_query, "where")) > 0) {
     where = json_object_get(j_query, "where");
     where_clause = h_get_where_clause_from_json_object(conn, where);
@@ -593,7 +598,7 @@ char * h_get_where_clause_from_json_object(const struct _h_connection * conn, co
 char * h_get_set_clause_from_json_object(const struct _h_connection * conn, const json_t * set) {
   const char * key;
   json_t * value;
-  char * where_clause = NULL, * dump = NULL, * escape = NULL, * tmp;
+  char * where_clause = NULL, * escape = NULL, * tmp;
   int i = 0;
   
   if (conn == NULL || set == NULL || !json_is_object(set)) {
@@ -608,8 +613,17 @@ char * h_get_set_clause_from_json_object(const struct _h_connection * conn, cons
         free(where_clause);
         return NULL;
       } else {
-        dump = json_dumps(value, JSON_ENCODE_ANY);
-        escape = h_escape_string(conn, trim_whitespace_and_double_quotes(dump));
+        if (json_is_string(value)) {
+          tmp = nstrdup(json_string_value(value));
+          escape = h_escape_string(conn, tmp);
+          free(tmp);
+        } else if (json_is_real(value)) {
+          escape = msprintf("%f", json_real_value(value));
+        } else if (json_is_integer(value)) {
+          escape = msprintf("%d", json_integer_value(value));
+        } else {
+          escape = nstrdup("");
+        }
         if (escape == NULL) {
           y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error escape");
           return NULL;
@@ -618,7 +632,7 @@ char * h_get_set_clause_from_json_object(const struct _h_connection * conn, cons
           if (!json_is_null(value)) {
             where_clause = msprintf("%s='%s'", key, escape);
           } else {
-            where_clause = msprintf("%s=null", key);
+            where_clause = msprintf("%s=NULL", key);
           }
           if (where_clause == NULL) {
             y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_set_clause_from_json_object - Error where_clause");
@@ -638,7 +652,6 @@ char * h_get_set_clause_from_json_object(const struct _h_connection * conn, cons
           }
           where_clause = tmp;
         }
-        free(dump);
         free(escape);
       }
     }
