@@ -388,7 +388,7 @@ int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** 
 char * h_get_insert_query_from_json_object(const struct _h_connection * conn, const json_t * data, const char * table) {
   char * insert_cols = NULL, * insert_data = NULL, * new_data = NULL, * to_return, * tmp, * escape;
   int i = 0;
-  json_t * value;
+  json_t * value, * raw;
   const char * key;
   
   json_object_foreach((json_t *)data, key, value) {
@@ -419,6 +419,14 @@ char * h_get_insert_query_from_json_object(const struct _h_connection * conn, co
         break;
       case JSON_NULL:
         new_data = nstrdup("NULL");
+        break;
+      case JSON_OBJECT:
+        raw = json_object_get(value, "raw");
+        if (raw != NULL && json_is_string(raw)) {
+          new_data = nstrdup(json_string_value(raw));
+        } else {
+          new_data = nstrdup("NULL");
+        }
         break;
       default:
         tmp = json_dumps(value, JSON_ENCODE_ANY);
@@ -597,7 +605,7 @@ char * h_get_where_clause_from_json_object(const struct _h_connection * conn, co
  */
 char * h_get_set_clause_from_json_object(const struct _h_connection * conn, const json_t * set) {
   const char * key;
-  json_t * value;
+  json_t * value, * raw;
   char * where_clause = NULL, * escape = NULL, * tmp;
   int i = 0;
   
@@ -606,7 +614,7 @@ char * h_get_set_clause_from_json_object(const struct _h_connection * conn, cons
     return NULL;
   } else {
     json_object_foreach((json_t *)set, key, value) {
-      if (!json_is_string(value) && !json_is_real(value) && !json_is_integer(value) && !json_is_null(value)) {
+      if (!json_is_string(value) && !json_is_real(value) && !json_is_integer(value) && !json_is_null(value) && !json_is_object(value)) {
         tmp = json_dumps(value, JSON_ENCODE_ANY);
         y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_set_clause_from_json_object - Error value invalid: %s", tmp);
         free(tmp);
@@ -614,13 +622,20 @@ char * h_get_set_clause_from_json_object(const struct _h_connection * conn, cons
         return NULL;
       } else {
         if (json_is_string(value)) {
-          tmp = nstrdup(json_string_value(value));
-          escape = h_escape_string(conn, tmp);
+          tmp = h_escape_string(conn, json_string_value(value));
+          escape = msprintf("'%s'", tmp);
           free(tmp);
         } else if (json_is_real(value)) {
           escape = msprintf("%f", json_real_value(value));
         } else if (json_is_integer(value)) {
           escape = msprintf("%d", json_integer_value(value));
+        } else if (json_is_object(value)) {
+          raw = json_object_get(value, "raw");
+          if (raw != NULL && json_is_string(raw)) {
+            escape = nstrdup(json_string_value(raw));
+          } else {
+            escape = nstrdup("NULL");
+          }
         } else {
           escape = nstrdup("");
         }
@@ -630,7 +645,7 @@ char * h_get_set_clause_from_json_object(const struct _h_connection * conn, cons
         }
         if (i == 0) {
           if (!json_is_null(value)) {
-            where_clause = msprintf("%s='%s'", key, escape);
+            where_clause = msprintf("%s=%s", key, escape);
           } else {
             where_clause = msprintf("%s=NULL", key);
           }
@@ -641,7 +656,7 @@ char * h_get_set_clause_from_json_object(const struct _h_connection * conn, cons
           i = 1;
         } else {
           if (!json_is_null(value)) {
-            tmp = msprintf("%s, %s='%s'", where_clause, key, escape);
+            tmp = msprintf("%s, %s=%s", where_clause, key, escape);
           } else {
             tmp = msprintf("%s, %s=null", where_clause, key);
           }
