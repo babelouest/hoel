@@ -39,7 +39,8 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
   const char * table;
   const json_t * cols, * where, * order_by;
   uint limit, offset;
-  char * query, * columns = NULL, * where_clause = NULL, * tmp, * dump, * escape, * str_where_limit,  * str_order_by;
+  char * query, * columns = NULL, * where_clause = NULL, * tmp, * str_where_limit,  * str_order_by;
+  const char * col;
   size_t index;
   json_t * value;
   int res;
@@ -67,49 +68,35 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
   } else if (json_is_array(cols)) {
     json_array_foreach(cols, index, value) {
       if (json_is_string(value)) {
-        if (index == 0) {
-          dump = json_dumps(value, JSON_ENCODE_ANY);
-          escape = h_escape_string(conn, trim_whitespace_and_double_quotes(dump));
-          if (escape == NULL) {
-            y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_select Error escape");
-            free(where_clause);
-            return H_ERROR_MEMORY;
-          }
-          columns = nstrdup(escape);
-          if (columns == NULL) {
-            y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_select Error allocating columns");
-            free(where_clause);
-            free(escape);
-            return H_ERROR_MEMORY;
-          }
-        } else {
-          dump = json_dumps(value, JSON_ENCODE_ANY);
-          escape = h_escape_string(conn, trim_whitespace_and_double_quotes(dump));
-          if (escape == NULL) {
-            y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_select Error escape");
-            free(where_clause);
-            free(columns);
-            free(dump);
-            return H_ERROR_MEMORY;
-          }
-          tmp = msprintf("%s, %s", columns, escape);
-          if (tmp == NULL) {
-            y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_select Error allocating clause");
-            free(where_clause);
-            free(columns);
-            free(dump);
-            free(escape);
-            return H_ERROR_MEMORY;
-          }
+        col = json_string_value(value);
+        if (col == NULL) {
+          y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_select Error col");
+          free(where_clause);
           free(columns);
-          columns = tmp;
+          return H_ERROR_MEMORY;
         }
-        free(dump);
-        free(escape);
       } else {
         y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_select Error column not string");
         free(where_clause);
         return H_ERROR_PARAMS;
+      }
+      if (index == 0) {
+        columns = nstrdup(col);
+        if (columns == NULL) {
+          y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_select Error allocating columns");
+          free(where_clause);
+          return H_ERROR_MEMORY;
+        }
+      } else {
+        tmp = msprintf("%s, %s", columns, col);
+        if (tmp == NULL) {
+          y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_select Error allocating clause");
+          free(where_clause);
+          free(columns);
+          return H_ERROR_MEMORY;
+        }
+        free(columns);
+        columns = tmp;
       }
     }
   } else {
