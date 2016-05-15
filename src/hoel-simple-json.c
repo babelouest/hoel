@@ -38,7 +38,11 @@ char * h_get_set_clause_from_json_object(const struct _h_connection * conn, cons
 int h_select(const struct _h_connection * conn, const json_t * j_query, json_t ** j_result, char ** generated_query) {
   const char * table;
   const json_t * cols, * where, * order_by;
-  uint limit, offset;
+#ifdef JSON_INTEGER_IS_LONG_LONG
+  long long int limit, offset;
+#else
+  long int limit, offset;
+#endif
   char * query, * columns = NULL, * where_clause = NULL, * tmp, * str_where_limit,  * str_order_by;
   const char * col;
   size_t index;
@@ -517,7 +521,11 @@ char * h_get_where_clause_from_json_object(const struct _h_connection * conn, co
               if (json_is_real(val)) {
                 clause = msprintf("%s %s %f", key, json_string_value(ope), json_real_value(val));
               } else if (json_is_integer(val)) {
-                clause = msprintf("%s %s %d", key, json_string_value(ope), json_integer_value(val));
+#ifdef JSON_INTEGER_IS_LONG_LONG
+                clause = msprintf("%s %s %lld", key, json_string_value(ope), json_integer_value(val));
+#else
+                clause = msprintf("%s %s %ld", key, json_string_value(ope), json_integer_value(val));
+#endif
               } else {
                 escape = h_escape_string(conn, json_string_value(val));
                 if (escape == NULL) {
@@ -615,7 +623,11 @@ char * h_get_set_clause_from_json_object(const struct _h_connection * conn, cons
         } else if (json_is_real(value)) {
           escape = msprintf("%f", json_real_value(value));
         } else if (json_is_integer(value)) {
-          escape = msprintf("%d", json_integer_value(value));
+#ifdef JSON_INTEGER_IS_LONG_LONG
+          escape = msprintf("%lld", json_integer_value(value));
+#else
+          escape = msprintf("%ld", json_integer_value(value));
+#endif
         } else if (json_is_object(value)) {
           raw = json_object_get(value, "raw");
           if (raw != NULL && json_is_string(raw)) {
