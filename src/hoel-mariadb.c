@@ -86,7 +86,7 @@ struct _h_connection * h_connect_mariadb(const char * host, const char * user, c
       mysql_options(((struct _h_mariadb *)conn->connection)->db_handle, MYSQL_OPT_RECONNECT, &reconnect);
       // Initialize MUTEX for connection
       pthread_mutexattr_init ( &mutexattr );
-      pthread_mutexattr_settype( &mutexattr, PTHREAD_MUTEX_RECURSIVE );
+      pthread_mutexattr_settype( &mutexattr, PTHREAD_MUTEX_RECURSIVE_NP );
       if (pthread_mutex_init(&(((struct _h_mariadb *)conn->connection)->lock), &mutexattr) != 0) {
         y_log_message(Y_LOG_LEVEL_ERROR, "Impossible to initialize Mutex Lock for MariaDB connection");
       }

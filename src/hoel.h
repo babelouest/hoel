@@ -24,13 +24,14 @@
 #ifndef __HOEL_H__
 #define __HOEL_H__
 
-#define HOEL_VERSION 0.9
+#define HOEL_VERSION 0.9.1
 
 #include <string.h>
 #include <jansson.h>
 
 #define __USE_XOPEN
 #include <time.h>
+#include <pthread.h>
 
 /** Angharad libraries **/
 #include <yder.h>
