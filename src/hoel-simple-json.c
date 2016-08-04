@@ -38,11 +38,7 @@ char * h_get_set_clause_from_json_object(const struct _h_connection * conn, cons
 int h_select(const struct _h_connection * conn, const json_t * j_query, json_t ** j_result, char ** generated_query) {
   const char * table;
   const json_t * cols, * where, * order_by;
-#ifdef JSON_INTEGER_IS_LONG_LONG
-  long long int limit, offset;
-#else
-  long int limit, offset;
-#endif
+  json_int_t limit, offset;
   char * query, * columns = NULL, * where_clause = NULL, * tmp, * str_where_limit,  * str_order_by;
   const char * col;
   size_t index;
@@ -117,9 +113,9 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
   
   if (limit > 0) {
     if (offset > 0) {
-      str_where_limit = msprintf("LIMIT %d OFFSET %d", limit, offset);
+      str_where_limit = msprintf("LIMIT %" JSON_INTEGER_FORMAT " OFFSET %" JSON_INTEGER_FORMAT, limit, offset);
     } else {
-      str_where_limit = msprintf("LIMIT %d", limit);
+      str_where_limit = msprintf("LIMIT %" JSON_INTEGER_FORMAT, limit);
     }
     if (str_where_limit == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for str_where_limit");
