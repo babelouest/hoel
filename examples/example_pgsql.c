@@ -48,7 +48,7 @@ int main(int argc, char ** argv) {
   
   conn = h_connect_pgsql(connectionstring);
   
-  res = h_execute_query(conn, query, &result);
+  res = h_query_select(conn, query, &result);
   
   if (res == H_OK) {
     print_result(result);
