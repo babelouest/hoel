@@ -517,11 +517,7 @@ char * h_get_where_clause_from_json_object(const struct _h_connection * conn, co
               if (json_is_real(val)) {
                 clause = msprintf("%s %s %f", key, json_string_value(ope), json_real_value(val));
               } else if (json_is_integer(val)) {
-#ifdef JSON_INTEGER_IS_LONG_LONG
-                clause = msprintf("%s %s %lld", key, json_string_value(ope), json_integer_value(val));
-#else
-                clause = msprintf("%s %s %ld", key, json_string_value(ope), json_integer_value(val));
-#endif
+                clause = msprintf("%s %s %" JSON_INTEGER_FORMAT, key, json_string_value(ope), json_integer_value(val));
               } else {
                 escape = h_escape_string(conn, json_string_value(val));
                 if (escape == NULL) {
@@ -619,11 +615,7 @@ char * h_get_set_clause_from_json_object(const struct _h_connection * conn, cons
         } else if (json_is_real(value)) {
           escape = msprintf("%f", json_real_value(value));
         } else if (json_is_integer(value)) {
-#ifdef JSON_INTEGER_IS_LONG_LONG
-          escape = msprintf("%lld", json_integer_value(value));
-#else
-          escape = msprintf("%ld", json_integer_value(value));
-#endif
+          escape = msprintf("%" JSON_INTEGER_FORMAT, json_integer_value(value));
         } else if (json_is_object(value)) {
           raw = json_object_get(value, "raw");
           if (raw != NULL && json_is_string(raw)) {
