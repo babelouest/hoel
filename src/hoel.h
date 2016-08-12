@@ -24,7 +24,7 @@
 #ifndef __HOEL_H__
 #define __HOEL_H__
 
-#define HOEL_VERSION 0.9.1
+#define HOEL_VERSION 0.9.2
 
 #include <string.h>
 #include <jansson.h>

@@ -239,6 +239,7 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
     y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", mysql_error(((struct _h_mariadb *)conn->connection)->db_handle));
     y_log_message(Y_LOG_LEVEL_DEBUG, "Query: \"%s\"", query);
     pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
+    json_decref(*j_result);
     return H_ERROR_QUERY;
   }
   
@@ -248,6 +249,7 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
     y_log_message(Y_LOG_LEVEL_ERROR, "Error executing mysql_store_result");
     y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", mysql_error(((struct _h_mariadb *)conn->connection)->db_handle));
     pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
+    json_decref(*j_result);
     return H_ERROR_QUERY;
   }
   
@@ -260,6 +262,7 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
       y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for j_data");
       json_decref(*j_result);
       pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
+      json_decref(*j_result);
       return H_ERROR_MEMORY;
     }
     lengths = mysql_fetch_lengths(result);
