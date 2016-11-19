@@ -22,6 +22,7 @@
  */
 #include "hoel.h"
 #include <ctype.h>
+#include <string.h>
 
 // Get rid of noisy warning
 char * strcasestr (const char *haystack, const char *needle);

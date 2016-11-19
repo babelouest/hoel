@@ -25,6 +25,7 @@
 #ifdef _HOEL_PGSQL
 // PostgreSQL library includes
 #include <libpq-fe.h>
+#include <string.h>
 
 /**
  * Postgre SQL handle

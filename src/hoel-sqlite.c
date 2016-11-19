@@ -25,6 +25,7 @@
 #ifdef _HOEL_SQLITE
 
 #include <sqlite3.h>
+#include <string.h>
 
 /**
  * SQLite handle

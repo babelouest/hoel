@@ -26,7 +26,6 @@
 
 #define HOEL_VERSION 1.0
 
-#include <string.h>
 #include <jansson.h>
 
 #define __USE_XOPEN

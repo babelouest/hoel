@@ -26,6 +26,7 @@
 // MariaDB library Includes
 #include <my_global.h>
 #include <mysql.h>
+#include <string.h>
 
 /**
  * MariaDB handle
