@@ -330,7 +330,7 @@ int h_query_select(const struct _h_connection * conn, const char * query, struct
 Hoel allows to use json objects for simple queries with `jansson` library. In the simple json queries, a json object called `json_t * j_query` used to generate the query.
 
 A `j_query` has the following form:
-```json
+```javascript
 {
   "table": "table_name"             // String, mandatory, the table name where the query is executed
   "columns": ["col1", "col2"]       // Array of strings, available for h_select, optional. If not specified,will be used
@@ -387,17 +387,17 @@ All clauses are separated by an `AND` operator.
 As en axample, here is a json object and its generated where clause:
 
 JSON object:
-```json
+```javascript
 {
-  col1: "value1",
-  col2: 42,
-  col3: {
-    operator: ">=",
-    value: 55.5
+  "col1": "value1",
+  "col2": 42,
+  "col3": {
+    "operator": ">=",
+    "value": 55.5
   },
-  col4: {
-    operator: "raw",
-    value: "LIKE '%alu%'"
+  "col4": {
+    "operator": "raw",
+    "value": "LIKE '%alu%'"
   }
 }
 ```
