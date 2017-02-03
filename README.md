@@ -6,13 +6,23 @@ Simple and easy to use database access library. Works with SQLite 3, MariaDB/Mys
 
 # Installation
 
-Clone, compile and install yder library.
+Clone, compile and install [yder](https://github.com/babelouest/yder) and [orcania](https://github.com/babelouest/orcania) librares.
+
+### Yder (simple logs library)
 
 ```shell
 $ git clone https://github.com/babelouest/yder.git
 $ cd yder
 $ make
 $ sudo make install
+```
+
+### Orcania (Miscellaneous functions)
+
+```shell
+$ git clone https://github.com/babelouest/orcania.git
+$ cd orcania
+$ make && sudo make install
 ```
 
 Install [Jansson](http://www.digip.org/jansson/) library for json manipulation. On a debian-based platform, run the following command:
@@ -78,7 +88,7 @@ By default, the shared library and the header file will be installed in the `/us
 
 ## Header files and compilation
 
-To use hoel in your code, you must use the `#define` corresponding to your backend before including the file `hoel.h`. For example:
+To use hoel in your code, you must use the `#define` corresponding to the backend you use before including the file `hoel.h`. For example:
 
 ```c
 #define _HOEL_SQLITE
@@ -94,7 +104,7 @@ If you want to use different backends in your source code, just add its `#define
 #include <hoel.h>
 ```
 
-Use the flag `-lhoel` to include hoel library in the link edition of your compilation.
+Use the flag `-lhoel` to include hoel library in the linking process.
 
 ### Return values
 
@@ -149,6 +159,30 @@ When you no longer need your connection, close it using the function `h_close_db
 int h_close_db(struct _h_connection * conn);
 ```
 
+The connection must be cleaned when it's no longer needed.
+
+```c
+/**
+ * h_clean_connection
+ * free memory allocated by the struct _h_connection
+ * return H_OK on success
+ */
+int h_clean_connection(struct _h_connection * conn);
+```
+
+### Escape string
+
+If you need to escape parameters, you can use the function `h_escape_string`, the returned value must be free'd after use.
+
+```c
+/**
+ * h_escape_string
+ * Escapes a string
+ * returned value must be free'd after use
+ */
+char * h_escape_string(const struct _h_connection * conn, const char * unsafe);
+```
+
 ### Execute a SQL query
 
 To execute a SQL query, you can use the function `h_execute_query` which will run the query in the database specified by the parameter `conn`. If a `result` parameter is specified, the result of the query (if any) will be stored in the `result` structure.
@@ -165,19 +199,6 @@ To execute a SQL query, you can use the function `h_execute_query` which will ru
  * return H_OK on success
  */
 int h_execute_query(const struct _h_connection * conn, const char * query, struct _h_result * result, int options);
-```
-
-### Escape string
-
-If you need to escape parameters, you can use the function `h_escape_string` the returned value must be free'd after use
-
-```c
-/**
- * h_escape_string
- * Escapes a string
- * returned value must be free'd after use
- */
-char * h_escape_string(const struct _h_connection * conn, const char * unsafe);
 ```
 
 ### Result structure
@@ -327,7 +348,9 @@ int h_query_select(const struct _h_connection * conn, const char * query, struct
 
 ### Simple json queries
 
-Hoel allows to use json objects for simple queries with `jansson` library. In the simple json queries, a json object called `json_t * j_query` used to generate the query.
+Hoel allows to use json objects for simple queries with `jansson` library. In the simple json queries, a json object called `json_t * j_query` is used to generate the query.
+
+All `json_t *` returned and updated values must be free after use.
 
 A `j_query` has the following form:
 ```javascript
@@ -459,6 +482,20 @@ int h_update(const struct _h_connection * conn, const json_t * j_query, char ** 
  * return H_OK on success
  */
 int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
+```
+
+#### json last insert id
+
+The function `h_last_insert_id` returns the last inserted id in a `json_t *` format.
+
+```c
+/**
+ * h_last_insert_id
+ * return the id of the last inserted value
+ * return a pointer to `json_t *` on success, NULL otherwise.
+ * The returned value is of type JSON_INTEGER
+ */
+json_t * h_last_insert_id(const struct _h_connection * conn);
 ```
 
 ### Example source code
