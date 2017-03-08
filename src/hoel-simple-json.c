@@ -494,7 +494,7 @@ char * h_get_where_clause_from_json_object(const struct _h_connection * conn, co
     return nstrdup("1=1");
   } else {
     json_object_foreach((json_t *)where, key, value) {
-      if (!json_is_string(value) && !json_is_real(value) && !json_is_integer(value) && !json_is_object(value)) {
+      if (!json_is_string(value) && !json_is_real(value) && !json_is_integer(value) && !json_is_object(value) && !json_is_null(value)) {
         dump = json_dumps(value, JSON_ENCODE_ANY);
         y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_where_clause_from_json_object - Error where value is invalid: %s", dump);
         free(dump);
