@@ -67,7 +67,7 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
   }
   
   if (cols == NULL) {
-    columns = nstrdup("*");
+    columns = o_strdup("*");
   } else if (json_is_array(cols)) {
     json_array_foreach(cols, index, value) {
       if (json_is_string(value)) {
@@ -84,7 +84,7 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
         return H_ERROR_PARAMS;
       }
       if (index == 0) {
-        columns = nstrdup(col);
+        columns = o_strdup(col);
         if (columns == NULL) {
           y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_select Error allocating columns");
           free(where_clause);
@@ -127,13 +127,13 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
       return H_ERROR_MEMORY;
     }
   } else {
-    str_where_limit = nstrdup("");
+    str_where_limit = o_strdup("");
   }
   
   if (order_by != NULL && json_is_string(order_by)) {
     str_order_by = msprintf("ORDER BY %s", json_string_value(order_by));
   } else {
-    str_order_by = nstrdup("");
+    str_order_by = o_strdup("");
   }
   if (str_order_by == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for str_order_by");
@@ -162,7 +162,7 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
     return H_ERROR_MEMORY;
   } else {
     if (generated_query != NULL) {
-      *generated_query = nstrdup(query);
+      *generated_query = o_strdup(query);
     }
     res = h_query_select_json(conn, query, j_result);
     free(columns);
@@ -197,7 +197,7 @@ int h_insert(const struct _h_connection * conn, const json_t * j_query, char ** 
         query = h_get_insert_query_from_json_object(conn, (json_t *)values, table);
         if (query != NULL) {
           if (generated_query != NULL) {
-            *generated_query = nstrdup(query);
+            *generated_query = o_strdup(query);
           }
           res = h_query_insert(conn, query);
           free(query);
@@ -213,7 +213,7 @@ int h_insert(const struct _h_connection * conn, const json_t * j_query, char ** 
           if (query != NULL) {
             if (generated_query != NULL && index == 0) {
               // Export just the first query
-              *generated_query = nstrdup(query);
+              *generated_query = o_strdup(query);
             }
             res = h_query_insert(conn, query);
             free(query);
@@ -318,7 +318,7 @@ int h_update(const struct _h_connection * conn, const json_t * j_query, char ** 
     return H_ERROR_MEMORY;
   }
   if (generated_query != NULL) {
-    *generated_query = nstrdup(query);
+    *generated_query = o_strdup(query);
   }
   res = h_query_update(conn, query);
   free(query);
@@ -364,7 +364,7 @@ int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** 
     return H_ERROR_MEMORY;
   }
   if (generated_query != NULL) {
-    *generated_query = nstrdup(query);
+    *generated_query = o_strdup(query);
   }
   res = h_query_delete(conn, query);
   free(query);
@@ -402,27 +402,27 @@ char * h_get_insert_query_from_json_object(const struct _h_connection * conn, co
         new_data = msprintf("%f", json_real_value(value));
         break;
       case JSON_TRUE:
-        new_data = nstrdup("1");
+        new_data = o_strdup("1");
         break;
       case JSON_FALSE:
-        new_data = nstrdup("0");
+        new_data = o_strdup("0");
         break;
       case JSON_NULL:
-        new_data = nstrdup("NULL");
+        new_data = o_strdup("NULL");
         break;
       case JSON_OBJECT:
         raw = json_object_get(value, "raw");
         if (raw != NULL && json_is_string(raw)) {
-          new_data = nstrdup(json_string_value(raw));
+          new_data = o_strdup(json_string_value(raw));
         } else {
-          new_data = nstrdup("NULL");
+          new_data = o_strdup("NULL");
         }
         break;
       default:
         tmp = json_dumps(value, JSON_ENCODE_ANY);
         y_log_message(Y_LOG_LEVEL_DEBUG, "Error decoding value %s, inserting NULL value", tmp);
         free(tmp);
-        new_data = nstrdup("NULL");
+        new_data = o_strdup("NULL");
         break;
     }
     if (new_data == NULL) {
@@ -430,7 +430,7 @@ char * h_get_insert_query_from_json_object(const struct _h_connection * conn, co
       return NULL;
     }
     if (i == 0) {
-      insert_cols = nstrdup(key);
+      insert_cols = o_strdup(key);
       if (insert_cols == NULL) {
         y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_insert_query_from_json_object - Error allocating insert_cols");
         return NULL;
@@ -491,7 +491,7 @@ char * h_get_where_clause_from_json_object(const struct _h_connection * conn, co
     y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_where_clause_from_json_object - Error conn is NULL");
     return NULL;
   } else if (where == NULL || (json_is_object(where) && json_object_size(where) == 0)) {
-    return nstrdup("1=1");
+    return o_strdup("1=1");
   } else {
     json_object_foreach((json_t *)where, key, value) {
       if (!json_is_string(value) && !json_is_real(value) && !json_is_integer(value) && !json_is_object(value) && !json_is_null(value)) {
@@ -556,7 +556,7 @@ char * h_get_where_clause_from_json_object(const struct _h_connection * conn, co
           }
         }
         if (i == 0) {
-          where_clause = nstrdup(clause);
+          where_clause = o_strdup(clause);
           if (where_clause == NULL) {
             y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_where_clause_from_json_object - Error where_clause");
             free(clause);
@@ -622,12 +622,12 @@ char * h_get_set_clause_from_json_object(const struct _h_connection * conn, cons
         } else if (json_is_object(value)) {
           raw = json_object_get(value, "raw");
           if (raw != NULL && json_is_string(raw)) {
-            escape = nstrdup(json_string_value(raw));
+            escape = o_strdup(json_string_value(raw));
           } else {
-            escape = nstrdup("NULL");
+            escape = o_strdup("NULL");
           }
         } else {
-          escape = nstrdup("");
+          escape = o_strdup("");
         }
         if (escape == NULL) {
           y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error escape");
