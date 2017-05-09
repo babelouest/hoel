@@ -120,9 +120,9 @@ When specified, some functions return `H_OK` on success, and other values otherw
 #define H_ERROR_MEMORY      99 // Error allocating memory
 ```
 
-### Initialisation
+### Initialization
 
-To generate a connection to a database, use its dedicated function
+To create a connection to a database, use its dedicated function
 
 ```c
 /**
