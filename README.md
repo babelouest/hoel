@@ -120,6 +120,17 @@ When specified, some functions return `H_OK` on success, and other values otherw
 #define H_ERROR_MEMORY      99 // Error allocating memory
 ```
 
+### Memory allocation
+
+Some function return allocated values. When the value is not a structure, you must use the function `h_free` to clean it. Otherwise, use the dedicated functions.
+
+```c
+/**
+ * free data allocated by hoel functions
+ */
+void h_free(void * data);
+```
+
 ### Initialization
 
 To create a connection to a database, use its dedicated function
@@ -172,13 +183,13 @@ int h_clean_connection(struct _h_connection * conn);
 
 ### Escape string
 
-If you need to escape parameters, you can use the function `h_escape_string`, the returned value must be free'd after use.
+If you need to escape parameters, you can use the function `h_escape_string`, the returned value must be h_free'd after use.
 
 ```c
 /**
  * h_escape_string
  * Escapes a string
- * returned value must be free'd after use
+ * returned value must be h_free'd after use
  */
 char * h_escape_string(const struct _h_connection * conn, const char * unsafe);
 ```
@@ -443,7 +454,7 @@ The simple json queries functions are:
  * Execute a select query
  * Uses a json_t * parameter for the query parameters
  * Store the result of the query in j_result if specified. j_result must be decref'd after use
- * Duplicate the generated query in generated_query if specified, must be free'd after use
+ * Duplicate the generated query in generated_query if specified, must be h_free'd after use
  * return H_OK on success
  */
 int h_select(const struct _h_connection * conn, const json_t * j_query, json_t ** j_result, char ** generated_query);
@@ -452,7 +463,7 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
  * h_insert
  * Execute an insert query
  * Uses a json_t * parameter for the query parameters
- * Duplicate the generated query in generated_query if specified, must be free'd after use
+ * Duplicate the generated query in generated_query if specified, must be h_free'd after use
  * return H_OK on success
  */
 int h_insert(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
@@ -469,7 +480,7 @@ json_t * h_last_insert_id(const struct _h_connection * conn);
  * h_update
  * Execute an update query
  * Uses a json_t * parameter for the query parameters
- * Duplicate the generated query in generated_query if specified, must be free'd after use
+ * Duplicate the generated query in generated_query if specified, must be h_free'd after use
  * return H_OK on success
  */
 int h_update(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
@@ -478,7 +489,7 @@ int h_update(const struct _h_connection * conn, const json_t * j_query, char ** 
  * h_delete
  * Execute a delete query
  * Uses a json_t * parameter for the query parameters
- * Duplicate the generated query in generated_query if specified, must be free'd after use
+ * Duplicate the generated query in generated_query if specified, must be h_free'd after use
  * return H_OK on success
  */
 int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);

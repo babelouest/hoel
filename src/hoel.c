@@ -24,8 +24,12 @@
 #include <ctype.h>
 #include <string.h>
 
-// Get rid of noisy warning
-char * strcasestr (const char *haystack, const char *needle);
+/**
+ * free data allocated by hoel functions
+ */
+void h_free(void * data) {
+  o_free(data);
+}
 
 /**
  * Close a database connection
@@ -268,7 +272,7 @@ int h_result_add_row(struct _h_result * result, struct _h_data * row, int rows) 
  * return H_OK on success
  */
 int h_query_insert(const struct _h_connection * conn, const char * query) {
-  if (conn != NULL && conn->connection != NULL && query != NULL && strcasestr(query, "insert") != NULL) {
+  if (conn != NULL && conn->connection != NULL && query != NULL && o_strcasestr(query, "insert") != NULL) {
     return h_execute_query(conn, query, NULL, H_OPTION_EXEC);
   } else {
     return H_ERROR_PARAMS;
@@ -323,7 +327,7 @@ struct _h_data * h_query_last_insert_id(const struct _h_connection * conn) {
  * return H_OK on success
  */
 int h_query_update(const struct _h_connection * conn, const char * query) {
-  if (conn != NULL && conn->connection != NULL && query != NULL && strcasestr(query, "update") != NULL) {
+  if (conn != NULL && conn->connection != NULL && query != NULL && o_strcasestr(query, "update") != NULL) {
     return h_execute_query(conn, query, NULL, H_OPTION_EXEC);
   } else {
     return H_ERROR_PARAMS;
@@ -336,7 +340,7 @@ int h_query_update(const struct _h_connection * conn, const char * query) {
  * return H_OK on success
  */
 int h_query_delete(const struct _h_connection * conn, const char * query) {
-  if (conn != NULL && conn->connection != NULL && query != NULL && strcasestr(query, "delete") != NULL) {
+  if (conn != NULL && conn->connection != NULL && query != NULL && o_strcasestr(query, "delete") != NULL) {
     return h_execute_query(conn, query, NULL, H_OPTION_EXEC);
   } else {
     return H_ERROR_PARAMS;
@@ -349,7 +353,7 @@ int h_query_delete(const struct _h_connection * conn, const char * query) {
  * return H_OK on success
  */
 int h_query_select(const struct _h_connection * conn, const char * query, struct _h_result * result) {
-  if (conn != NULL && conn->connection != NULL && query != NULL && strcasestr(query, "select") != NULL) {
+  if (conn != NULL && conn->connection != NULL && query != NULL && o_strcasestr(query, "select") != NULL) {
     return h_execute_query(conn, query, result, H_OPTION_SELECT);
   } else {
     return H_ERROR_PARAMS;
@@ -362,7 +366,7 @@ int h_query_select(const struct _h_connection * conn, const char * query, struct
  * return H_OK on success
  */
 int h_query_select_json(const struct _h_connection * conn, const char * query, json_t ** j_result) {
-  if (conn != NULL && conn->connection != NULL && query != NULL && strcasestr(query, "select") != NULL) {
+  if (conn != NULL && conn->connection != NULL && query != NULL && o_strcasestr(query, "select") != NULL) {
     return h_execute_query_json(conn, query, j_result);
   } else {
     return H_ERROR_PARAMS;
