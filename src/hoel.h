@@ -24,7 +24,7 @@
 #ifndef __HOEL_H__
 #define __HOEL_H__
 
-#define HOEL_VERSION 1.0
+#define HOEL_VERSION 1.1
 
 #include <jansson.h>
 
@@ -132,6 +132,11 @@ struct _h_result {
  * return H_OK on success
  */
 int h_close_db(struct _h_connection * conn);
+
+/**
+ * free data allocated by hoel functions
+ */
+void h_free(void * data);
 
 /**
  * h_escape_string

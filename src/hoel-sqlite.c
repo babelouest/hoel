@@ -90,10 +90,10 @@ char * h_escape_string_sqlite(const struct _h_connection * conn, const char * un
                            sqlite3_errmsg(((struct _h_sqlite *)conn->connection)->db_handle));
     return NULL;
   }
-  ret = nstrdup(tmp);
+  ret = o_strdup(tmp);
   sqlite3_free(tmp);
   if (ret == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "Error escaping (nstrdup)");
+    y_log_message(Y_LOG_LEVEL_ERROR, "Error escaping (o_strdup)");
   }
   return ret;
 }

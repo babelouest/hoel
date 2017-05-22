@@ -16,6 +16,7 @@
 
 LIBHOEL_LOCATION=./src
 EXAMPLE_LOCATION=./examples
+TEST_LOCATION=./test
 
 all: libhoel.so example_sqlite3 example_mariadb example_pgsql
 
@@ -25,6 +26,7 @@ debug:
 clean:
 	cd $(LIBHOEL_LOCATION) && $(MAKE) clean
 	cd $(EXAMPLE_LOCATION) && $(MAKE) clean
+	cd $(TEST_LOCATION) && $(MAKE) clean
 
 libhoel.so:
 	cd $(LIBHOEL_LOCATION) && $(MAKE)
@@ -40,3 +42,6 @@ example_mariadb:
 
 example_pgsql:
 	cd $(EXAMPLE_LOCATION) && $(MAKE) example_pgsql
+
+test:
+	cd $(TEST_LOCATION) && $(MAKE) test
