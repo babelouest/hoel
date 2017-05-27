@@ -23,6 +23,9 @@ all: libhoel.so example_sqlite3 example_mariadb example_pgsql
 debug:
 	cd $(EXAMPLE_LOCATION) && $(MAKE) debug
 
+install:
+	cd $(EXAMPLE_LOCATION) && $(MAKE) install
+
 clean:
 	cd $(LIBHOEL_LOCATION) && $(MAKE) clean
 	cd $(EXAMPLE_LOCATION) && $(MAKE) clean
