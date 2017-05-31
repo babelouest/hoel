@@ -65,7 +65,7 @@ clean:
 install: all
 	cp $(OUTPUT).$(VERSION) $(PREFIX)/lib
 	cp hoel.h $(PREFIX)/include
-	/sbin/ldconfig -r $(PREFIX)
+	/sbin/ldconfig
 
 uninstall:
 	rm -f $(PREFIX)/lib/$(OUTPUT)
