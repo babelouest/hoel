@@ -20,15 +20,15 @@
 #
 CC=gcc
 
-# uncomment these lines if you want sqlite support
+# comment/uncomment these lines to disable/enable sqlite3 support
 FLAGS_SQLITE=-D_HOEL_SQLITE
 LIBS_SQLITE=-lsqlite3
 
-# uncomment these lines if you want sqlite support
+# comment/uncomment these lines to disable/enable mysql/mariadb support
 FLAGS_MARIADB=-D_HOEL_MARIADB -I/usr/include/mysql/
 LIBS_MARIADB=-lmysqlclient
 
-# uncomment these lines if you want sqlite support
+# comment/uncomment these lines to disable/enable postgresql support
 # FLAGS_PGSQL=-D_HOEL_PGSQL -I/usr/include/postgresql/
 # LIBS_PGSQL=-lpq
 
