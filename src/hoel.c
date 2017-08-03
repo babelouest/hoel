@@ -20,9 +20,11 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  */
-#include "hoel.h"
 #include <ctype.h>
 #include <string.h>
+
+#include "hoel.h"
+#include "h-private.h"
 
 /**
  * free data allocated by hoel functions
@@ -371,29 +373,6 @@ int h_query_select_json(const struct _h_connection * conn, const char * query, j
   } else {
     return H_ERROR_PARAMS;
   }
-}
-
-/**
- * trim_whitespace_and_double_quotes
- * Return the string without its beginning and ending whitespaces or double quotes
- */
-char * trim_whitespace_and_double_quotes(char *str) {
-  char *end;
-
-  // Trim leading space
-  while(isspace(*str) || *str == '"') str++;
-
-  if(*str == 0)  // All spaces?
-    return str;
-
-  // Trim trailing space
-  end = str + strlen(str) - 1;
-  while(end > str && (isspace(*end) || *end == '"')) end--;
-
-  // Write new null terminator
-  *(end+1) = 0;
-
-  return str;
 }
 
 /**

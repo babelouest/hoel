@@ -21,6 +21,7 @@
  * 
  */
 #include "hoel.h"
+#include "h-private.h"
 
 #ifdef _HOEL_SQLITE
 
