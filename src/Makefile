@@ -25,8 +25,8 @@ FLAGS_SQLITE=-D_HOEL_SQLITE
 LIBS_SQLITE=-lsqlite3
 
 # comment/uncomment these lines to disable/enable mysql/mariadb support
-FLAGS_MARIADB=-D_HOEL_MARIADB -I/usr/include/mysql/
-LIBS_MARIADB=-lmysqlclient
+FLAGS_MARIADB=-D_HOEL_MARIADB $(shell mysql_config --cflags)
+LIBS_MARIADB=$(shell mysql_config --libs)
 
 # comment/uncomment these lines to disable/enable postgresql support
 # FLAGS_PGSQL=-D_HOEL_PGSQL -I/usr/include/postgresql/
@@ -59,16 +59,23 @@ libhoel.so: hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
 	$(CC) -shared -Wl,-soname,$(OUTPUT) -o $(OUTPUT).$(VERSION) hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o $(LIBS)
 	ln -sf $(OUTPUT).$(VERSION) $(OUTPUT)
 
+libhoel.a: hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
+	ar rcs libhoel.a hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
+
 clean:
-	rm -f *.o *.so $(OUTPUT) $(OUTPUT).*
+	rm -f *.o *.so *.a $(OUTPUT) $(OUTPUT).*
 
 install: all
 	cp $(OUTPUT).$(VERSION) $(PREFIX)/lib
 	cp hoel.h $(PREFIX)/include
 	/sbin/ldconfig
 
+static-install: static
+	cp libhoel.a $(PREFIX)/lib
+	cp hoel.h $(PREFIX)/include
+
 uninstall:
-	rm -f $(PREFIX)/lib/$(OUTPUT)
+	rm -f $(PREFIX)/lib/$(OUTPUT) $(PREFIX)/lib/libhoel.a
 	rm -f $(PREFIX)/lib/$(OUTPUT).*
 	rm -f $(PREFIX)/include/hoel.h
 
@@ -79,3 +86,11 @@ debug: libhoel.so
 release: ADDITIONALFLAGS=-O3
 
 release: libhoel.so
+
+static-debug: ADDITIONALFLAGS=-DDEBUG -g -O0
+
+static-debug: libhoel.a
+
+static: ADDITIONALFLAGS=-O3
+
+static: libhoel.a
