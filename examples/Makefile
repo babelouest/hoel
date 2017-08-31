@@ -13,7 +13,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU GENERAL PUBLIC LICENSE for more details.
 #
-PREFIX=/usr/local/angharad
+PREFIX=/usr/local
 CC=gcc
 CFLAGS=-c -Wall -D_REENTRANT -I$(PREFIX)/include $(ADDITIONALFLAGS)
 HOEL_LOCATION=../src
