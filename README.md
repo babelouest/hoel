@@ -2,11 +2,29 @@
 
 Database abstraction library written in C.
 
-Simple and easy to use database access library. Works with SQLite 3, MariaDB/Mysql and (barely) PostgreSQL databases. Uses a json-based language with `jansson` to execute simples queries based on one table.
+Simple and easy to use database access library. Works with SQLite 3, MariaDB/Mysql and (barely) PostgreSQL databases. Uses a JSON-based language with `jansson` to execute simples queries based on one table.
 
 # Installation
 
-Clone, compile and install [yder](https://github.com/babelouest/yder) and [orcania](https://github.com/babelouest/orcania) librares.
+## Linux distribution package
+
+Hoel is now available in Debian Buster (testing), Debian Sid, and soonin Ubuntu. To install the development package on your system, run the command as root:
+
+```shell
+# apt install libhoel-dev
+```
+
+## Install from the source
+
+Clone, compile and install [Orcania](https://github.com/babelouest/orcania) and [Yder](https://github.com/babelouest/yder) librares.
+
+### Orcania (Miscellaneous functions)
+
+```shell
+$ git clone https://github.com/babelouest/orcania.git
+$ cd orcania
+$ make && sudo make install
+```
 
 ### Yder (simple logs library)
 
@@ -17,15 +35,7 @@ $ make
 $ sudo make install
 ```
 
-### Orcania (Miscellaneous functions)
-
-```shell
-$ git clone https://github.com/babelouest/orcania.git
-$ cd orcania
-$ make && sudo make install
-```
-
-Install [Jansson](http://www.digip.org/jansson/) library for json manipulation. On a debian-based platform, run the following command:
+Install [Jansson](http://www.digip.org/jansson/) library for JSON manipulation. On a debian-based platform, run the following command:
 
 ```shell
 $ sudo apt-get install libjansson-dev
@@ -41,7 +51,7 @@ Compile hoel for the backend you need, go to hoel source folder, depending on yo
 
 ## SQLite 3
 
-Install libsqlite3-dev and uncomment the following lines in the `src/Makefile`
+Install `libsqlite3-dev` and uncomment the following lines in the `src/Makefile`
 
 ```Makefile
 # HAS_SQLITE=-D_HOEL_SQLITE
@@ -50,7 +60,7 @@ Install libsqlite3-dev and uncomment the following lines in the `src/Makefile`
 
 ## MariaDB/Mysql
 
-Install libmysqlclient-dev and uncomment the following lines in the `src/Makefile`
+Install `libmysqlclient-dev` and uncomment the following lines in the `src/Makefile`
 
 ```Makefile
 # FLAGS_MARIADB=-D_HOEL_MARIADB -I/usr/include/mysql/
@@ -59,7 +69,7 @@ Install libmysqlclient-dev and uncomment the following lines in the `src/Makefil
 
 ## Postgre SQL
 
-Install libpq-dev and uncomment the following lines in the `src/Makefile`
+Install `libpq-dev` and uncomment the following lines in the `src/Makefile`
 
 ```Makefile
 # HAS_PGSQL=-D_HOEL_PGSQL -I/usr/include/postgresql/
@@ -68,7 +78,7 @@ Install libpq-dev and uncomment the following lines in the `src/Makefile`
 
 ### Postgre SQL limitations
 
-For some reasons, the Postgre SQL backend has some limitations. The `*_last_insert_id` functions don't work, and a select statement returns only string values. The reason is I couldn't find on the documentation how to implement those, if it's possible...
+For some reasons, the Postgre SQL backend has some limitations. The `*_last_insert_id` functions don't work, and a select statement returns only string values. I couldn't find on the documentation if it's possible to implement those.
 
 ### Use different backends
 
@@ -357,9 +367,9 @@ int h_query_delete(const struct _h_connection * conn, const char * query);
 int h_query_select(const struct _h_connection * conn, const char * query, struct _h_result * result);
 ```
 
-### Simple json queries
+### Simple JSON queries
 
-Hoel allows to use json objects for simple queries with `jansson` library. In the simple json queries, a json object called `json_t * j_query` is used to generate the query.
+Hoel allows to use JSON objects for simple queries with `jansson` library. In the simple JSON queries, a JSON object called `json_t * j_query` is used to generate the query.
 
 All `json_t *` returned and updated values must be free after use.
 
@@ -371,19 +381,19 @@ A `j_query` has the following form:
   "order_by": "col_name [asc|desc]" // String, available for h_select, specify the order by clause, optional
   "limit": integer_value            // Integer, available for h_select, specify the limit value, optional
   "offset"                          // Integer, available for h_select, specify the limit value, optional but available only if limit is set
-  "values": [{                      // json object or json array of json objects, available for h_insert, mandatory, specify the values to update
+  "values": [{                      // JSON object or JSON array of JSON objects, available for h_insert, mandatory, specify the values to update
     "col1": "value1",               // Generates col1='value1' for an update query
     "col2": value_integer,          // Generates col2=value_integer for an update query
     "col3", "value3",               // Generates col3='value3' for an update query
     "col4", null                    // Generates col4=NULL for an update query
   }]
-  "set": {                          // json object, available for h_update, mandatory, specify the values to update
+  "set": {                          // JSON object, available for h_update, mandatory, specify the values to update
     "col1": "value1",               // Generates col1='value1' for an update query
     "col2": value_integer,          // Generates col2=value_integer for an update query
     "col3", "value3",               // Generates col3='value3' for an update query
     "col4", null                    // Generates col4=NULL for an update query
   }
-  "where": {                        // json object, available for h_select, h_update and h_delete, mandatory, specify the where clause. All clauses are separated with an AND operator
+  "where": {                        // JSON object, available for h_select, h_update and h_delete, mandatory, specify the where clause. All clauses are separated with an AND operator
     "col1": "value1",               // Generates col1='value1'
     "col2": value_integer,          // Generates col2=value_integer
     "col3": null,                   // Generates col3=NULL
@@ -404,7 +414,7 @@ A `j_query` has the following form:
 
 #### Where clause construction
 
-A `where` clause is a json object containing a series of clauses. A clause can have 2 different forms:
+A `where` clause is a JSON object containing a series of clauses. A clause can have 2 different forms:
 
 - `col_name: value`
 - `col_name: {operator: "operator_value", value: value}`
@@ -418,7 +428,7 @@ In the second case, `col_name: {operator: "operator_value", value: value}`, depe
 
 All clauses are separated by an `AND` operator.
 
-As en axample, here is a json object and its generated where clause:
+As en axample, here is a JSON object and its generated where clause:
 
 JSON object:
 ```javascript
@@ -446,7 +456,7 @@ WHERE col1 = 'value1'
 
 If you need less simple clauses, you can build it on your own and use the `h_execute_query` or the `h_execute_query_json` functions.
 
-The simple json queries functions are:
+The simple JSON queries functions are:
 
 ```c
 /**
@@ -495,7 +505,7 @@ int h_update(const struct _h_connection * conn, const json_t * j_query, char ** 
 int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
 ```
 
-#### json last insert id
+#### JSON last insert id
 
 The function `h_last_insert_id` returns the last inserted id in a `json_t *` format.
 
