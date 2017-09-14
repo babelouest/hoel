@@ -582,9 +582,10 @@ json_t * h_last_insert_id(const struct _h_connection * conn) {
 #endif
 #ifdef _HOEL_PGSQL
     } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
-      // TODO
-      // Not possible ?
-      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_last_insert_id Error feature not supported");
+      int last_id = h_last_insert_id_pgsql(conn);
+      if (last_id > 0) {
+        j_data = json_integer(last_id);
+      }
 #endif
     }
   }

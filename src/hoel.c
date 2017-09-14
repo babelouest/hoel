@@ -311,10 +311,12 @@ struct _h_data * h_query_last_insert_id(const struct _h_connection * conn) {
 #endif
 #ifdef _HOEL_PGSQL
     } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
-      // TODO
-      // Not possible ?
-      y_log_message(Y_LOG_LEVEL_ERROR, "Error feature not supported");
-      data = h_new_data_null();
+      int last_id = h_last_insert_id_pgsql(conn);
+      if (last_id > 0) {
+        data = h_new_data_int(last_id);
+      } else {
+        data = h_new_data_null();
+      }
 #endif
     } else {
       data = h_new_data_null();

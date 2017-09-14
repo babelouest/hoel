@@ -24,7 +24,7 @@
 #ifndef __HOEL_H__
 #define __HOEL_H__
 
-#define HOEL_VERSION 1.1.1
+#define HOEL_VERSION 1.2
 
 #include <jansson.h>
 
@@ -53,6 +53,7 @@
 #define HOEL_COL_TYPE_TEXT   2
 #define HOEL_COL_TYPE_DATE   3
 #define HOEL_COL_TYPE_BLOB   4
+#define HOEL_COL_TYPE_BOOL   5
 #define HOEL_COL_TYPE_NULL   5
 
 #define H_OK                0  // No error
@@ -460,6 +461,12 @@ void h_close_pgsql(struct _h_connection * conn);
  * returned value must be free'd after use
  */
 char * h_escape_string_pgsql(const struct _h_connection * conn, const char * unsafe);
+
+/**
+ * Return the id of the last inserted value
+ * Assuming you use sequences for automatically generated ids
+ */
+int h_last_insert_id_pgsql(const struct _h_connection * conn);
 #endif
 
 #endif // __HOEL_H__

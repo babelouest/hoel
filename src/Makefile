@@ -1,5 +1,5 @@
 #
-# Ulfius Framework
+# Hoel Framework
 #
 # Makefile used to build the software
 #
@@ -26,17 +26,17 @@ LIBS_SQLITE=-lsqlite3
 
 # comment/uncomment these lines to disable/enable mysql/mariadb support
 FLAGS_MARIADB=-D_HOEL_MARIADB $(shell mysql_config --cflags)
-LIBS_MARIADB=$(shell mysql_config --libs)
+LIBS_MARIADB=$(shell mysql_config --libs_r)
 
 # comment/uncomment these lines to disable/enable postgresql support
-# FLAGS_PGSQL=-D_HOEL_PGSQL -I/usr/include/postgresql/
-# LIBS_PGSQL=-lpq
+FLAGS_PGSQL=-D_HOEL_PGSQL -I/usr/include/postgresql/
+LIBS_PGSQL=-lpq
 
 PREFIX=/usr/local
 CFLAGS=-c -fPIC -Wall -I$(PREFIX)/include $(FLAGS_SQLITE) $(FLAGS_MARIADB) $(FLAGS_PGSQL) -D_REENTRANT $(ADDITIONALFLAGS)
 LIBS=-L$(PREFIX)/lib -lc -ljansson -lyder -lorcania $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MARIADB)
 OUTPUT=libhoel.so
-VERSION=1.1.1
+VERSION=1.2
 
 all: release
 

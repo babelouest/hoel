@@ -2,13 +2,13 @@
 
 Database abstraction library written in C.
 
-Simple and easy to use database access library. Works with SQLite 3, MariaDB/Mysql and (barely) PostgreSQL databases. Uses a JSON-based language with `jansson` to execute simples queries based on one table.
+Simple and easy to use database access library. Works with SQLite 3, MariaDB/Mysql and PostgreSQL databases. Uses a JSON-based language with `jansson` to execute simples queries based on one table.
 
 # Installation
 
 ## Linux distribution package
 
-Hoel is now available in Debian Buster (testing), Debian Sid, and soonin Ubuntu. To install the development package on your system, run the command as root:
+Hoel is now available in Debian Buster (testing), Debian Sid, and soon in Ubuntu. To install the development package on your system, run the command as root:
 
 ```shell
 # apt install libhoel-dev
@@ -75,10 +75,6 @@ Install `libpq-dev` and uncomment the following lines in the `src/Makefile`
 # HAS_PGSQL=-D_HOEL_PGSQL -I/usr/include/postgresql/
 # LIBS_PGSQL=-lpq
 ```
-
-### Postgre SQL limitations
-
-For some reasons, the Postgre SQL backend has some limitations. The `*_last_insert_id` functions don't work, and a select statement returns only string values. I couldn't find on the documentation if it's possible to implement those.
 
 ### Use different backends
 
