@@ -28,29 +28,6 @@
 #include "h-private.h"
 
 /**
- * trim_whitespace_and_double_quotes
- * Return the string without its beginning and ending whitespaces or double quotes
- */
-static char * trim_whitespace_and_double_quotes(char *str) {
-  char *end;
-
-  // Trim leading space
-  while(isspace(*str) || *str == '"') str++;
-
-  if(*str == 0)  // All spaces?
-    return str;
-
-  // Trim trailing space
-  end = str + strlen(str) - 1;
-  while(end > str && (isspace(*end) || *end == '"')) end--;
-
-  // Write new null terminator
-  *(end+1) = 0;
-
-  return str;
-}
-
-/**
  * Builds an insert query from a json object and a table name
  * Returned value must be o_free'd after use
  */
@@ -73,9 +50,7 @@ static char * h_get_insert_query_from_json_object(const struct _h_connection * c
         }
         break;
       case JSON_INTEGER:
-        tmp = json_dumps(value, JSON_ENCODE_ANY);
-        new_data = msprintf("%s", tmp);
-        o_free(tmp);
+        new_data = msprintf("%"JSON_INTEGER_FORMAT, json_integer_value(value));
         break;
       case JSON_REAL:
         new_data = msprintf("%f", json_real_value(value));
@@ -221,16 +196,22 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
         } else {
           if (json_is_null(value)) {
             clause = msprintf("%s IS NULL", key);
-          } else {
-            dump = json_dumps(value, JSON_ENCODE_ANY);
-            escape = h_escape_string(conn, trim_whitespace_and_double_quotes(dump));
+          } else if (json_is_string(value)) {
+            escape = h_escape_string(conn, json_string_value(value));
             if (escape == NULL) {
               y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error escape");
               return NULL;
             }
             clause = msprintf("%s='%s'", key, escape);
-            o_free(dump);
             o_free(escape);
+          } else if (json_is_integer(value)) {
+            clause = msprintf("%s='%"JSON_INTEGER_FORMAT"'", key, json_integer_value(value));
+          } else if (json_is_real(value)) {
+            clause = msprintf("%s='%f'", key, json_real_value(value));
+          } else if (json_is_true(value)) {
+            clause = msprintf("%s=1");
+          } else if (json_is_false(value)) {
+            clause = msprintf("%s=0");
           }
           if (clause == NULL) {
             y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for clause");
