@@ -15,6 +15,8 @@
 #define DEFAULT_BD_PATH "/tmp/test.db"
 #define WRONG_BD_PATH "nope.db"
 
+#define UNSAFE_STRING "un'safe' (\"string\")#!/$%*];"
+
 #define SELECT_DATA_1 "SELECT `integer_col`, `string_col`, `date_col` FROM `test_table` WHERE `integer_col` = 1"
 #define SELECT_DATA_2 "SELECT `integer_col`, `string_col`, `date_col` FROM `test_table` WHERE `integer_col` = 2"
 #define SELECT_DATA_ERROR "SELECT `integer_col`, `string_col`, `date_col` FROM `test_table` WHERE `integer_col` = 'error'"
@@ -82,6 +84,9 @@ START_TEST(test_hoel_escape_string)
 {
   struct _h_connection * conn;
   char * escaped;
+  json_t * j_query, * j_result;
+  int res;
+  
   conn = h_connect_sqlite(db_path);
   ck_assert_ptr_ne(conn, NULL);
   escaped = h_escape_string(conn, "value");
@@ -90,6 +95,18 @@ START_TEST(test_hoel_escape_string)
   escaped = h_escape_string(conn, "`unsafe ' value\"!");
   ck_assert_str_eq(escaped, "`unsafe '' value\"!");
   h_free(escaped);
+  
+  j_query = json_pack("{sss{siss}}", "table", "test_table", "values", "integer_col", 666, "string_col", UNSAFE_STRING);
+  res = h_insert(conn, j_query, NULL);
+  json_decref(j_query);
+  ck_assert_int_eq(res, H_OK);
+  j_query = json_pack("{sss[s]s{si}}", "table", "test_table", "columns", "string_col", "where", "integer_col", 666);
+  res = h_select(conn, j_query, &j_result, NULL);
+  json_decref(j_query);
+  ck_assert_int_eq(res, H_OK);
+  ck_assert_str_eq(UNSAFE_STRING, json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")));
+  json_decref(j_result);
+  
   ck_assert_int_eq(h_close_db(conn), H_OK);
   ck_assert_int_eq(h_clean_connection(conn), H_OK);
 }
