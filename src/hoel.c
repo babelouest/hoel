@@ -137,7 +137,7 @@ int h_execute_query(const struct _h_connection * conn, const char * query, struc
  * return H_OK on success
  */
 int h_execute_query_json(const struct _h_connection * conn, const char * query, json_t ** j_result) {
-  if (conn != NULL && conn->connection != NULL && query != NULL) {
+  if (conn != NULL && conn->connection != NULL && query != NULL && j_result != NULL) {
     if (0) {
       // Not happening
 #ifdef _HOEL_SQLITE

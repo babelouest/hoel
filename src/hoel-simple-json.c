@@ -138,7 +138,7 @@ static char * h_get_insert_query_from_json_object(const struct _h_connection * c
 static char * h_get_where_clause_from_json_object(const struct _h_connection * conn, const json_t * where) {
   const char * key;
   json_t * value, * ope, * val;
-  char * where_clause = NULL, * dump = NULL, * escape = NULL, * tmp, * clause, * dump2 = NULL;
+  char * where_clause = NULL, * dump = NULL, * escape = NULL, * tmp, * clause = NULL, * dump2 = NULL;
   int i = 0;
   
   if (conn == NULL) {
