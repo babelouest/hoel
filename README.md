@@ -6,9 +6,11 @@ Simple and easy to use database access library. Works with SQLite 3, MariaDB/Mys
 
 # Installation
 
-## Linux distribution package
+## Debian-ish distribution package
 
-Hoel is now available in Debian Buster (testing), Debian Sid, and soon in Ubuntu. To install the development package on your system, run the command as root:
+[![Packaging status](https://repology.org/badge/vertical-allrepos/hoel.svg)](https://repology.org/metapackage/hoel)
+
+Hoel is now available in Debian Buster (testing) and some Debian based distributions. To install the development package on your system, run the command as root:
 
 ```shell
 # apt install libhoel-dev
