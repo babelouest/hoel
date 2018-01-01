@@ -137,9 +137,10 @@ static char * h_get_insert_query_from_json_object(const struct _h_connection * c
  */
 static char * h_get_where_clause_from_json_object(const struct _h_connection * conn, const json_t * where) {
   const char * key;
-  json_t * value, * ope, * val;
+  json_t * value, * ope, * val, * j_element;
   char * where_clause = NULL, * dump = NULL, * escape = NULL, * tmp, * clause = NULL, * dump2 = NULL;
   int i = 0;
+  size_t index;
   
   if (conn == NULL) {
     y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_where_clause_from_json_object - Error conn is NULL");
@@ -160,7 +161,7 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
           if (ope == NULL ||
               !json_is_string(ope) ||
               (val == NULL && 0 != o_strcasecmp("NOT NULL", json_string_value(ope))) ||
-              (!json_is_string(val) && !json_is_real(val) && !json_is_integer(val) && 0 != o_strcasecmp("NOT NULL", json_string_value(ope)))) {
+              (!json_is_string(val) && !json_is_real(val) && !json_is_integer(val) && 0 != o_strcasecmp("NOT NULL", json_string_value(ope)) && 0 != o_strcasecmp("IN", json_string_value(ope)))) {
             dump = json_dumps(val, JSON_ENCODE_ANY);
             dump2 = json_dumps(ope, JSON_ENCODE_ANY);
             y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_where_clause_from_json_object - Error where object value is invalid: %s %s", dump, dump2);
@@ -173,6 +174,49 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
               clause = msprintf("%s IS NOT NULL", key);
             } else if (0 == o_strcasecmp("raw", json_string_value(ope)) && json_is_string(val)) {
               clause = msprintf("%s %s", key, json_string_value(val));
+            } else if (0 == o_strcasecmp("IN", json_string_value(ope))) {
+              if (json_is_array(val) && json_array_size(val) > 0) {
+                clause = NULL, tmp = NULL;
+                json_array_foreach(val, index, j_element) {
+                  if (!json_is_string(j_element) && !json_is_real(j_element) && !json_is_integer(j_element)) {
+                    o_free(clause);
+                    o_free(where_clause);
+                    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error element value in IN statement array must be real, integer or string");
+                    return NULL;
+                  } else {
+                    if (json_is_string(j_element)) {
+                      escape = h_escape_string(conn, json_string_value(j_element));
+                      if (escape == NULL) {
+                        y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error escape");
+                        o_free(clause);
+                        o_free(where_clause);
+                        return NULL;
+                      }
+                      dump = msprintf("'%s'", escape);
+                      o_free(escape);
+                    } else if (json_is_real(j_element)) {
+                      dump = msprintf("%f", json_real_value(j_element));
+                    } else {
+                      dump = msprintf("%" JSON_INTEGER_FORMAT, json_integer_value(j_element));
+                    }
+                    if (clause == NULL) {
+                      clause = msprintf("%s IN (%s", key, dump);
+                    } else {
+                      tmp = msprintf("%s,%s", clause, dump);
+                      o_free(clause);
+                      clause = tmp;
+                    }
+                    o_free(dump);
+                  }
+                }
+                tmp = msprintf("%s)", clause);
+                o_free(clause);
+                clause = tmp;
+              } else {
+                o_free(where_clause);
+                y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error value in IN statement must be a non empty JSON array");
+                return NULL;
+              }
             } else {
               if (json_is_real(val)) {
                 clause = msprintf("%s %s %f", key, json_string_value(ope), json_real_value(val));
@@ -182,6 +226,7 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
                 escape = h_escape_string(conn, json_string_value(val));
                 if (escape == NULL) {
                   y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error escape");
+                  o_free(where_clause);
                   return NULL;
                 }
                 clause = msprintf("%s %s '%s'", key, json_string_value(ope), escape);
@@ -190,6 +235,7 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
             }
             if (clause == NULL) {
               y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for clause");
+              o_free(where_clause);
               return NULL;
             }
           }
@@ -200,6 +246,7 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
             escape = h_escape_string(conn, json_string_value(value));
             if (escape == NULL) {
               y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error escape");
+              o_free(where_clause);
               return NULL;
             }
             clause = msprintf("%s='%s'", key, escape);
@@ -215,6 +262,7 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
           }
           if (clause == NULL) {
             y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for clause");
+            o_free(where_clause);
             return NULL;
           }
         }
@@ -223,6 +271,7 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
           if (where_clause == NULL) {
             y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_where_clause_from_json_object - Error where_clause");
             o_free(clause);
+            o_free(where_clause);
             return NULL;
           }
           o_free(clause);
@@ -233,6 +282,7 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
           if (tmp == NULL) {
             y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_where_clause_from_json_object - Error tmp where_clause");
             o_free(clause);
+            o_free(where_clause);
             return NULL;
           }
           o_free(clause);
@@ -426,7 +476,6 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
   } else {
     str_where_limit = o_strdup("");
   }
-  
   if (order_by != NULL && json_is_string(order_by)) {
     str_order_by = msprintf("ORDER BY %s", json_string_value(order_by));
   } else {
