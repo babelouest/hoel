@@ -395,16 +395,24 @@ A `j_query` has the following form:
     "col1": "value1",               // Generates col1='value1'
     "col2": value_integer,          // Generates col2=value_integer
     "col3": null,                   // Generates col3=NULL
-    "col4", {                       // Generates col4<12
+    "col4": {                       // Generates col4<12
       "operator": "<",
       "value": 12
     },
-    "col5", {                       // Generates col5 IS NOT NULL
+    "col5": {                       // Generates col5 IS NOT NULL
       "operator": "NOT NULL"
     },
-    "col6", {                       // Generates col6 LIKE '%value6%'
+    "col6": {                       // Generates col6 LIKE '%value6%'
       "operator": "raw",
       "value": "LIKE '%value6%'"
+    },
+    "col7": {
+      "operator": "IN",             // Generates col7 IN ('value1',42,4.2)
+      "value": [                    // Values can be string, real or integer
+        "value1",
+        42,
+        4.2
+      ]
     }
   }
 }
