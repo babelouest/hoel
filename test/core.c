@@ -547,6 +547,25 @@ START_TEST(test_hoel_json_select)
   json_decref(j_result);
   h_free(str_query);
   
+  str_query = NULL;
+  j_result = NULL;
+  j_query = json_pack("{sss{s{sss[ii]}}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "integer_col",
+                          "operator",
+                          "IN",
+                          "value",
+                            42,
+                            66);
+  ck_assert_int_eq(h_select(conn, j_query, &j_result, &str_query), H_OK);
+  ck_assert_int_eq(strlen(str_query), strlen("SELECT * FROM `test_table` WHERE integer_col IN (42,66)  "));
+  ck_assert_int_eq(json_array_size(j_result), 0);
+  json_decref(j_query);
+  json_decref(j_result);
+  h_free(str_query);
+  
   j_query = json_pack("{ss}",
                       "table",
                       "test_table");
