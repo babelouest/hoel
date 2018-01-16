@@ -24,7 +24,7 @@
 #ifndef __HOEL_H__
 #define __HOEL_H__
 
-#define HOEL_VERSION 1.3
+#define HOEL_VERSION 1.3.1
 
 #include <jansson.h>
 
@@ -56,16 +56,16 @@
 #define HOEL_COL_TYPE_BOOL   5
 #define HOEL_COL_TYPE_NULL   5
 
-#define H_OK                0  // No error
-#define H_ERROR             1  // Generic error
-#define H_ERROR_PARAMS      2  // Error in input parameters
-#define H_ERROR_CONNECTION  3  // Error in database connection
-#define H_ERROR_QUERY       4  // Error executing query
-#define H_ERROR_MEMORY      99 // Error allocating memory
+#define H_OK                0  /* No error */
+#define H_ERROR             1  /* Generic error */
+#define H_ERROR_PARAMS      2  /* Error in input parameters */
+#define H_ERROR_CONNECTION  3  /* Error in database connection */
+#define H_ERROR_QUERY       4  /* Error executing query */
+#define H_ERROR_MEMORY      99 /* Error allocating memory */
 
-#define H_OPTION_NONE   0x0000 // Nothing whatsoever
-#define H_OPTION_SELECT 0x0001 // Execute a SELECT statement
-#define H_OPTION_EXEC   0x0010 // Execute an INSERT, UPDATE or DELETE statement
+#define H_OPTION_NONE   0x0000 /* Nothing whatsoever */
+#define H_OPTION_SELECT 0x0001 /* Execute a SELECT statement */
+#define H_OPTION_EXEC   0x0010 /* Execute an INSERT, UPDATE or DELETE statement */
 
 /**
  * handle container
@@ -469,4 +469,4 @@ char * h_escape_string_pgsql(const struct _h_connection * conn, const char * uns
 int h_last_insert_id_pgsql(const struct _h_connection * conn);
 #endif
 
-#endif // __HOEL_H__
+#endif /* __HOEL_H__ */

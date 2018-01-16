@@ -56,4 +56,4 @@ struct _h_data * h_new_data_datetime(const struct tm * datetime);
  */
 struct _h_data * h_new_data_null();
 
-#endif // __H_PRIVATE_H_
+#endif /* __H_PRIVATE_H_ */

@@ -18,13 +18,13 @@ Hoel is now available in Debian Buster (testing) and some Debian based distribut
 
 ## Install from the source
 
-Clone, compile and install [Orcania](https://github.com/babelouest/orcania) and [Yder](https://github.com/babelouest/yder) librares.
+Clone, compile and install [Orcania](https://github.com/babelouest/orcania) and [Yder](https://github.com/babelouest/yder) libraries.
 
 ### Orcania (Miscellaneous functions)
 
 ```shell
 $ git clone https://github.com/babelouest/orcania.git
-$ cd orcania
+$ cd orcania/src
 $ make && sudo make install
 ```
 
@@ -32,10 +32,12 @@ $ make && sudo make install
 
 ```shell
 $ git clone https://github.com/babelouest/yder.git
-$ cd yder
+$ cd yder/src
 $ make
 $ sudo make install
 ```
+
+### Jansson
 
 Install [Jansson](http://www.digip.org/jansson/) library for JSON manipulation. On a debian-based platform, run the following command:
 
@@ -43,52 +45,65 @@ Install [Jansson](http://www.digip.org/jansson/) library for JSON manipulation. 
 $ sudo apt-get install libjansson-dev
 ```
 
+### Hoel
+
+Install Hoel dependencies:
+- SQLite3: Install the package `libsqlite3-dev`
+- MariaDB/Mysql: Install the package `libmysqlclient-dev` or `libmariadbclient-dev`
+- PostgreSQL: Install the package `libpq-dev`
+
 Download hoel from github repository.
 
 ```shell
 $ git clone https://github.com/babelouest/hoel.git
-```
-
-Compile hoel for the backend you need, go to hoel source folder, depending on your database backend needs, follow these instructions.
-
-## SQLite 3
-
-Install `libsqlite3-dev` and uncomment the following lines in the `src/Makefile`
-
-```Makefile
-# HAS_SQLITE=-D_HOEL_SQLITE
-# LIBS_SQLITE=-lsqlite3
-```
-
-## MariaDB/Mysql
-
-Install `libmysqlclient-dev` and uncomment the following lines in the `src/Makefile`
-
-```Makefile
-# FLAGS_MARIADB=-D_HOEL_MARIADB -I/usr/include/mysql/
-# LIBS_MYSQL=-lmysqlclient
-```
-
-## Postgre SQL
-
-Install `libpq-dev` and uncomment the following lines in the `src/Makefile`
-
-```Makefile
-# HAS_PGSQL=-D_HOEL_PGSQL -I/usr/include/postgresql/
-# LIBS_PGSQL=-lpq
-```
-
-### Use different backends
-
-You can use different backends at the same time, simply install the required libraries and uncomment all the required backend requirements in the `src/Makefile`.
-
-## Compile and install
-
-```
-$ cd src
+$ cd hoel/src
 $ make
 $ sudo make install
 ```
+
+By default, Hoel is compiled with the 3 databases support. If you don't need one or more database, follow these instructions
+
+#### SQLite 3
+
+Add DISABLE_SQLITE=1 to the `make` command:
+
+```shell
+$ cd hoel/src
+$ make DISABLE_SQLITE=1
+$ sudo make install
+```
+
+#### MariaDB/Mysql
+
+Add DISABLE_MARIADB=1 to the `make` command:
+
+```shell
+$ cd hoel/src
+$ make DISABLE_MARIADB=1
+$ sudo make install
+```
+
+#### Postgre SQL
+
+Add DISABLE_POSTGRESQL=1 to the `make` command:
+
+```shell
+$ cd hoel/src
+$ make DISABLE_POSTGRESQL=1
+$ sudo make install
+```
+
+### Disable 2 backends
+
+You can disable 2 databases backends to keep just one, simply add both parameters to the `make` command:
+
+```shell
+$ cd hoel/src
+$ make DISABLE_MARIADB=1 DISABLE_POSTGRESQL=1
+$ sudo make install
+```
+
+### Installation folder
 
 By default, the shared library and the header file will be installed in the `/usr/local` location. To change this setting, you can modify the `PREFIX` value in the `src/Makefile`.
 

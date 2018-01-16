@@ -126,7 +126,7 @@ int h_select_query_sqlite(const struct _h_connection * conn, const char * query,
     row = 0;
     if (result != NULL) {
       row_result = sqlite3_step(stmt);
-      // Filling result object with results in array format
+      /* Filling result object with results in array format */
       result->nb_rows = 0;
       result->nb_columns = nb_columns;
       result->data = NULL;
@@ -218,7 +218,7 @@ int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * 
   
   if (sql_result == SQLITE_OK) {
     nb_columns = sqlite3_column_count(stmt);
-    // Filling j_result with results in json format
+    /* Filling j_result with results in json format */
     *j_result = json_array();
     if (*j_result == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for *j_result");
@@ -269,4 +269,18 @@ int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * 
     return H_ERROR_QUERY;
   }
 }
+#else
+
+/**
+ * Dummy functions when Hoel is not built with SQLite
+ */
+struct _h_connection * h_connect_sqlite(const char * db_path) {
+	y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with SQLite backend");
+	return NULL;
+}
+
+void h_close_sqlite(struct _h_connection * conn) {
+	y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with SQLite backend");
+}
+
 #endif

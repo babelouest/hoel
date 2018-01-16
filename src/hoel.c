@@ -40,7 +40,7 @@ void h_free(void * data) {
 int h_close_db(struct _h_connection * conn) {
   if (conn != NULL && conn->connection != NULL) {
     if (0) {
-      // Not happening
+      /* Not happening */
 #ifdef _HOEL_SQLITE
     } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
       h_close_sqlite(conn);
@@ -72,7 +72,7 @@ int h_close_db(struct _h_connection * conn) {
 char * h_escape_string(const struct _h_connection * conn, const char * unsafe) {
   if (conn != NULL && conn->connection != NULL && unsafe != NULL) {
     if (0) {
-      // Not happening
+      /* Not happening */
 #ifdef _HOEL_SQLITE
     } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
       return h_escape_string_sqlite(conn, unsafe);
@@ -106,7 +106,7 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe) {
 int h_execute_query(const struct _h_connection * conn, const char * query, struct _h_result * result, int options) {
   if (conn != NULL && conn->connection != NULL && query != NULL) {
     if (0) {
-      // Not happening
+      /* Not happening */
 #ifdef _HOEL_SQLITE
     } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
       if (options & H_OPTION_EXEC) {
@@ -139,7 +139,7 @@ int h_execute_query(const struct _h_connection * conn, const char * query, struc
 int h_execute_query_json(const struct _h_connection * conn, const char * query, json_t ** j_result) {
   if (conn != NULL && conn->connection != NULL && query != NULL && j_result != NULL) {
     if (0) {
-      // Not happening
+      /* Not happening */
 #ifdef _HOEL_SQLITE
     } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
       return h_execute_query_json_sqlite(conn, query, j_result);
@@ -290,7 +290,7 @@ struct _h_data * h_query_last_insert_id(const struct _h_connection * conn) {
   struct _h_data * data = NULL;
   if (conn != NULL && conn->connection != NULL) {
     if (0) {
-      // Not happening
+      /* Not happening */
 #ifdef _HOEL_SQLITE
     } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
       int last_id = h_last_insert_id_sqlite(conn);

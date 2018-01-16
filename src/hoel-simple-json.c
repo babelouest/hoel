@@ -535,7 +535,7 @@ int h_insert(const struct _h_connection * conn, const json_t * j_query, char ** 
   int res;
   
   if (conn != NULL && j_query != NULL && json_is_object(j_query) && json_is_string(json_object_get(j_query, "table")) && (json_is_object(json_object_get(j_query, "values")) || json_is_array(json_object_get(j_query, "values")))) {
-    // Construct query
+    /* Construct query */
     table = json_string_value((const json_t *)json_object_get(j_query, "table"));
     values = json_object_get(j_query, "values");
     switch json_typeof(values) {
@@ -558,7 +558,7 @@ int h_insert(const struct _h_connection * conn, const json_t * j_query, char ** 
           query = h_get_insert_query_from_json_object(conn, j_row, table);
           if (query != NULL) {
             if (generated_query != NULL && index == 0) {
-              // Export just the first query
+              /* Export just the first query */
               *generated_query = o_strdup(query);
             }
             res = h_query_insert(conn, query);
@@ -595,7 +595,7 @@ json_t * h_last_insert_id(const struct _h_connection * conn) {
   json_t * j_data = NULL;
   if (conn != NULL && conn->connection != NULL) {
     if (0) {
-      // Not happening
+      /* Not happening */
 #ifdef _HOEL_SQLITE
     } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
       int last_id = h_last_insert_id_sqlite(conn);

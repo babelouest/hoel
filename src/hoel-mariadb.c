@@ -24,7 +24,7 @@
 #include "h-private.h"
 
 #ifdef _HOEL_MARIADB
-// MariaDB library Includes
+/* MariaDB library Includes */
 #include <my_global.h>
 #include <mysql.h>
 #include <string.h>
@@ -84,11 +84,11 @@ struct _h_connection * h_connect_mariadb(const char * host, const char * user, c
       mysql_close(((struct _h_mariadb *)conn->connection)->db_handle);
       return NULL;
     } else {
-      // Set MYSQL_OPT_RECONNECT to true to reconnect automatically when connection is closed by the server (to avoid CR_SERVER_GONE_ERROR)
+      /* Set MYSQL_OPT_RECONNECT to true to reconnect automatically when connection is closed by the server (to avoid CR_SERVER_GONE_ERROR) */
       mysql_options(((struct _h_mariadb *)conn->connection)->db_handle, MYSQL_OPT_RECONNECT, &reconnect);
-      // Initialize MUTEX for connection
+      /* Initialize MUTEX for connection */
       pthread_mutexattr_init ( &mutexattr );
-      pthread_mutexattr_settype( &mutexattr, PTHREAD_MUTEX_RECURSIVE_NP );
+      pthread_mutexattr_settype( &mutexattr, PTHREAD_MUTEX_RECURSIVE );
       if (pthread_mutex_init(&(((struct _h_mariadb *)conn->connection)->lock), &mutexattr) != 0) {
         y_log_message(Y_LOG_LEVEL_ERROR, "Impossible to initialize Mutex Lock for MariaDB connection");
       }
@@ -397,4 +397,18 @@ struct _h_data * h_get_mariadb_value(const char * value, const unsigned long len
   }
   return data;
 }
+#else
+
+/**
+ * Dummy functions when Hoel is not built with MariaDB
+ */
+struct _h_connection * h_connect_mariadb(const char * host, const char * user, const char * passwd, const char * db, const unsigned int port, const char * unix_socket) {
+	y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with MariaDB backend");
+	return NULL;
+}
+
+void h_close_mariadb(struct _h_connection * conn) {
+	y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with MariaDB backend");
+}
+
 #endif

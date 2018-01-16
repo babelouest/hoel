@@ -24,7 +24,7 @@
 #include "h-private.h"
 
 #ifdef _HOEL_PGSQL
-// PostgreSQL library includes
+/* PostgreSQL library includes */
 #include <libpq-fe.h>
 #include <string.h>
 
@@ -49,7 +49,6 @@ struct _h_pgsql {
  * return pointer to a struct _h_connection * on sucess, NULL on error
  */
 struct _h_connection * h_connect_pgsql(char * conninfo) {
-  // TODO get oids and types
   struct _h_connection * conn = NULL;
 	struct _h_result result_types;
 	int res_types, row;
@@ -354,4 +353,18 @@ int h_last_insert_id_pgsql(const struct _h_connection * conn) {
 	PQclear(res);
 	return int_res;
 }
+#else
+
+/**
+ * Dummy functions when Hoel is not built with PostgreSQL
+ */
+struct _h_connection * h_connect_pgsql(char * conninfo) {
+	y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with PostgreSQL backend");
+	return NULL;
+}
+
+void h_close_pgsql(struct _h_connection * conn) {
+	y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with PostgreSQL backend");
+}
+
 #endif

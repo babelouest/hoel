@@ -20,23 +20,26 @@
 #
 CC=gcc
 
-# comment/uncomment these lines to disable/enable sqlite3 support
+ifndef DISABLE_SQLITE
 FLAGS_SQLITE=-D_HOEL_SQLITE
 LIBS_SQLITE=-lsqlite3
+endif
 
-# comment/uncomment these lines to disable/enable mysql/mariadb support
+ifndef DISABLE_MARIADB
 FLAGS_MARIADB=-D_HOEL_MARIADB $(shell mysql_config --cflags)
 LIBS_MARIADB=$(shell mysql_config --libs_r)
+endif
 
-# comment/uncomment these lines to disable/enable postgresql support
-#FLAGS_PGSQL=-D_HOEL_PGSQL -I/usr/include/postgresql/
-#LIBS_PGSQL=-lpq
+ifndef DISABLE_POSTGRESQL
+FLAGS_PGSQL=-D_HOEL_PGSQL -I/usr/include/postgresql/
+LIBS_PGSQL=-lpq
+endif
 
 PREFIX=/usr/local
 CFLAGS=-c -fPIC -Wall -I$(PREFIX)/include $(FLAGS_SQLITE) $(FLAGS_MARIADB) $(FLAGS_PGSQL) -D_REENTRANT $(ADDITIONALFLAGS)
 LIBS=-L$(PREFIX)/lib -lc -ljansson -lyder -lorcania $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MARIADB)
 OUTPUT=libhoel.so
-VERSION=1.3
+VERSION=1.3.1
 
 all: release
 

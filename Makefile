@@ -32,7 +32,7 @@ clean:
 	cd $(TEST_LOCATION) && $(MAKE) clean
 
 libhoel.so:
-	cd $(LIBHOEL_LOCATION) && $(MAKE)
+	cd $(LIBHOEL_LOCATION) && $(MAKE) $(*)
 
 simple_example:
 	cd $(EXAMPLE_LOCATION) && $(MAKE)
