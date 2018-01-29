@@ -6,6 +6,23 @@ Simple and easy to use database access library. Works with SQLite 3, MariaDB/Mys
 
 # Installation
 
+## Prerequisites
+
+### Jansson
+
+Install [Jansson](http://www.digip.org/jansson/) library for JSON manipulation, minimum version 2.4. On a debian-based platform, run the following command:
+
+```shell
+$ sudo apt-get install libjansson-dev
+```
+
+### Database libraries
+
+Install Hoel database dependencies based on your requirements:
+- SQLite3: Install the package `libsqlite3-dev`
+- MariaDB/Mysql: Install the package `libmysqlclient-dev` or `libmariadbclient-dev`
+- PostgreSQL: Install the package `libpq-dev`
+
 ## Debian-ish distribution package
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/hoel.svg)](https://repology.org/metapackage/hoel)
@@ -17,6 +34,32 @@ Hoel is now available in Debian Buster (testing) and some Debian based distribut
 ```
 
 ## Install from the source
+
+### CMake - Multi architecture
+
+[CMake](https://cmake.org/download/) minimum 3.5 is required.
+
+Run the cmake script in a subdirectory, example:
+
+```shell
+$ git clone https://github.com/babelouest/hoel.git
+$ cd hoel/
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make && sudo make install
+```
+
+The available options for cmake are:
+- `-DWITH_SQLITE3=[on|off]` (default `on`): Enable/disabe SQLite3 database backend
+- `-DWITH_MARIADB=[on|off]` (default `on`): Enable/disabe MariaDB/Mysql database backend
+- `-DWITH_PGSQL=[on|off]` (default `on`): Enable/disabe PostgreSQL database backend
+- `-DBUILD_STATIC=[on|off]` (default `off`): Build the static archive in addition to the shared library
+- `-DBUILD_TESTING=[on|off]` (default `off`): Build unit tests
+- `-DINSTALL_HEADER=[on|off]` (default `on`): Install header file `hoel.h`
+- `-DCMAKE_BUILD_TYPE=[Debug|Release]` (default `Release`): Compile with debugging symbols or not
+
+### Good ol' Makefile
 
 Clone, compile and install [Orcania](https://github.com/babelouest/orcania) and [Yder](https://github.com/babelouest/yder) libraries.
 
@@ -37,20 +80,7 @@ $ make
 $ sudo make install
 ```
 
-### Jansson
-
-Install [Jansson](http://www.digip.org/jansson/) library for JSON manipulation. On a debian-based platform, run the following command:
-
-```shell
-$ sudo apt-get install libjansson-dev
-```
-
 ### Hoel
-
-Install Hoel dependencies:
-- SQLite3: Install the package `libsqlite3-dev`
-- MariaDB/Mysql: Install the package `libmysqlclient-dev` or `libmariadbclient-dev`
-- PostgreSQL: Install the package `libpq-dev`
 
 Download hoel from github repository.
 
