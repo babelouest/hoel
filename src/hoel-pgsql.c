@@ -20,8 +20,8 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  */
-#include "hoel.h"
-#include "h-private.h"
+#include "../include/hoel.h"
+#include "../include/h-private.h"
 
 #ifdef _HOEL_PGSQL
 /* PostgreSQL library includes */
@@ -51,7 +51,8 @@ struct _h_pgsql {
 struct _h_connection * h_connect_pgsql(char * conninfo) {
   struct _h_connection * conn = NULL;
 	struct _h_result result_types;
-	int res_types, row;
+	int res_types;
+  unsigned int row;
 	char * cur_type_name, * endptr = NULL;
 	Oid cur_type_oid;
 	
@@ -156,7 +157,7 @@ char * h_escape_string_pgsql(const struct _h_connection * conn, const char * uns
  * If type is not found, return HOEL_COL_TYPE_TEXT
  */
 static unsigned short h_get_type_from_oid(const struct _h_connection * conn, Oid pg_type) {
-	int i;
+	unsigned int i;
 	
 	for (i = 0; i < ((struct _h_pgsql *)conn->connection)->nb_type; i++) {
 		if (((struct _h_pgsql *)conn->connection)->list_type[i].pg_type == pg_type) {
@@ -359,11 +360,13 @@ int h_last_insert_id_pgsql(const struct _h_connection * conn) {
  * Dummy functions when Hoel is not built with PostgreSQL
  */
 struct _h_connection * h_connect_pgsql(char * conninfo) {
+  UNUSED(conninfo);
 	y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with PostgreSQL backend");
 	return NULL;
 }
 
 void h_close_pgsql(struct _h_connection * conn) {
+  UNUSED(conn);
 	y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with PostgreSQL backend");
 }
 

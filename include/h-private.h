@@ -2,6 +2,9 @@
 #ifndef __H_PRIVATE_H_
 #define __H_PRIVATE_H_
 
+/** Macro to avoid compiler warning when some parameters are unused and that's ok **/
+#define UNUSED(x) (void)(x)
+
 /**
  * Add a new struct _h_data * to an array of struct _h_data *, which already has cols columns
  * return H_OK on success

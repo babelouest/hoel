@@ -23,8 +23,8 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "hoel.h"
-#include "h-private.h"
+#include "../include/hoel.h"
+#include "../include/h-private.h"
 
 /**
  * free data allocated by hoel functions
@@ -114,6 +114,8 @@ int h_execute_query(const struct _h_connection * conn, const char * query, struc
       } else {
         return h_select_query_sqlite(conn, query, result);
       }
+#else
+      UNUSED(options);
 #endif
 #ifdef _HOEL_MARIADB
     } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
@@ -382,7 +384,7 @@ int h_query_select_json(const struct _h_connection * conn, const char * query, j
  * Free all the memory allocated by the struct _h_result
  */
 int h_clean_result(struct _h_result * result) {
-  int col, row;
+  unsigned int col, row;
   if (result != NULL) {
     for (row=0; row<result->nb_rows; row++) {
       for (col=0; col<result->nb_columns; col++) {

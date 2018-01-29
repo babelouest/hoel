@@ -24,8 +24,8 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "hoel.h"
-#include "h-private.h"
+#include "../include/hoel.h"
+#include "../include/h-private.h"
 
 /**
  * Builds an insert query from a json object and a table name

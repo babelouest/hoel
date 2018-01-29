@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <jansson.h>
 #define _HOEL_MARIADB
-#include "../src/hoel.h"
+#include "../include/hoel.h"
 
 void unit_tests(struct _h_connection * conn) {
   json_t * j_result, * j_where, * j_array, * j_set, * j_data, * j_query;

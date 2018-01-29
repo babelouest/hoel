@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <jansson.h>
 #define _HOEL_MARIADB
-#include "../src/hoel.h"
+#include "../include/hoel.h"
 
 /**
  * Implementation of sprintf that return a malloc'd char *  with the string construction

@@ -28,7 +28,9 @@
 
 #include <jansson.h>
 
-#define __USE_XOPEN
+#ifndef __USE_XOPEN
+  #define __USE_XOPEN
+#endif
 #include <time.h>
 #include <pthread.h>
 
