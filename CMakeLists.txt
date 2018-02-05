@@ -27,8 +27,8 @@ set(PROJECT_DESCRIPTION "C Database abstraction library with json based language
 set(PROJECT_BUGREPORT_PATH "https://github.com/babelouest/hoel/issues")
 
 set(LIBRARY_VERSION_MAJOR "1")
-set(LIBRARY_VERSION_MINOR "1")
-set(LIBRARY_VERSION_PATCH "1")
+set(LIBRARY_VERSION_MINOR "4")
+set(LIBRARY_VERSION_PATCH "0")
 set(LIBRARY_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}.${LIBRARY_VERSION_PATCH}")
 set(LIBRARY_SOVERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}")
 
@@ -154,7 +154,7 @@ target_link_libraries(hoel ${LIBS})
 
 set(Yder_FIND_QUIETLY ON) # force to find Yder quietly
 include(FindYder)
-#find_package(Yder 1.1 QUIET) # try to find Yder
+find_package(Yder 1.1 QUIET) # try to find Yder
 if (NOT YDER_FOUND)
     include(DownloadProject)
     download_project(PROJ yder # ... otherwise, download archive
@@ -262,10 +262,10 @@ set(CPACK_PACKAGE_VERSION_PATCH ${LIBRARY_VERSION_PATCH})
 
 if (INSTALL_HEADER)
     set(PACKAGE_FILE_NAME
-            "lib${CMAKE_PROJECT_NAME}-dev${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+            "lib${CMAKE_PROJECT_NAME}-dev_${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 else ()
     set(PACKAGE_FILE_NAME
-            "lib${CMAKE_PROJECT_NAME}${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+            "lib${CMAKE_PROJECT_NAME}_${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 endif ()
 set(PACKAGE_IGNORED_FILES
         "${CMAKE_CURRENT_BINARY_DIR}/;/.git/;.gitignore;~$;${CPACK_SOURCE_IGNORE_FILES}")
