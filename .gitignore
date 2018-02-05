@@ -5,5 +5,6 @@ example_sqlite3
 example_mariadb
 example_pgsql
 example_mariadb_json
+example_multi_mariadb
 core
 valgrind.txt

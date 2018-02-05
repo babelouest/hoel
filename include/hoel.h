@@ -383,10 +383,17 @@ int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * 
 #ifdef _HOEL_MARIADB
 /**
  * h_connect_mariadb
- * Opens a database connection to a mariadb server
+ * Opens a database connection to a mariadb server with a default pool size
  * return pointer to a struct _h_connection * on sucess, NULL on error
  */
 struct _h_connection * h_connect_mariadb(const char * host, const char * user, const char * passwd, const char * db, const unsigned int port, const char * unix_socket);
+
+/**
+ * h_connect_mariadb_pool_size
+ * Opens a database connection to a mariadb server with a pool size specified
+ * return pointer to a struct _h_connection * on sucess, NULL on error
+ */
+struct _h_connection * h_connect_mariadb_pool_size(const char * host, const char * user, const char * passwd, const char * db, const unsigned int port, const char * unix_socket, unsigned int pool_size);
 
 /**
  * close connection to database
