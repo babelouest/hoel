@@ -16,17 +16,17 @@
 CC=gcc
 CFLAGS=-c -Wall -D_REENTRANT -I$(PREFIX)/include $(ADDITIONALFLAGS)
 HOEL_LOCATION=../src
-LIBS=-lc -lhoel -ljansson -lyder -lpthread -L$(HOEL_LOCATION)
+LIBS=-lc -lhoel -ljansson -lyder -L$(HOEL_LOCATION)
 ADDITIONALFLAGS=-O3
 
-all: libhoel.so example_sqlite3 example_mariadb example_pgsql example_mariadb_json example_multi_mariadb
+all: libhoel.so example_sqlite3 example_mariadb example_pgsql example_mariadb_json
 
 clean:
-	rm -f *.o example_sqlite3 example_mariadb example_pgsql example_mariadb_json example_multi_mariadb
+	rm -f *.o example_sqlite3 example_mariadb example_pgsql example_mariadb_json
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 
-debug: libhoel.so example_sqlite3 example_mariadb example_pgsql example_mariadb_json example_multi_mariadb
+debug: libhoel.so example_sqlite3 example_mariadb example_pgsql example_mariadb_json
 
 libhoel.so:
 	cd $(HOEL_LOCATION) && $(MAKE) debug
@@ -47,11 +47,7 @@ example_mariadb_json: example_mariadb_json.c
 	$(CC) -c $(CFLAGS) example_mariadb_json.c
 	$(CC) -o example_mariadb_json example_mariadb_json.o $(LIBS)
 
-example_multi_mariadb: example_multi_mariadb.c
-	$(CC) -c $(CFLAGS) example_multi_mariadb.c
-	$(CC) -o example_multi_mariadb example_multi_mariadb.o $(LIBS)
-
-test: test_pgsql test_mariadb test_sqlite3 test_mariadb_json test_multi_mariadb
+test: test_pgsql test_mariadb test_sqlite3 test_mariadb_json
 
 test_pgsql: example_pgsql
 	LD_LIBRARY_PATH=$(HOEL_LOCATION):${LD_LIBRARY_PATH} ./example_pgsql
@@ -64,6 +60,3 @@ test_sqlite3: example_sqlite3
 
 test_mariadb_json: example_mariadb_json
 	LD_LIBRARY_PATH=$(HOEL_LOCATION):${LD_LIBRARY_PATH} ./example_mariadb_json
-
-test_multi_mariadb: example_multi_mariadb
-	LD_LIBRARY_PATH=$(HOEL_LOCATION):${LD_LIBRARY_PATH} ./example_multi_mariadb

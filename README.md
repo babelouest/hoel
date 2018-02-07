@@ -198,17 +198,10 @@ struct _h_connection * h_connect_sqlite(const char * db_path);
 
 /**
  * h_connect_mariadb
- * Opens a database connection to a mariadb server with a default pool size
- * return pointer to a struct _h_connection * on sucess, NULL on error
+ * Opens a database connection to a mariadb server
+ * return pointer to a struct _h_connection * on success, NULL on error
  */
 struct _h_connection * h_connect_mariadb(const char * host, const char * user, const char * passwd, const char * db, const unsigned int port, const char * unix_socket);
-
-/**
- * h_connect_mariadb_pool_size
- * Opens a database connection to a mariadb server with a pool size specified
- * return pointer to a struct _h_connection * on sucess, NULL on error
- */
-struct _h_connection * h_connect_mariadb_pool_size(const char * host, const char * user, const char * passwd, const char * db, const unsigned int port, const char * unix_socket, unsigned int pool_size);
 
 /**
  * h_connect_pgsql
