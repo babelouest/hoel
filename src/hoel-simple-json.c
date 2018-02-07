@@ -616,30 +616,39 @@ int h_insert(const struct _h_connection * conn, const json_t * j_query, char ** 
           }
           res = h_query_insert(conn, query);
           o_free(query);
+          if (res != H_OK) {
+            y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error executing query (1)");
+            return H_ERROR_QUERY;
+          }
           return res;
         } else {
-          y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error allocating query");
+          y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error allocating query (1)");
           return H_ERROR_MEMORY;
         }
         break;
       case JSON_ARRAY:
-        query = h_get_insert_query_from_json_array(conn, values, table);
-        if (query != NULL) {
-          if (generated_query != NULL) {
-            /* Export just the first query */
-            *generated_query = o_strdup(query);
-          }
-          res = h_query_insert(conn, query);
-          o_free(query);
-          if (res != H_OK) {
-            y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error executing query");
-            return H_ERROR_QUERY;
+        if (json_array_size(values)) {
+          query = h_get_insert_query_from_json_array(conn, values, table);
+          if (query != NULL) {
+            if (generated_query != NULL) {
+              /* Export just the first query */
+              *generated_query = o_strdup(query);
+            }
+            res = h_query_insert(conn, query);
+            o_free(query);
+            if (res != H_OK) {
+              y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error executing query (2)");
+              return H_ERROR_QUERY;
+            }
+            return res;
+          } else {
+            y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error allocating query (2)");
+            return H_ERROR_MEMORY;
           }
         } else {
-          y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error allocating query");
-          return H_ERROR_MEMORY;
+          y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error no values to insert");
+          return H_ERROR_QUERY;
         }
-        return H_OK;
         break;
       default:
         y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error unknown object type for values");
