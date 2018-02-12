@@ -276,7 +276,20 @@ set(CPACK_DEBIAN_PACKAGE_NAME "libhoel")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "mail@babelouest.org")
 set(CPACK_DEBIAN_PACKAGE_DESCRIPTION ${PROJECT_DESCRIPTION})
 set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/babelouest/hoel")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.14), libjansson4 (>= 2.4), liborcania (>= 1.2.0), libyder (>= 1.2.0), libpq5 (>= 9.0~), zlib1g (>= 1:1.1.4), libsqlite3-0 (>= 3.5.9), libmariadbclient18 (>= 5.5.36)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.14), libjansson4 (>= 2.4), liborcania (>= 1.2.0), libyder (>= 1.2.0), zlib1g (>= 1:1.1.4)")
+
+if (WITH_SQLITE3)
+	set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libsqlite3-0 (>= 3.5.9)")
+endif ()
+
+if (WITH_MARIADB)
+	set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libmariadbclient18 (>= 5.5.36)")
+endif ()
+
+if (WITH_PGSQL)
+	set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libpq5 (>= 9.0~)")
+endif ()
+
 set(CPACK_PACKAGE_FILE_NAME ${PACKAGE_FILE_NAME})
 
 set(CPACK_SOURCE_GENERATOR "TGZ")
