@@ -33,6 +33,10 @@ Hoel is now available in Debian Buster (testing) and some Debian based distribut
 # apt install libhoel-dev
 ```
 
+### Pre-compiled packages
+
+You can install Hoel with a pre-compiled package available in the [release pages](https://github.com/babelouest/hoel/releases/latest/). `jansson`, `sqlite3`, `libmariadb-client` and `libpq` development files packages are required to install Hoel. The packages files `hoel-dev-full_*` contain the libraries `orcania`, `yder` and `hoel`.
+
 ## Install from the source
 
 ### CMake - Multi architecture
