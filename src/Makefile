@@ -39,23 +39,23 @@ PREFIX=/usr/local
 CFLAGS=-c -fPIC -Wall -I$(PREFIX)/include $(FLAGS_SQLITE) $(FLAGS_MARIADB) $(FLAGS_PGSQL) -D_REENTRANT $(ADDITIONALFLAGS)
 LIBS=-L$(PREFIX)/lib -lc -ljansson -lyder -lorcania $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MARIADB)
 OUTPUT=libhoel.so
-VERSION=1.3.1
+VERSION=1.4.0
 
 all: release
 
-hoel.o: hoel.c hoel.h
+hoel.o: hoel.c ../include/hoel.h
 	$(CC) $(CFLAGS) hoel.c
 
-hoel-sqlite.o: hoel-sqlite.c hoel.h
+hoel-sqlite.o: hoel-sqlite.c ../include/hoel.h
 	$(CC) $(CFLAGS) hoel-sqlite.c
 
-hoel-mariadb.o: hoel-mariadb.c hoel.h
+hoel-mariadb.o: hoel-mariadb.c ../include/hoel.h
 	$(CC) $(CFLAGS) hoel-mariadb.c
 
-hoel-pgsql.o: hoel-pgsql.c hoel.h
+hoel-pgsql.o: hoel-pgsql.c ../include/hoel.h
 	$(CC) $(CFLAGS) hoel-pgsql.c
 
-hoel-simple-json.o: hoel-simple-json.c hoel.h
+hoel-simple-json.o: hoel-simple-json.c ../include/hoel.h
 	$(CC) $(CFLAGS) hoel-simple-json.c
 
 libhoel.so: hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
@@ -70,12 +70,12 @@ clean:
 
 install: all
 	cp $(OUTPUT).$(VERSION) $(PREFIX)/lib
-	cp hoel.h $(PREFIX)/include
+	cp ../include/hoel.h $(PREFIX)/include
 	/sbin/ldconfig
 
 static-install: static
 	cp libhoel.a $(PREFIX)/lib
-	cp hoel.h $(PREFIX)/include
+	cp ../include/hoel.h $(PREFIX)/include
 
 uninstall:
 	rm -f $(PREFIX)/lib/$(OUTPUT) $(PREFIX)/lib/libhoel.a

@@ -3,7 +3,7 @@
 #include <jansson.h>
 #include <yder.h>
 #define _HOEL_SQLITE
-#include "../src/hoel.h"
+#include "../include/hoel.h"
 
 /**
  * Implementation of sprintf that return a malloc'd char *  with the string construction
@@ -163,7 +163,7 @@ void unit_tests(struct _h_connection * conn) {
 
 int main(int argc, char ** argv) {
   struct _h_connection * conn;
-  char * db_file = "/home/pi/test.db";
+  char * db_file = "/tmp/test.db";
   
   y_init_logs("test_hoel_sqlite3", Y_LOG_MODE_CONSOLE, Y_LOG_LEVEL_DEBUG, NULL, "Starting test_hoel_sqlite3");
   conn = h_connect_sqlite(db_file);

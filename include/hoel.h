@@ -24,11 +24,13 @@
 #ifndef __HOEL_H__
 #define __HOEL_H__
 
-#define HOEL_VERSION 1.3.1
+#define HOEL_VERSION 1.4.0
 
 #include <jansson.h>
 
-#define __USE_XOPEN
+#ifndef __USE_XOPEN
+  #define __USE_XOPEN
+#endif
 #include <time.h>
 #include <pthread.h>
 
@@ -382,7 +384,7 @@ int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * 
 /**
  * h_connect_mariadb
  * Opens a database connection to a mariadb server
- * return pointer to a struct _h_connection * on sucess, NULL on error
+ * return pointer to a struct _h_connection * on success, NULL on error
  */
 struct _h_connection * h_connect_mariadb(const char * host, const char * user, const char * passwd, const char * db, const unsigned int port, const char * unix_socket);
 
@@ -401,6 +403,7 @@ char * h_escape_string_mariadb(const struct _h_connection * conn, const char * u
  * Return the id of the last inserted value
  */
 int h_last_insert_id_mariadb(const struct _h_connection * conn);
+
 /**
  * h_execute_query_mariadb
  * Execute a query on a mariadb connection, set the result structure with the returned values
@@ -424,6 +427,7 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
  * returned value must be free'd with h_clean_data_full after use
  */
 struct _h_data * h_get_mariadb_value(const char * value, const unsigned long length, const int m_type);
+
 #endif
 
 #ifdef _HOEL_PGSQL

@@ -24,25 +24,22 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "hoel.h"
-#include "h-private.h"
+#include "../include/hoel.h"
+#include "../include/h-private.h"
 
-/**
- * Builds an insert query from a json object and a table name
- * Returned value must be o_free'd after use
- */
-static char * h_get_insert_query_from_json_object(const struct _h_connection * conn, const json_t * data, const char * table) {
-  char * insert_cols = NULL, * insert_data = NULL, * new_data = NULL, * to_return, * tmp, * escape;
-  int i = 0;
-  json_t * value, * raw;
+static char * h_get_insert_values_from_json_object(const struct _h_connection * conn, json_t * data) {
+  char * new_data = NULL, * escape, * insert_data = NULL, * tmp;
   const char * key;
-  
+  json_t * value, * raw;
+  int i = 0;
+
   json_object_foreach((json_t *)data, key, value) {
     switch (json_typeof(value)) {
       case JSON_STRING:
         escape = h_escape_string(conn, json_string_value(value));
         if (escape == NULL) {
-          y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error escape");
+          y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_values_from_json_object - Error escape");
+          o_free(new_data);
           new_data = NULL;
         } else {
           new_data = msprintf("'%s'", escape);
@@ -74,28 +71,26 @@ static char * h_get_insert_query_from_json_object(const struct _h_connection * c
         break;
       default:
         tmp = json_dumps(value, JSON_ENCODE_ANY);
-        y_log_message(Y_LOG_LEVEL_DEBUG, "Error decoding value %s, inserting NULL value", tmp);
+        y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_values_from_json_object - Error decoding value %s, inserting NULL value", tmp);
         o_free(tmp);
         new_data = o_strdup("NULL");
         break;
     }
     if (new_data == NULL) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for new_data");
+      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_values_from_json_object - Error allocating memory for new_data");
       return NULL;
     }
     if (i == 0) {
-      insert_cols = msprintf("`%s`", key);
-      if (insert_cols == NULL) {
-        y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_insert_query_from_json_object - Error allocating insert_cols");
-        return NULL;
+      insert_data = msprintf("(%s", new_data);
+      if (insert_data == NULL) {
+        y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_values_from_json_object - Error allocating insert_data");
       }
-      
-      insert_data = new_data;
       i = 1;
+      o_free(new_data);
     } else {
       tmp = msprintf("%s,%s", insert_data, new_data);
       if (tmp == NULL) {
-        y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_insert_query_from_json_object - Error allocating tmp");
+        y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_values_from_json_object - Error allocating tmp");
         o_free(insert_data);
         o_free(new_data);
         return NULL;
@@ -103,22 +98,97 @@ static char * h_get_insert_query_from_json_object(const struct _h_connection * c
       o_free(insert_data);
       o_free(new_data);
       insert_data = tmp;
-      
+    }
+  }
+  tmp = msprintf("%s)", insert_data);
+  o_free(insert_data);
+  if (tmp == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_values_from_json_object - Error final allocation for tmp");
+  }
+  return tmp;
+}
+
+static char * h_get_insert_columns_from_json_object(json_t * data) {
+  char * insert_cols = NULL, * tmp;
+  const char * key;
+  json_t * value;
+  int i = 0;
+
+  json_object_foreach((json_t *)data, key, value) {
+    if (i == 0) {
+      insert_cols = msprintf("`%s`", key);
+      if (insert_cols == NULL) {
+        y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_columns_from_json_object - Error allocating insert_cols");
+        return NULL;
+      }
+      i = 1;
+    } else {
       tmp = msprintf("%s,`%s`", insert_cols, key);
       o_free(insert_cols);
       if (tmp == NULL) {
-        y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_insert_query_from_json_object - Error allocating insert_cols");
-        o_free(insert_data);
+        y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_columns_from_json_object - Error allocating insert_cols");
         return NULL;
       }
       insert_cols = tmp;
     }
   }
-  to_return = msprintf("INSERT INTO `%s` (%s) VALUES (%s)", table, insert_cols, insert_data);
+  
+  return insert_cols;
+}
+
+/**
+ * Builds an insert query from a json object and a table name
+ * Returned value must be o_free'd after use
+ */
+static char * h_get_insert_query_from_json_object(const struct _h_connection * conn, json_t * data, const char * table) {
+  char * to_return = NULL, * insert_cols, * insert_data;
+  
+  insert_cols = h_get_insert_columns_from_json_object(data);
+  insert_data = h_get_insert_values_from_json_object(conn, data);
+  if (insert_cols == NULL || insert_data == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_query_from_json_object - Error h_get_insert_columns_from_json_object or h_get_insert_values_from_json_object");
+  } else {
+    to_return = msprintf("INSERT INTO `%s` (%s) VALUES %s", table, insert_cols, insert_data);
+  }
   o_free(insert_cols);
   o_free(insert_data);
   if (to_return == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for h_get_insert_query_from_json_object");
+    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_query_from_json_object - Error allocating memory for h_get_insert_query_from_json_object");
+  }
+  return to_return;
+}
+
+/**
+ * Builds an insert query from a json object and a table name
+ * Returned value must be o_free'd after use
+ */
+static char * h_get_insert_query_from_json_array(const struct _h_connection * conn, json_t * j_array, const char * table) {
+  json_t * j_row;
+  size_t index;
+  char * to_return = NULL, * insert_cols, * insert_data, * tmp;
+  
+  json_array_foreach(j_array, index, j_row) {
+    insert_data = h_get_insert_values_from_json_object(conn, j_row);
+    if (!index) {
+      insert_cols = h_get_insert_columns_from_json_object(j_row);
+      to_return = msprintf("INSERT INTO `%s` (%s) VALUES %s", table, insert_cols, insert_data);
+      o_free(insert_cols);
+      if (to_return == NULL) {
+        y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_query_from_json_array - Error allocating to_return");
+        o_free(insert_data);
+        return NULL;
+      }
+    } else {
+      tmp = msprintf("%s,%s", to_return, insert_data);
+      if (tmp == NULL) {
+        y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_query_from_json_array - Error allocating tmp");
+        o_free(insert_data);
+        return NULL;
+      }
+      o_free(to_return);
+      to_return = tmp;
+    }
+    o_free(insert_data);
   }
   return to_return;
 }
@@ -530,8 +600,7 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
 int h_insert(const struct _h_connection * conn, const json_t * j_query, char ** generated_query) {
   const char * table;
   char * query;
-  size_t index;
-  json_t * values, * j_row;
+  json_t * values;
   int res;
   
   if (conn != NULL && j_query != NULL && json_is_object(j_query) && json_is_string(json_object_get(j_query, "table")) && (json_is_object(json_object_get(j_query, "values")) || json_is_array(json_object_get(j_query, "values")))) {
@@ -540,39 +609,46 @@ int h_insert(const struct _h_connection * conn, const json_t * j_query, char ** 
     values = json_object_get(j_query, "values");
     switch json_typeof(values) {
       case JSON_OBJECT:
-        query = h_get_insert_query_from_json_object(conn, (json_t *)values, table);
+        query = h_get_insert_query_from_json_object(conn, values, table);
         if (query != NULL) {
           if (generated_query != NULL) {
             *generated_query = o_strdup(query);
           }
           res = h_query_insert(conn, query);
           o_free(query);
+          if (res != H_OK) {
+            y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error executing query (1)");
+            return H_ERROR_QUERY;
+          }
           return res;
         } else {
-          y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error allocating query");
+          y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error allocating query (1)");
           return H_ERROR_MEMORY;
         }
         break;
       case JSON_ARRAY:
-        json_array_foreach(values, index, j_row) {
-          query = h_get_insert_query_from_json_object(conn, j_row, table);
+        if (json_array_size(values)) {
+          query = h_get_insert_query_from_json_array(conn, values, table);
           if (query != NULL) {
-            if (generated_query != NULL && index == 0) {
+            if (generated_query != NULL) {
               /* Export just the first query */
               *generated_query = o_strdup(query);
             }
             res = h_query_insert(conn, query);
             o_free(query);
             if (res != H_OK) {
-              y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error executing query");
+              y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error executing query (2)");
               return H_ERROR_QUERY;
             }
+            return res;
           } else {
-            y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error allocating query");
+            y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error allocating query (2)");
             return H_ERROR_MEMORY;
           }
+        } else {
+          y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error no values to insert");
+          return H_ERROR_QUERY;
         }
-        return H_OK;
         break;
       default:
         y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error unknown object type for values");

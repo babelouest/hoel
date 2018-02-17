@@ -6,6 +6,23 @@ Simple and easy to use database access library. Works with SQLite 3, MariaDB/Mys
 
 # Installation
 
+## Prerequisites
+
+### Jansson
+
+Install [Jansson](http://www.digip.org/jansson/) library for JSON manipulation, minimum version 2.4. On a debian-based platform, run the following command:
+
+```shell
+$ sudo apt-get install libjansson-dev
+```
+
+### Database libraries
+
+Install Hoel database dependencies based on your requirements:
+- SQLite3: Install the package `libsqlite3-dev`
+- MariaDB/Mysql: Install the package `libmysqlclient-dev` or `libmariadbclient-dev`
+- PostgreSQL: Install the package `libpq-dev`
+
 ## Debian-ish distribution package
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/hoel.svg)](https://repology.org/metapackage/hoel)
@@ -16,7 +33,50 @@ Hoel is now available in Debian Buster (testing) and some Debian based distribut
 # apt install libhoel-dev
 ```
 
+### Pre-compiled packages
+
+You can install Hoel with a pre-compiled package available in the [release pages](https://github.com/babelouest/hoel/releases/latest/). `jansson`, `sqlite3`, `libmariadb-client` and `libpq` development files packages are required to install Hoel. The packages files `hoel-dev-full_*` contain the libraries `orcania`, `yder` and `hoel`. It's also compiled with all the database backends.
+
+For example, to install Hoel with the `hoel-dev-full_2.3.0_Debian_stretch_x86_64.tar.gz` package downloaded on the `releases` page, you must execute the following commands:
+
+```shell
+$ sudo apt install -y libjansson-dev libmariadbclient-dev libsqlite3-dev libpq-dev
+$ wget https://github.com/babelouest/hoel/releases/download/v1.4.0/hoel-dev-full_1.4.0_Debian_stretch_x86_64.tar.gz
+$ tar xf hoel-dev-full_1.4.0_Debian_stretch_x86_64.tar.gz
+$ sudo dpkg -i liborcania-dev_1.2.0_Debian_stretch_x86_64.deb
+$ sudo dpkg -i libyder-dev_1.2.0_Debian_stretch_x86_64.deb
+$ sudo dpkg -i libhoel-dev_1.4.0_Debian_stretch_x86_64.deb
+```
+
+If there's no package available for your distribution, you can recompile it manually using `CMake` or `Makefile`.
+
 ## Install from the source
+
+### CMake - Multi architecture
+
+[CMake](https://cmake.org/download/) minimum 3.5 is required.
+
+Run the cmake script in a subdirectory, example:
+
+```shell
+$ git clone https://github.com/babelouest/hoel.git
+$ cd hoel/
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make && sudo make install
+```
+
+The available options for cmake are:
+- `-DWITH_SQLITE3=[on|off]` (default `on`): Enable/disabe SQLite3 database backend
+- `-DWITH_MARIADB=[on|off]` (default `on`): Enable/disabe MariaDB/Mysql database backend
+- `-DWITH_PGSQL=[on|off]` (default `on`): Enable/disabe PostgreSQL database backend
+- `-DBUILD_STATIC=[on|off]` (default `off`): Build the static archive in addition to the shared library
+- `-DBUILD_TESTING=[on|off]` (default `off`): Build unit tests
+- `-DINSTALL_HEADER=[on|off]` (default `on`): Install header file `hoel.h`
+- `-DCMAKE_BUILD_TYPE=[Debug|Release]` (default `Release`): Compile with debugging symbols or not
+
+### Good ol' Makefile
 
 Clone, compile and install [Orcania](https://github.com/babelouest/orcania) and [Yder](https://github.com/babelouest/yder) libraries.
 
@@ -37,20 +97,7 @@ $ make
 $ sudo make install
 ```
 
-### Jansson
-
-Install [Jansson](http://www.digip.org/jansson/) library for JSON manipulation. On a debian-based platform, run the following command:
-
-```shell
-$ sudo apt-get install libjansson-dev
-```
-
 ### Hoel
-
-Install Hoel dependencies:
-- SQLite3: Install the package `libsqlite3-dev`
-- MariaDB/Mysql: Install the package `libmysqlclient-dev` or `libmariadbclient-dev`
-- PostgreSQL: Install the package `libpq-dev`
 
 Download hoel from github repository.
 
@@ -169,9 +216,9 @@ struct _h_connection * h_connect_sqlite(const char * db_path);
 /**
  * h_connect_mariadb
  * Opens a database connection to a mariadb server
- * return pointer to a struct _h_connection * on sucess, NULL on error
+ * return pointer to a struct _h_connection * on success, NULL on error
  */
-struct _h_connection * h_connect_mariadb(char * host, char * user, char * passwd, char * db, unsigned int port, char * unix_socket);
+struct _h_connection * h_connect_mariadb(const char * host, const char * user, const char * passwd, const char * db, const unsigned int port, const char * unix_socket);
 
 /**
  * h_connect_pgsql

@@ -3,7 +3,7 @@
 #include <yder.h>
 
 #define _HOEL_PGSQL
-#include "../src/hoel.h"
+#include "../include/hoel.h"
 
 void print_result(struct _h_result result) {
   int col, row, i;
@@ -46,7 +46,7 @@ int main(int argc, char ** argv) {
   struct _h_connection * conn;
   char * query = "select * from test",
 			 * insert_query = "insert into test (name, age, birthdate) values ('bob', 21, '1997-05-09')",
-			 * connectionstring = "host=girflet dbname=test user=test password=test",
+			 * connectionstring = "host=localhost dbname=test user=test password=test",
 			 * dump = NULL;
   int res;
   json_t * j_result;

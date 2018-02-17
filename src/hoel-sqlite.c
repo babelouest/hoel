@@ -20,8 +20,8 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  */
-#include "hoel.h"
-#include "h-private.h"
+#include "../include/hoel.h"
+#include "../include/h-private.h"
 
 #ifdef _HOEL_SQLITE
 
@@ -275,11 +275,13 @@ int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * 
  * Dummy functions when Hoel is not built with SQLite
  */
 struct _h_connection * h_connect_sqlite(const char * db_path) {
+  UNUSED(db_path);
 	y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with SQLite backend");
 	return NULL;
 }
 
 void h_close_sqlite(struct _h_connection * conn) {
+  UNUSED(conn);
 	y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with SQLite backend");
 }
 
