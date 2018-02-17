@@ -35,7 +35,20 @@ Hoel is now available in Debian Buster (testing) and some Debian based distribut
 
 ### Pre-compiled packages
 
-You can install Hoel with a pre-compiled package available in the [release pages](https://github.com/babelouest/hoel/releases/latest/). `jansson`, `sqlite3`, `libmariadb-client` and `libpq` development files packages are required to install Hoel. The packages files `hoel-dev-full_*` contain the libraries `orcania`, `yder` and `hoel`.
+You can install Hoel with a pre-compiled package available in the [release pages](https://github.com/babelouest/hoel/releases/latest/). `jansson`, `sqlite3`, `libmariadb-client` and `libpq` development files packages are required to install Hoel. The packages files `hoel-dev-full_*` contain the libraries `orcania`, `yder` and `hoel`. It's also compiled with all the database backends.
+
+For example, to install Hoel with the `hoel-dev-full_2.3.0_Debian_stretch_x86_64.tar.gz` package downloaded on the `releases` page, you must execute the following commands:
+
+```shell
+$ sudo apt install -y libjansson-dev libmariadbclient-dev libsqlite3-dev libpq-dev
+$ wget https://github.com/babelouest/hoel/releases/download/v1.4.0/hoel-dev-full_1.4.0_Debian_stretch_x86_64.tar.gz
+$ tar xf hoel-dev-full_1.4.0_Debian_stretch_x86_64.tar.gz
+$ sudo dpkg -i liborcania-dev_1.2.0_Debian_stretch_x86_64.deb
+$ sudo dpkg -i libyder-dev_1.2.0_Debian_stretch_x86_64.deb
+$ sudo dpkg -i libhoel-dev_1.4.0_Debian_stretch_x86_64.deb
+```
+
+If there's no package available for your distribution, you can recompile it manually using `CMake` or `Makefile`.
 
 ## Install from the source
 
