@@ -195,7 +195,16 @@ int h_select_query_sqlite(const struct _h_connection * conn, const char * query,
  * return H_OK on success
  */
 int h_exec_query_sqlite(const struct _h_connection * conn, const char * query) {
-  return ((sqlite3_exec(((struct _h_sqlite *)conn->connection)->db_handle, query, NULL, NULL, NULL) == SQLITE_OK)?H_OK:H_ERROR_QUERY);
+  if (sqlite3_exec(((struct _h_sqlite *)conn->connection)->db_handle, query, NULL, NULL, NULL) == SQLITE_OK) {
+    return H_OK;
+  } else {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Error executing sql query");
+    y_log_message(Y_LOG_LEVEL_DEBUG, "Error code: %d, message: \"%s\"",
+                                   sqlite3_errcode(((struct _h_sqlite *)conn->connection)->db_handle),
+                                   sqlite3_errmsg(((struct _h_sqlite *)conn->connection)->db_handle));
+    y_log_message(Y_LOG_LEVEL_DEBUG, "Query: \"%s\"", query);
+    return H_ERROR_QUERY;
+  }
   
 }
 
