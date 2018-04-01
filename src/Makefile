@@ -3,7 +3,7 @@
 #
 # Makefile used to build the software
 #
-# Copyright 2014-2015 Nicolas Mora <mail@babelouest.org>
+# Copyright 2014-2018 Nicolas Mora <mail@babelouest.org>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public License
@@ -35,11 +35,11 @@ FLAGS_PGSQL=-D_HOEL_PGSQL -I/usr/include/postgresql/
 LIBS_PGSQL=-lpq
 endif
 
-PREFIX=/usr/local
-CFLAGS=-c -fPIC -Wall -I$(PREFIX)/include $(FLAGS_SQLITE) $(FLAGS_MARIADB) $(FLAGS_PGSQL) -D_REENTRANT $(ADDITIONALFLAGS)
-LIBS=-L$(PREFIX)/lib -lc -ljansson -lyder -lorcania $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MARIADB)
+DESTDIR=/usr/local
+CFLAGS+=-c -fPIC -Wall -I$(DESTDIR)/include $(FLAGS_SQLITE) $(FLAGS_MARIADB) $(FLAGS_PGSQL) -D_REENTRANT $(ADDITIONALFLAGS) $(CPPFLAGS)
+LIBS=-L$(DESTDIR)/lib -lc -ljansson -lyder -lorcania $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MARIADB)
 OUTPUT=libhoel.so
-VERSION=1.4.0
+VERSION=1.4.1
 
 all: release
 
@@ -59,7 +59,7 @@ hoel-simple-json.o: hoel-simple-json.c ../include/hoel.h
 	$(CC) $(CFLAGS) hoel-simple-json.c
 
 libhoel.so: hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
-	$(CC) -shared -Wl,-soname,$(OUTPUT) -o $(OUTPUT).$(VERSION) hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o $(LIBS)
+	$(CC) -shared -Wl,-soname,$(OUTPUT).$(VERSION) -o $(OUTPUT).$(VERSION) hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o $(LIBS) $(LDFLAGS)
 	ln -sf $(OUTPUT).$(VERSION) $(OUTPUT)
 
 libhoel.a: hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
@@ -69,18 +69,18 @@ clean:
 	rm -f *.o *.so *.a $(OUTPUT) $(OUTPUT).*
 
 install: all
-	cp $(OUTPUT).$(VERSION) $(PREFIX)/lib
-	cp ../include/hoel.h $(PREFIX)/include
+	cp $(OUTPUT).$(VERSION) $(DESTDIR)/lib
+	cp ../include/hoel.h $(DESTDIR)/include
 	/sbin/ldconfig
 
 static-install: static
-	cp libhoel.a $(PREFIX)/lib
-	cp ../include/hoel.h $(PREFIX)/include
+	cp libhoel.a $(DESTDIR)/lib
+	cp ../include/hoel.h $(DESTDIR)/include
 
 uninstall:
-	rm -f $(PREFIX)/lib/$(OUTPUT) $(PREFIX)/lib/libhoel.a
-	rm -f $(PREFIX)/lib/$(OUTPUT).*
-	rm -f $(PREFIX)/include/hoel.h
+	rm -f $(DESTDIR)/lib/$(OUTPUT) $(DESTDIR)/lib/libhoel.a
+	rm -f $(DESTDIR)/lib/$(OUTPUT).*
+	rm -f $(DESTDIR)/include/hoel.h
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 

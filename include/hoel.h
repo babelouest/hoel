@@ -4,7 +4,7 @@
  * 
  * hoel.h: structures and functions declarations
  * 
- * Copyright 2015-2016 Nicolas Mora <mail@babelouest.org>
+ * Copyright 2015-2018 Nicolas Mora <mail@babelouest.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,7 +24,7 @@
 #ifndef __HOEL_H__
 #define __HOEL_H__
 
-#define HOEL_VERSION 1.4.0
+#define HOEL_VERSION 1.4.1
 
 #include <jansson.h>
 

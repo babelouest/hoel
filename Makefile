@@ -3,7 +3,7 @@
 #
 # Makefile used to build all programs
 #
-# Copyright 2014-2015 Nicolas Mora <mail@babelouest.org>
+# Copyright 2014-2018 Nicolas Mora <mail@babelouest.org>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the MIT License
@@ -18,6 +18,7 @@ LIBHOEL_LOCATION=./src
 EXAMPLE_LOCATION=./examples
 TEST_LOCATION=./test
 
+.NOTPARALLEL:
 all: libhoel.so example_sqlite3 example_mariadb example_pgsql
 
 debug:

@@ -152,7 +152,7 @@ $ sudo make install
 
 ### Installation folder
 
-By default, the shared library and the header file will be installed in the `/usr/local` location. To change this setting, you can modify the `PREFIX` value in the `src/Makefile`.
+By default, the shared library and the header file will be installed in the `/usr/local` location. To change this setting, you can modify the `DESTDIR` value in the `src/Makefile`.
 
 # API Documentation
 
