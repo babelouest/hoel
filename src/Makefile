@@ -39,9 +39,16 @@ DESTDIR=/usr/local
 CFLAGS+=-c -fPIC -Wall -I$(DESTDIR)/include $(FLAGS_SQLITE) $(FLAGS_MARIADB) $(FLAGS_PGSQL) -D_REENTRANT $(ADDITIONALFLAGS) $(CPPFLAGS)
 LIBS=-L$(DESTDIR)/lib -lc -ljansson -lyder -lorcania $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MARIADB)
 OUTPUT=libhoel.so
-VERSION=1.4.1
+VERSION=1.4.2
 
 all: release
+
+libhoel.so: hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
+	$(CC) -shared -fPIC -Wl,-soname,$(OUTPUT) -o $(OUTPUT).$(VERSION) hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o $(LIBS) $(LDFLAGS)
+	ln -sf $(OUTPUT).$(VERSION) $(OUTPUT)
+
+libhoel.a: hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
+	ar rcs libhoel.a hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
 
 hoel.o: hoel.c ../include/hoel.h
 	$(CC) $(CFLAGS) hoel.c
@@ -57,13 +64,6 @@ hoel-pgsql.o: hoel-pgsql.c ../include/hoel.h
 
 hoel-simple-json.o: hoel-simple-json.c ../include/hoel.h
 	$(CC) $(CFLAGS) hoel-simple-json.c
-
-libhoel.so: hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
-	$(CC) -shared -Wl,-soname,$(OUTPUT).$(VERSION) -o $(OUTPUT).$(VERSION) hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o $(LIBS) $(LDFLAGS)
-	ln -sf $(OUTPUT).$(VERSION) $(OUTPUT)
-
-libhoel.a: hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
-	ar rcs libhoel.a hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
 
 clean:
 	rm -f *.o *.so *.a $(OUTPUT) $(OUTPUT).*

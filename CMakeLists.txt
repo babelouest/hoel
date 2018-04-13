@@ -28,10 +28,10 @@ set(PROJECT_BUGREPORT_PATH "https://github.com/babelouest/hoel/issues")
 
 set(LIBRARY_VERSION_MAJOR "1")
 set(LIBRARY_VERSION_MINOR "4")
-set(LIBRARY_VERSION_PATCH "1")
+set(LIBRARY_VERSION_PATCH "2")
 set(LIBRARY_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}.${LIBRARY_VERSION_PATCH}")
 set(LIBRARY_SOVERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}")
-set(YDER_VERSION_DOWNLOAD "1.3.1")
+set(YDER_VERSION_DOWNLOAD "1.3.3")
 
 # cmake modules
 
@@ -285,7 +285,7 @@ set(CPACK_DEBIAN_PACKAGE_NAME "libhoel")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "mail@babelouest.org")
 set(CPACK_DEBIAN_PACKAGE_DESCRIPTION ${PROJECT_DESCRIPTION})
 set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/babelouest/hoel")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.14), libjansson4 (>= 2.4), liborcania (>= 1.2.0), libyder (>= 1.2.0), zlib1g (>= 1:1.1.4)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.14), libjansson4 (>= 2.4), liborcania (>= 1.2), libyder (>= 1.3), zlib1g (>= 1:1.1.4)")
 
 if (WITH_SQLITE3)
 	set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libsqlite3-0 (>= 3.5.9)")
