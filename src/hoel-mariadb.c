@@ -25,7 +25,6 @@
 
 #ifdef _HOEL_MARIADB
 /* MariaDB library Includes */
-#include <my_global.h>
 #include <mysql.h>
 #include <string.h>
 
