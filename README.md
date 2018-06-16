@@ -23,14 +23,15 @@ Install Hoel database dependencies based on your requirements:
 - MariaDB/Mysql: Install the package `libmysqlclient-dev` or `libmariadbclient-dev`
 - PostgreSQL: Install the package `libpq-dev`
 
-## Debian-ish distribution package
+### Distribution packages
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/hoel.svg)](https://repology.org/metapackage/hoel)
 
-Hoel is now available in Debian Buster (testing) and some Debian based distributions. To install the development package on your system, run the command as root:
+Hoel is available in multiple distributions as official package. Check out your distribution documentation to install the package automatically.
 
 ```shell
-# apt install libhoel-dev
+$ # Example for Debian testing
+$ sudo apt install libhoel-dev
 ```
 
 ### Pre-compiled packages
@@ -40,7 +41,7 @@ You can install Hoel with a pre-compiled package available in the [release pages
 For example, to install Hoel with the `hoel-dev-full_2.3.0_Debian_stretch_x86_64.tar.gz` package downloaded on the `releases` page, you must execute the following commands:
 
 ```shell
-$ sudo apt install -y libjansson-dev libmariadbclient-dev libsqlite3-dev libpq-dev
+$ sudo apt install -y libjansson-dev libmariadbclient-dev libsqlite3-dev libpq-dev libsystemd-dev
 $ wget https://github.com/babelouest/hoel/releases/download/v1.4.0/hoel-dev-full_1.4.0_Debian_stretch_x86_64.tar.gz
 $ tar xf hoel-dev-full_1.4.0_Debian_stretch_x86_64.tar.gz
 $ sudo dpkg -i liborcania-dev_1.2.0_Debian_stretch_x86_64.deb
