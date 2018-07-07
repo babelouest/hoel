@@ -72,6 +72,7 @@ The available options for cmake are:
 - `-DWITH_SQLITE3=[on|off]` (default `on`): Enable/disabe SQLite3 database backend
 - `-DWITH_MARIADB=[on|off]` (default `on`): Enable/disabe MariaDB/Mysql database backend
 - `-DWITH_PGSQL=[on|off]` (default `on`): Enable/disabe PostgreSQL database backend
+- `-DWITH_JOURNALD=[on|off]` (default `on`): Build with journald (SystemD) support for logging
 - `-DBUILD_STATIC=[on|off]` (default `off`): Build the static archive in addition to the shared library
 - `-DBUILD_TESTING=[on|off]` (default `off`): Build unit tests
 - `-DINSTALL_HEADER=[on|off]` (default `on`): Install header file `hoel.h`
