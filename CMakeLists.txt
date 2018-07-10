@@ -137,7 +137,7 @@ if (BUILD_STATIC)
     add_library(hoel_static STATIC ${LIB_SRC})
     target_compile_definitions(hoel_static PUBLIC -DO_STATIC_LIBRARY)
     set_target_properties(hoel_static PROPERTIES
-            OUTPUT_NAME libhoel)
+            OUTPUT_NAME hoel)
 endif ()
 
 # shared library
