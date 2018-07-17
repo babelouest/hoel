@@ -23,6 +23,26 @@ void hoel_json_tests(struct _h_connection * conn) {
    *
    * First select query
    *
+   * The JSON query object is:
+   * {
+   *   table: "other_test",
+   *   columns: [
+   *     "name",
+   *     "age",
+   *     "temperature"
+   *   ],
+   *   where: {
+   *     age: {
+   *       operator: ">",
+   *       value: 46
+   *     },
+   *     name: {
+   *       operator: "LIKE",
+   *       value: "Hodor%"
+   *     }
+   *   }
+   * }
+   *
    * The generated SQL query will be:
    * SELECT name,age,temperature FROM other_test WHERE age>46 AND name LIKE 'Hodor%';
    *
@@ -66,6 +86,17 @@ void hoel_json_tests(struct _h_connection * conn) {
    *
    * Insert query
    *
+   * The JSON query object is:
+   * {
+   *   table: "other_test",
+   *   values: {
+   *     name: "Ned Stark Winter is coming",
+   *     age: 45,
+   *     temperature: 30.1,
+   *     birthdate: "1408-06-01 03:05:11"
+   *   }
+   * }
+   *
    * The generated SQL query will be:
    * INSERT INTO other_test (name,age,temperature,birthdate) VALUES ('Ned Stark Winter is coming',45,30.1,'1408-06-01 03:05:11');
    *
@@ -88,6 +119,19 @@ void hoel_json_tests(struct _h_connection * conn) {
   /*
    *
    * Second select query
+   *
+   * The JSON query object is:
+   * {
+   *   table: "other_test",
+   *   columns: [
+   *     "name",
+   *     "age",
+   *     "birthdate"
+   *   ],
+   *   where: {
+   *     name: "Ned Stark Winter is coming"
+   *   }
+   * }
    *
    * The generated SQL query will be:
    * SELECT name,age,temperature FROM other_test WHERE name='Ned Stark Winter is coming';
@@ -118,6 +162,17 @@ void hoel_json_tests(struct _h_connection * conn) {
   /*
    *
    * Update query
+   *
+   * The JSON query object is:
+   * {
+   *   table: "other_test",
+   *   set: {
+   *     age: 47
+   *   },
+   *   where: {
+   *     age: 45
+   *   }
+   * }
    *
    * The generated SQL query will be:
    * UPDATE other_test SET age=47 WHERE age=45;
@@ -154,6 +209,17 @@ void hoel_json_tests(struct _h_connection * conn) {
   /*
    *
    * Delete query
+   *
+   * The JSON query object is:
+   * {
+   *   table: "other_test",
+   *   where: {
+   *     age: {
+   *       operator: ">",
+   *       value: 46
+   *     }
+   *   }
+   * }
    *
    * The generated SQL query will be:
    * DELETE FROM other_test WHERE age>46;
