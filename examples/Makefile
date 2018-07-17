@@ -16,7 +16,7 @@
 CC=gcc
 CFLAGS=-c -Wall -D_REENTRANT -I$(PREFIX)/include $(ADDITIONALFLAGS)
 HOEL_LOCATION=../src
-LIBS=-lc -lhoel -ljansson -lyder -L$(HOEL_LOCATION)
+LIBS=-lc -lhoel -ljansson -lyder -lorcania -L$(HOEL_LOCATION)
 ADDITIONALFLAGS=-O3
 
 all: libhoel.so example_sqlite3 example_mariadb example_pgsql example_mariadb_json

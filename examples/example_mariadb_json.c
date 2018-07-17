@@ -1,138 +1,213 @@
+/**
+ * 
+ * Example program using json-based queries to execute SQL statements
+ * 
+ * Copyright 2016-2018 Nicolas Mora <mail@babelouest.org>
+ *
+ * License: MIT
+ *
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <jansson.h>
-#define _HOEL_MARIADB
-#include "../include/hoel.h"
 
-void unit_tests(struct _h_connection * conn) {
-  json_t * j_result, * j_where, * j_array, * j_set, * j_data, * j_query;
+#define _HOEL_MARIADB
+#include <hoel.h>
+
+void hoel_json_tests(struct _h_connection * conn) {
+  json_t * j_result, * j_query;
   char * table = "other_test", * dump;
   int res;
   
-  j_where = json_object();
-  json_object_set_new(j_where, "age", json_pack("{sssi}", "operator", ">", "value", 46));
-  json_object_set_new(j_where, "name", json_pack("{ssss}", "operator", "LIKE", "value", "Hodor%"));
-
-  j_query = json_object();
-  json_object_set_new(j_query, "table", json_string(table));
-  json_object_set_new(j_query, "where", j_where);
+  /*
+   *
+   * First select query
+   *
+   * The generated SQL query will be:
+   * SELECT name,age,temperature FROM other_test WHERE age>46 AND name LIKE 'Hodor%';
+   *
+   */
+  j_query = json_pack("{sss[sss]s{s{sssi}s{ssss}}}",
+                      "table",
+                      table,
+                      "columns",
+                        "name",
+                        "age",
+                        "temperature",
+                      "where",
+                        "age",
+                          "operator",
+                          ">",
+                          "value",
+                          46,
+                        "name",
+                          "operator",
+                          "LIKE",
+                          "value",
+                          "Hodor%");
   
+  // Execute the query
   res = h_select(conn, j_query, &j_result, NULL);
+  // Deallocate j_query since it won't be needed anymore
+  json_decref(j_query);
+  // Test query execution result
   if (res == H_OK) {
+    // Print result
     dump = json_dumps(j_result, JSON_INDENT(2));
-    printf("json select result is\n%s\n", dump);
+    y_log_message(Y_LOG_LEVEL_DEBUG, "json select result is\n%s", dump);
+    // Deallocate data result
     json_decref(j_result);
     free(dump);
   } else {
-    printf("Error executing select query: %d\n", res);
+    y_log_message(Y_LOG_LEVEL_DEBUG, "Error executing select query: %d", res);
   }
-  json_decref(j_query);
 
-  j_data = json_object();
-  json_object_set_new(j_data, "name", json_string("Ned Stark Winter is coming"));
-  json_object_set_new(j_data, "age", json_integer(45));
-  json_object_set_new(j_data, "temperature", json_real(30.1));
-  json_object_set_new(j_data, "birthdate", json_string("1408-06-01 03:05:11"));
-  
-  j_query = json_object();
-  json_object_set_new(j_query, "table", json_string(table));
-  json_object_set_new(j_query, "values", j_data);
-  
-  printf("insert result: %d\n", h_insert(conn, j_query, NULL));
+  /*
+   *
+   * Insert query
+   *
+   * The generated SQL query will be:
+   * INSERT INTO other_test (name,age,temperature,birthdate) VALUES ('Ned Stark Winter is coming',45,30.1,'1408-06-01 03:05:11');
+   *
+   */
+  j_query = json_pack("{sss{sssisfss}}",
+                      "table",
+                      table,
+                      "values",
+                        "name",
+                        "Ned Stark Winter is coming",
+                        "age",
+                        45,
+                        "temperature",
+                        30.1,
+                        "birthdate",
+                        "1408-06-01 03:05:11");
+  y_log_message(Y_LOG_LEVEL_DEBUG, "insert result: %d", h_insert(conn, j_query, NULL)); // Expected result: H_OK (0)
   json_decref(j_query);
   
-  j_array = json_array();
-  json_array_append_new(j_array, json_string("name"));
-  json_array_append_new(j_array, json_string("age"));
-  json_array_append_new(j_array, json_string("birthdate"));
-  j_where = json_object();
-  json_object_set_new(j_where, "name", json_string("Ned Stark Winter is coming"));
-  
-  j_query = json_object();
-  json_object_set_new(j_query, "table", json_string(table));
-  json_object_set_new(j_query, "columns", j_array);
-  json_object_set_new(j_query, "where", j_where);
-  
+  /*
+   *
+   * Second select query
+   *
+   * The generated SQL query will be:
+   * SELECT name,age,temperature FROM other_test WHERE name='Ned Stark Winter is coming';
+   *
+   * This select query is supposed to return at least one result
+   *
+   */
+  j_query = json_pack("{sss[sss]s{ss}}",
+                      "table",
+                      table,
+                      "columns",
+                        "name",
+                        "age",
+                        "birthdate",
+                      "where",
+                        "name",
+                        "Ned Stark Winter is coming");
   if (h_select(conn, j_query, &j_result, NULL) == H_OK) {
     dump = json_dumps(j_result, JSON_INDENT(2));
-    printf("json select result is\n%s\n", dump);
+    y_log_message(Y_LOG_LEVEL_DEBUG, "json select result is\n%s", dump);
     json_decref(j_result);
     free(dump);
   } else {
-    printf("Error executing select query\n");
+    y_log_message(Y_LOG_LEVEL_DEBUG, "Error executing select query");
   }
   json_decref(j_query);
   
-  j_where = json_object();
-  json_object_set_new(j_where, "age", json_integer(45));
-  j_set = json_object();
-  json_object_set_new(j_set, "age", json_integer(47));
-  
-  j_query = json_object();
-  json_object_set_new(j_query, "table", json_string(table));
-  json_object_set_new(j_query, "set", j_set);
-  json_object_set_new(j_query, "where", j_where);
+  /*
+   *
+   * Update query
+   *
+   * The generated SQL query will be:
+   * UPDATE other_test SET age=47 WHERE age=45;
+   *
+   */
+  j_query = json_pack("{sss{si}s{si}}",
+                      "table",
+                      table,
+                      "set",
+                        "age",
+                        47,
+                      "where",
+                        "age",
+                        45);
   
   if (h_update(conn, j_query, NULL) == H_OK) {
-    printf("Update query OK\n");
+    y_log_message(Y_LOG_LEVEL_DEBUG, "Update query OK");
     json_decref(j_query);
-    j_query = json_object();
-    json_object_set_new(j_query, "table", json_string(table));
+    j_query = json_pack("{ss}", "table", table);
     if (h_select(conn, j_query, &j_result, NULL) == H_OK) {
       dump = json_dumps(j_result, JSON_INDENT(2));
-      printf("json select result is\n%s\n", dump);
+      y_log_message(Y_LOG_LEVEL_DEBUG, "json select result is\n%s", dump);
       json_decref(j_result);
       free(dump);
     } else {
-      printf("Error executing select query\n");
+      y_log_message(Y_LOG_LEVEL_DEBUG, "Error executing select query");
     }
     json_decref(j_query);
   } else {
     json_decref(j_query);
-    printf("Error executing update query\n");
+    y_log_message(Y_LOG_LEVEL_DEBUG, "Error executing update query");
   }
   
-  j_where = json_object();
-  json_object_set_new(j_where, "age", json_pack("{sssi}", "operator", ">", "value", 46));
-  
-  j_query = json_object();
-  json_object_set_new(j_query, "table", json_string(table));
-  json_object_set_new(j_query, "where", j_where);
+  /*
+   *
+   * Delete query
+   *
+   * The generated SQL query will be:
+   * DELETE FROM other_test WHERE age>46;
+   *
+   */
+  j_query = json_pack("{sss{s{sssi}}}",
+                      "table",
+                      table,
+                        "where",
+                          "age",
+                            "operator",
+                            ">",
+                            "value",
+                            46);
   
   if (h_delete(conn, j_query, NULL) == H_OK) {
-    printf("Delete query OK\n");
+    y_log_message(Y_LOG_LEVEL_DEBUG, "Delete query OK");
     json_decref(j_query);
-    j_query = json_object();
-    json_object_set_new(j_query, "table", json_string(table));
+    j_query = json_pack("{ss}", "table", table);
     if (h_select(conn, j_query, &j_result, NULL) == H_OK) {
       dump = json_dumps(j_result, JSON_INDENT(2));
-      printf("json select result is\n%s\n", dump);
+      y_log_message(Y_LOG_LEVEL_DEBUG, "json select result is\n%s", dump);
       json_decref(j_result);
       free(dump);
     } else {
-      printf("Error executing select query\n");
+      y_log_message(Y_LOG_LEVEL_DEBUG, "Error executing select query");
     }
   } else {
     json_decref(j_query);
-    printf("Error executing delete query\n");
+    y_log_message(Y_LOG_LEVEL_DEBUG, "Error executing delete query");
   }
 }
 
-int main(int argc, char ** argv) {
+int main() {
   struct _h_connection * conn;
   
+  // Initialize logs manager to console output
   y_init_logs("test_hoel_mariadb_json", Y_LOG_MODE_CONSOLE, Y_LOG_LEVEL_DEBUG, NULL, "Starting test_hoel_mariadb_json");
   
-  conn = h_connect_mariadb("localhost", "test_hoel", "test_hoel", "test_hoel", 0, NULL);
+  // Create hoel connection
+  conn = h_connect_mariadb("lamorak", "test_hoel", "test_hoel", "test_hoel", 0, NULL);
   
   if (conn != NULL) {
-    unit_tests(conn);
+    // Execute hoel_json_tests function that will run the tests themselves
+    hoel_json_tests(conn);
   } else {
-    printf("Error connecting to database\n");
+    y_log_message(Y_LOG_LEVEL_DEBUG, "Error connecting to database");
   }
+  // Close database connection
   h_close_db(conn);
   
+  // Close logs manager
   y_close_logs();
   
+  // Clear hoel connection
   return h_clean_connection(conn);
 }
