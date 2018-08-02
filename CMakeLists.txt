@@ -129,6 +129,18 @@ if (NOT WITH_PGSQL AND NOT WITH_MARIADB AND NOT WITH_SQLITE3)
   MESSAGE(FATAL_ERROR "You must enable at least one databasse backend: Sqlite3, MariaDB/MySQL or PostgreSQL")
 endif ()
 
+set (PKGCONF_REQ "")
+set (PKGCONF_REQ_PRIVATE "liborcania, libyder")
+if (WITH_SQLITE3)
+  set (PKGCONF_REQ_PRIVATE "${PKGCONF_REQ_PRIVATE}, sqlite3")
+endif ()
+if (WITH_MARIADB)
+  set (PKGCONF_REQ_PRIVATE "${PKGCONF_REQ_PRIVATE}, mariadb")
+endif ()
+if (WITH_PGSQL)
+  set (PKGCONF_REQ_PRIVATE "${PKGCONF_REQ_PRIVATE}, libpq")
+endif ()
+
 # static library
 
 option(BUILD_STATIC "Build static library." OFF)
