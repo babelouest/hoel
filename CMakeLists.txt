@@ -31,7 +31,7 @@ set(LIBRARY_VERSION_MINOR "4")
 set(LIBRARY_VERSION_PATCH "2")
 set(LIBRARY_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}.${LIBRARY_VERSION_PATCH}")
 set(LIBRARY_SOVERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}")
-set(YDER_VERSION_DOWNLOAD "1.3.3")
+set(YDER_VERSION_DOWNLOAD "1.4.1")
 
 # cmake modules
 
@@ -240,7 +240,7 @@ option(INSTALL_HEADER "Install the header files" ON) # Install hoel.h or not
 configure_file(libhoel.pc.in libhoel.pc @ONLY)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libhoel.pc
-        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
 set(TARGETS hoel)
 if (BUILD_STATIC)
