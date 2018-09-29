@@ -39,7 +39,7 @@ DESTDIR=/usr/local
 CFLAGS+=-c -fPIC -Wall -I$(DESTDIR)/include $(FLAGS_SQLITE) $(FLAGS_MARIADB) $(FLAGS_PGSQL) -D_REENTRANT $(ADDITIONALFLAGS) $(CPPFLAGS)
 LIBS=-L$(DESTDIR)/lib -lc -ljansson -lyder -lorcania $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MARIADB)
 OUTPUT=libhoel.so
-VERSION=1.4.2
+VERSION=1.4.3
 
 all: release
 

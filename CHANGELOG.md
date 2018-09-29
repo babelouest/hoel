@@ -1,5 +1,13 @@
 # Hoel Changelog
 
+## 1.4.3
+
+- Fix memory leak
+- Fix pkg-config information, add requires fields as mentionned in babelouest/ulfius#62
+- Improve example_mariadb_json.c to make it more readable and understandable, clean code
+- Removing the my_global.h include in hoel-mariadb.c
+- Fix static library output file name babelouest/ulfius#55
+
 ## 1.4.2
 
 - Fix Makefile soname
