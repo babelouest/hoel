@@ -9,8 +9,10 @@
 #include <jansson.h>
 
 #include <check.h>
-#define _HOEL_SQLITE
-#include "../src/hoel.h"
+#ifndef  _HOEL_SQLITE
+  #define _HOEL_SQLITE
+#endif
+#include "hoel.h"
 
 #define DEFAULT_BD_PATH "/tmp/test.db"
 #define WRONG_BD_PATH "nope.db"
