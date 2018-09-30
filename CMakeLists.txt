@@ -28,10 +28,10 @@ set(PROJECT_BUGREPORT_PATH "https://github.com/babelouest/hoel/issues")
 
 set(LIBRARY_VERSION_MAJOR "1")
 set(LIBRARY_VERSION_MINOR "4")
-set(LIBRARY_VERSION_PATCH "3")
+set(LIBRARY_VERSION_PATCH "4")
 set(LIBRARY_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}.${LIBRARY_VERSION_PATCH}")
 set(LIBRARY_SOVERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}")
-set(YDER_VERSION_DOWNLOAD "1.4.1")
+set(YDER_VERSION_DOWNLOAD "1.4.2")
 
 # cmake modules
 
@@ -187,9 +187,9 @@ endif ()
 
 # tests
 
-option(BUILD_TESTING "Build the testing tree." OFF) # because we don not use include(CTest)
+option(BUILD_HOEL_TESTING "Build the testing tree." OFF) # because we don not use include(CTest)
 
-if (BUILD_TESTING)
+if (BUILD_HOEL_TESTING)
     include(FindCheck)
     find_package(Check)
     if (CHECK_FOUND)
@@ -203,16 +203,14 @@ if (BUILD_TESTING)
         set(CMAKE_CTEST_COMMAND ctest -V)
 
         set(TST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
-        set(LIBS hoel ${LIBS} ${CHECK_LIBRARIES})
+        set(LIBS hoel yder orcania ${LIBS} ${CHECK_LIBRARIES})
         if (NOT WIN32)
             find_package(Threads REQUIRED)
             set(LIBS ${LIBS} ${SUBUNIT_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} m rt)
         endif ()
 
         set(TESTS
-                str_test
-                split_test
-                memory_test)
+                core)
         if (WITH_JANSSON)
             set(TESTS ${TESTS} jansson_test)
         endif ()

@@ -1,5 +1,9 @@
 # Hoel Changelog
 
+## 1.4.4
+
+- Add Travis CI
+
 ## 1.4.3
 
 - Fix memory leak

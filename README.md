@@ -74,7 +74,7 @@ The available options for cmake are:
 - `-DWITH_PGSQL=[on|off]` (default `on`): Enable/disabe PostgreSQL database backend
 - `-DWITH_JOURNALD=[on|off]` (default `on`): Build with journald (SystemD) support for logging
 - `-DBUILD_STATIC=[on|off]` (default `off`): Build the static archive in addition to the shared library
-- `-DBUILD_TESTING=[on|off]` (default `off`): Build unit tests
+- `-DDBUILD_HOEL_TESTING=[on|off]` (default `off`): Build unit tests
 - `-DINSTALL_HEADER=[on|off]` (default `on`): Install header file `hoel.h`
 - `-DCMAKE_BUILD_TYPE=[Debug|Release]` (default `Release`): Compile with debugging symbols or not
 
