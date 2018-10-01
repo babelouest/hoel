@@ -7,7 +7,7 @@ language: c
 
 addons:
   apt:
-    packages: [ libjansson-dev, libsqlite3-dev, libmysqlclient-dev, libpq-dev, check, libsubunit-dev, cppcheck ]
+    packages: [ autoconf, automake, libtool, libsqlite3-dev, libmysqlclient-dev, libpq-dev, check, libsubunit-dev, cppcheck ]
 
 matrix:
   include:
@@ -19,6 +19,10 @@ matrix:
       os: linux
       script:
         - cppcheck --force --enable=warning,missingInclude --error-exitcode=1 . >build.log 2>&1 || (cat build.log && exit 1)
+install:
+- wget https://github.com/akheron/jansson/archive/v2.11.tar.gz -O jansson-2.11.tar.gz
+- tar xzf jansson-2.11.tar.gz
+- pushd jansson-2.11 && autoreconf -i && ./configure && make && sudo make install && popd
 
 script:
   - cmake -DWITH_JOURNALD=off -DBUILD_HOEL_TESTING=on .
