@@ -210,9 +210,6 @@ if (BUILD_HOEL_TESTING)
         endif ()
 
         set(TESTS core)
-        if (WITH_JANSSON)
-            set(TESTS ${TESTS} jansson_test)
-        endif ()
 
         configure_file(
                 "${CMAKE_MODULE_PATH}/CTestCustom.cmake.in"
