@@ -1,5 +1,7 @@
 # Hoel
 
+[![Build Status](https://travis-ci.com/babelouest/hoel.svg?branch=master)](https://travis-ci.com/babelouest/hoel)
+
 Database abstraction library written in C.
 
 Simple and easy to use database access library. Works with SQLite 3, MariaDB/Mysql and PostgreSQL databases. Uses a JSON-based language with `jansson` to execute simples queries based on one table.
