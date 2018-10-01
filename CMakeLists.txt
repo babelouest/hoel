@@ -209,8 +209,7 @@ if (BUILD_HOEL_TESTING)
             set(LIBS ${LIBS} ${SUBUNIT_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} m rt)
         endif ()
 
-        set(TESTS
-                core)
+        set(TESTS core)
         if (WITH_JANSSON)
             set(TESTS ${TESTS} jansson_test)
         endif ()

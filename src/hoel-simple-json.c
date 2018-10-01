@@ -24,13 +24,13 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "../include/hoel.h"
-#include "../include/h-private.h"
+#include "hoel.h"
+#include "h-private.h"
 
 static char * h_get_insert_values_from_json_object(const struct _h_connection * conn, json_t * data) {
   char * new_data = NULL, * escape, * insert_data = NULL, * tmp;
-  const char * key;
-  json_t * value, * raw;
+  const char * key = NULL;
+  json_t * value = NULL, * raw;
   int i = 0;
 
   json_object_foreach((json_t *)data, key, value) {
@@ -110,8 +110,8 @@ static char * h_get_insert_values_from_json_object(const struct _h_connection * 
 
 static char * h_get_insert_columns_from_json_object(json_t * data) {
   char * insert_cols = NULL, * tmp;
-  const char * key;
-  json_t * value;
+  const char * key = NULL;
+  json_t * value = NULL;
   int i = 0;
 
   json_object_foreach((json_t *)data, key, value) {
@@ -163,8 +163,8 @@ static char * h_get_insert_query_from_json_object(const struct _h_connection * c
  * Returned value must be o_free'd after use
  */
 static char * h_get_insert_query_from_json_array(const struct _h_connection * conn, json_t * j_array, const char * table) {
-  json_t * j_row;
-  size_t index;
+  json_t * j_row = NULL;
+  size_t index = 0;
   char * to_return = NULL, * insert_cols, * insert_data, * tmp;
   
   json_array_foreach(j_array, index, j_row) {
@@ -206,11 +206,11 @@ static char * h_get_insert_query_from_json_array(const struct _h_connection * co
  * the returned value must be o_free'd after use
  */
 static char * h_get_where_clause_from_json_object(const struct _h_connection * conn, const json_t * where) {
-  const char * key;
-  json_t * value, * ope, * val, * j_element;
+  const char * key = NULL;
+  json_t * value = NULL, * ope, * val, * j_element;
   char * where_clause = NULL, * dump = NULL, * escape = NULL, * tmp, * clause = NULL, * dump2 = NULL;
   int i = 0;
-  size_t index;
+  size_t index = 0;
   
   if (conn == NULL) {
     y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_where_clause_from_json_object - Error conn is NULL");
@@ -377,8 +377,8 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
  * the returned value must be o_free'd after use
  */
 static char * h_get_set_clause_from_json_object(const struct _h_connection * conn, const json_t * set) {
-  const char * key;
-  json_t * value, * raw;
+  const char * key = NULL;
+  json_t * value = NULL, * raw;
   char * where_clause = NULL, * escape = NULL, * tmp;
   int i = 0;
   
@@ -461,7 +461,7 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
   json_int_t limit, offset;
   char * query, * columns = NULL, * where_clause = NULL, * tmp, * str_where_limit,  * str_order_by;
   const char * col;
-  size_t index;
+  size_t index = 0;
   json_t * value;
   int res;
 
@@ -607,7 +607,7 @@ int h_insert(const struct _h_connection * conn, const json_t * j_query, char ** 
     /* Construct query */
     table = json_string_value((const json_t *)json_object_get(j_query, "table"));
     values = json_object_get(j_query, "values");
-    switch json_typeof(values) {
+    switch (json_typeof(values)) {
       case JSON_OBJECT:
         query = h_get_insert_query_from_json_object(conn, values, table);
         if (query != NULL) {

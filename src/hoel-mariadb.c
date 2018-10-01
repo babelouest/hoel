@@ -20,8 +20,8 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  */
-#include "../include/hoel.h"
-#include "../include/h-private.h"
+#include "hoel.h"
+#include "h-private.h"
 
 #ifdef _HOEL_MARIADB
 /* MariaDB library Includes */

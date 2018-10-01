@@ -14,7 +14,8 @@
 # GNU GENERAL PUBLIC LICENSE for more details.
 #
 CC=gcc
-CFLAGS=-c -Wall -D_REENTRANT -I$(PREFIX)/include $(ADDITIONALFLAGS)
+HOEL_INCLUDE=../include
+CFLAGS=-c -Wall -I$(HOEL_INCLUDE) -D_REENTRANT -I$(PREFIX)/include $(ADDITIONALFLAGS)
 HOEL_LOCATION=../src
 LIBS=-lc -lhoel -ljansson -lyder -lorcania -L$(HOEL_LOCATION)
 ADDITIONALFLAGS=-O3

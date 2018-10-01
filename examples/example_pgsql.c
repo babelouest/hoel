@@ -3,7 +3,7 @@
 #include <yder.h>
 
 #define _HOEL_PGSQL
-#include "../include/hoel.h"
+#include <hoel.h>
 
 void print_result(struct _h_result result) {
   int col, row, i;

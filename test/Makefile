@@ -19,8 +19,9 @@
 # License along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+HOEL_INCLUDE=../include
 CC=gcc
-CFLAGS=-Wall -D_REENTRANT -DDEBUG -g -O0
+CFLAGS=-Wall -I$(HOEL_INCLUDE) -D_REENTRANT -DDEBUG -g -O0
 HOEL_LOCATION=../src
 LIBS=-lc -lyder -lhoel -ljansson -lcheck -lpthread -lm -lrt -lsubunit -L$(HOEL_LOCATION)
 

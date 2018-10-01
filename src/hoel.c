@@ -23,8 +23,8 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "../include/hoel.h"
-#include "../include/h-private.h"
+#include "hoel.h"
+#include "h-private.h"
 
 /**
  * free data allocated by hoel functions

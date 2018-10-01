@@ -3,11 +3,11 @@
 #include <jansson.h>
 #include <yder.h>
 #define _HOEL_SQLITE
-#include "../include/hoel.h"
+#include <hoel.h>
 
 void print_result(struct _h_result result) {
   int col, row, i;
-  printf("rows: %d, col: %d\n", result.nb_rows, result.nb_columns);
+  printf("rows: %u, col: %u\n", result.nb_rows, result.nb_columns);
   for (row = 0; row<result.nb_rows; row++) {
     for (col=0; col<result.nb_columns; col++) {
       switch(result.data[row][col].type) {

@@ -35,8 +35,9 @@ FLAGS_PGSQL=-D_HOEL_PGSQL -I/usr/include/postgresql/
 LIBS_PGSQL=-lpq
 endif
 
+HOEL_INCLUDE=../include
 DESTDIR=/usr/local
-CFLAGS+=-c -fPIC -Wall -I$(DESTDIR)/include $(FLAGS_SQLITE) $(FLAGS_MARIADB) $(FLAGS_PGSQL) -D_REENTRANT $(ADDITIONALFLAGS) $(CPPFLAGS)
+CFLAGS+=-c -fPIC -Wall -I$(HOEL_INCLUDE) -I$(DESTDIR)/include $(FLAGS_SQLITE) $(FLAGS_MARIADB) $(FLAGS_PGSQL) -D_REENTRANT $(ADDITIONALFLAGS) $(CPPFLAGS)
 LIBS=-L$(DESTDIR)/lib -lc -ljansson -lyder -lorcania $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MARIADB)
 OUTPUT=libhoel.so
 VERSION=1.4.4
@@ -50,19 +51,19 @@ libhoel.so: hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
 libhoel.a: hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
 	ar rcs libhoel.a hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
 
-hoel.o: hoel.c ../include/hoel.h
+hoel.o: hoel.c $(HOEL_INCLUDE)/hoel.h
 	$(CC) $(CFLAGS) hoel.c
 
-hoel-sqlite.o: hoel-sqlite.c ../include/hoel.h
+hoel-sqlite.o: hoel-sqlite.c $(HOEL_INCLUDE)/hoel.h
 	$(CC) $(CFLAGS) hoel-sqlite.c
 
-hoel-mariadb.o: hoel-mariadb.c ../include/hoel.h
+hoel-mariadb.o: hoel-mariadb.c $(HOEL_INCLUDE)/hoel.h
 	$(CC) $(CFLAGS) hoel-mariadb.c
 
-hoel-pgsql.o: hoel-pgsql.c ../include/hoel.h
+hoel-pgsql.o: hoel-pgsql.c $(HOEL_INCLUDE)/hoel.h
 	$(CC) $(CFLAGS) hoel-pgsql.c
 
-hoel-simple-json.o: hoel-simple-json.c ../include/hoel.h
+hoel-simple-json.o: hoel-simple-json.c $(HOEL_INCLUDE)/hoel.h
 	$(CC) $(CFLAGS) hoel-simple-json.c
 
 clean:
@@ -70,12 +71,12 @@ clean:
 
 install: all
 	cp $(OUTPUT).$(VERSION) $(DESTDIR)/lib
-	cp ../include/hoel.h $(DESTDIR)/include
+	cp $(HOEL_INCLUDE)/hoel.h $(DESTDIR)/include
 	/sbin/ldconfig
 
 static-install: static
 	cp libhoel.a $(DESTDIR)/lib
-	cp ../include/hoel.h $(DESTDIR)/include
+	cp $(HOEL_INCLUDE)/hoel.h $(DESTDIR)/include
 
 uninstall:
 	rm -f $(DESTDIR)/lib/$(OUTPUT) $(DESTDIR)/lib/libhoel.a
