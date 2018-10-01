@@ -287,7 +287,7 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
           json_object_set_new(j_data, fields[col].name, json_string(date_stamp));
           break;
         case HOEL_COL_TYPE_BLOB:
-          json_object_set_new(j_data, fields[col].name, json_string(((struct _h_type_blob *)h_data->t_data)->value));
+          json_object_set_new(j_data, fields[col].name, json_stringn(((struct _h_type_blob *)h_data->t_data)->value, ((struct _h_type_blob *)h_data->t_data)->length));
           break;
         case HOEL_COL_TYPE_NULL:
           json_object_set_new(j_data, fields[col].name, json_null());
