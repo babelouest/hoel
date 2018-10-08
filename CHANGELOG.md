@@ -3,6 +3,8 @@
 ## 1.4.4
 
 - Add Travis CI
+- Change cmake option BUILD_TESTING to BUILD_HOEL_TESTING
+- Add RPM in CMake script package
 
 ## 1.4.3
 
