@@ -33,22 +33,22 @@ script:
   - make test package
   - rm -rf * && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=off -DWITH_MARIADB=off -DWITH_PGSQL=on ..
   - make package
-  - make test package
+  - make package
   - rm -rf * && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=off -DWITH_MARIADB=on -DWITH_PGSQL=off ..
   - make package
-  - make test package
+  - make package
   - rm -rf * && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=off -DWITH_MARIADB=on -DWITH_PGSQL=on ..
   - make package
-  - make test package
+  - make package
   - rm -rf * && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=on -DWITH_MARIADB=off -DWITH_PGSQL=off ..
   - make package
-  - make test package
+  - make package
   - rm -rf * && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=on -DWITH_MARIADB=off -DWITH_PGSQL=on ..
   - make package
-  - make test package
+  - make package
   - rm -rf * && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=on -DWITH_MARIADB=on -DWITH_PGSQL=off ..
   - make package
-  - make test package
+  - make package
   - rm -rf * && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=on -DWITH_MARIADB=on -DWITH_PGSQL=on ..
   - make package
   - rm -rf *
