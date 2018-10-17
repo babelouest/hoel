@@ -28,8 +28,8 @@ set(PROJECT_HOMEPAGE_URL "https://github.com/babelouest/hoel/")
 set(PROJECT_BUGREPORT_PATH "https://github.com/babelouest/hoel/issues")
 set(LIBRARY_VERSION_MAJOR "1")
 set(LIBRARY_VERSION_MINOR "4")
-set(LIBRARY_VERSION_PATCH "4")
-set(YDER_VERSION_DOWNLOAD "1.4.2")
+set(LIBRARY_VERSION_PATCH "5")
+set(YDER_VERSION_DOWNLOAD "1.4.3")
 
 set(PROJECT_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}.${LIBRARY_VERSION_PATCH}")
 set(LIBRARY_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}.${LIBRARY_VERSION_PATCH}")
@@ -45,16 +45,16 @@ include(CheckSymbolExists)
 # check if _GNU_SOURCE is available
 
 if (NOT _GNU_SOURCE)
-    check_symbol_exists(__GNU_LIBRARY__ "features.h" _GNU_SOURCE)
+  check_symbol_exists(__GNU_LIBRARY__ "features.h" _GNU_SOURCE)
 
-    if (NOT _GNU_SOURCE)
-        unset(_GNU_SOURCE CACHE)
-        check_symbol_exists(_GNU_SOURCE "features.h" _GNU_SOURCE)
-    endif ()
+  if (NOT _GNU_SOURCE)
+    unset(_GNU_SOURCE CACHE)
+    check_symbol_exists(_GNU_SOURCE "features.h" _GNU_SOURCE)
+  endif ()
 endif ()
 
 if (_GNU_SOURCE)
-    add_definitions(-D_GNU_SOURCE)
+  add_definitions(-D_GNU_SOURCE)
 endif ()
 
 # directories and source
@@ -65,13 +65,13 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 include_directories(${INC_DIR})
 
 set(LIB_SRC
-        ${INC_DIR}/hoel.h
-        ${INC_DIR}/h-private.h
-        ${SRC_DIR}/hoel-simple-json.c
-        ${SRC_DIR}/hoel-mariadb.c
-        ${SRC_DIR}/hoel-pgsql.c
-        ${SRC_DIR}/hoel-sqlite.c
-        ${SRC_DIR}/hoel.c)
+    ${INC_DIR}/hoel.h
+    ${INC_DIR}/h-private.h
+    ${SRC_DIR}/hoel-simple-json.c
+    ${SRC_DIR}/hoel-mariadb.c
+    ${SRC_DIR}/hoel-pgsql.c
+    ${SRC_DIR}/hoel-sqlite.c
+    ${SRC_DIR}/hoel.c)
 
 # dependencies
 
@@ -79,53 +79,67 @@ include(FindJansson)
 set(JANSSON_MIN_VERSION 2.4)
 find_package(Jansson ${JANSSON_MIN_VERSION} REQUIRED)
 if (JANSSON_FOUND)
-    set(LIBS ${JANSSON_LIBRARIES})
+  set(LIBS ${JANSSON_LIBRARIES})
 endif ()
 
 option(WITH_SQLITE3 "Use SQLite3 library" ON)
 
 if (WITH_SQLITE3)
-	include(FindSQLite3)
-	find_package(SQLite3 REQUIRED)
-	if (SQLITE3_FOUND)
-			set(LIBS ${LIBS} ${SQLITE3_LIBRARIES})
-      add_definitions(-D_HOEL_SQLITE)
-      include_directories(${SQLITE3_INCLUDE_DIR})
-      set(LIBS ${LIBS} ${SQLITE3_LIBRARIES})
+  include(FindSQLite3)
+  find_package(SQLite3 REQUIRED)
+  if (SQLITE3_FOUND)
+    set(LIBS ${LIBS} ${SQLITE3_LIBRARIES})
+    include_directories(${SQLITE3_INCLUDE_DIR})
+    set(LIBS ${LIBS} ${SQLITE3_LIBRARIES})
+    set(_HOEL_SQLITE ON)
   else ()
-      message("SQLite3 not found")
-	endif ()
+    message("SQLite3 not found")
+    set(_HOEL_SQLITE OFF)
+  endif ()
+else ()
+  set(_HOEL_SQLITE OFF)
 endif ()
 
 option(WITH_MARIADB "Use MariaDB/MySQL library" ON)
 
 if (WITH_MARIADB)
-	include(FindMYSQL)
-	find_package(MYSQL REQUIRED)
-	if (MYSQL_FOUND)
-			set(LIBS ${LIBS} ${MYSQL_LIBRARIES})
-      add_definitions(-D_HOEL_MARIADB)
-      include_directories(${MYSQL_INCLUDE_DIRS})
-      set(LIBS ${LIBS} ${MYSQL_LIBRARIES})
+  include(FindMYSQL)
+  find_package(MYSQL REQUIRED)
+  if (MYSQL_FOUND)
+    set(LIBS ${LIBS} ${MYSQL_LIBRARIES})
+    include_directories(${MYSQL_INCLUDE_DIRS})
+    set(LIBS ${LIBS} ${MYSQL_LIBRARIES})
+    set(_HOEL_MARIADB ON)
   else ()
-      message("MariaDB not found")
-	endif ()
+    message("MariaDB not found")
+    set(_HOEL_MARIADB OFF)
+  endif ()
+else ()
+  set(_HOEL_MARIADB OFF)
 endif ()
 
 option(WITH_PGSQL "Use PostgreSQL library" ON)
 
 if (WITH_PGSQL)
   include(FindLibPQ)
-	find_package(LibPQ REQUIRED)
+  find_package(LibPQ REQUIRED)
   if(LIBPQ_FOUND)
-			set(LIBS ${LIBS} ${LIBPQ_LIBRARIES})
-      add_definitions(-D_HOEL_PGSQL)
-      include_directories(${LIBPQ_INCLUDE_DIRS})
-      set(LIBS ${LIBS} ${LIBPQ_LIBRARIES})
+    set(LIBS ${LIBS} ${LIBPQ_LIBRARIES})
+    include_directories(${LIBPQ_INCLUDE_DIRS})
+    set(LIBS ${LIBS} ${LIBPQ_LIBRARIES})
+    set(_HOEL_PGSQL ON)
   else ()
-      message("LibPQ not found")
+    message("LibPQ not found")
+    set(_HOEL_PGSQL OFF)
   endif()
+else ()
+  set(_HOEL_PGSQL OFF)
 endif ()
+
+# build hoel-cfg.h file
+configure_file(${INC_DIR}/hoel-cfg.h.in ${PROJECT_BINARY_DIR}/hoel-cfg.h)
+set (CMAKE_EXTRA_INCLUDE_FILES ${PROJECT_BINARY_DIR})
+include_directories(${PROJECT_BINARY_DIR})
 
 if (NOT WITH_PGSQL AND NOT WITH_MARIADB AND NOT WITH_SQLITE3)
   MESSAGE(FATAL_ERROR "You must enable at least one databasse backend: Sqlite3, MariaDB/MySQL or PostgreSQL")
@@ -159,7 +173,7 @@ endif ()
 add_library(hoel SHARED ${LIB_SRC})
 set_target_properties(hoel PROPERTIES
         COMPILE_OPTIONS -Wextra
-        PUBLIC_HEADER ${INC_DIR}/hoel.h
+        PUBLIC_HEADER "${INC_DIR}/hoel.h;${PROJECT_BINARY_DIR}/hoel-cfg.h"
         VERSION "${LIBRARY_VERSION}"
         SOVERSION "${LIBRARY_SOVERSION}")
 if (WIN32)
@@ -167,25 +181,47 @@ if (WIN32)
 endif ()
 target_link_libraries(hoel ${LIBS})
 
-option(CHECK_YDER "Check Yder library." ON)
+# dependencies
 
-if (CHECK_YDER)
-  set(Yder_FIND_QUIETLY ON) # force to find Yder quietly
-  include(FindYder)
-  find_package(Yder 1.1 QUIET) # try to find Yder
-  if (NOT YDER_FOUND)
-      include(DownloadProject)
-      download_project(PROJ yder # ... otherwise, download archive
-              URL "https://github.com/babelouest/yder/archive/v${YDER_VERSION_DOWNLOAD}.tar.gz"
-              QUIET)
-      add_subdirectory(${yder_SOURCE_DIR} ${yder_BINARY_DIR})
-      include_directories(${yder_SOURCE_DIR}/include)
-      include_directories(${orcania_SOURCE_DIR}/include)
-      add_dependencies(hoel yder)
-      add_dependencies(hoel orcania)
-      set(HOEL_LIBRARIES yder orcania)
-  endif ()
+set(Orcania_FIND_QUIETLY ON) # force to find Orcania quietly
+include(FindOrcania)
+find_package(Orcania 1.1 QUIET) # try to find orcania
+if (NOT ORCANIA_FOUND)
+    include(DownloadProject)
+    download_project(PROJ orcania # ... otherwise, download archive
+        URL "https://github.com/babelouest/orcania/archive/v${ORCANIA_VERSION_DOWNLOAD}.tar.gz"
+        QUIET)
+    add_subdirectory(${orcania_SOURCE_DIR} ${orcania_BINARY_DIR})
+    include_directories(${orcania_SOURCE_DIR}/include)
+    add_dependencies(hoel orcania)
+    set(ORCANIA_LIBRARIES orcania)
+    set(LIBS ${LIBS} ${ORCANIA_LIBRARIES})
+    include_directories(${orcania_BINARY_DIR})
+else()
+    set(LIBS ${LIBS} ${ORCANIA_LIBRARIES})
+    include_directories(${ORCANIA_INCLUDE_DIRS})
 endif ()
+target_link_libraries(hoel ${LIBS} ${ORCANIA_LIBRARIES})
+
+set(SEARCH_ORCANIA OFF CACHE BOOL "Force to false") # Avoid to search and download orcania during yder search and download
+set(Yder_FIND_QUIETLY ON) # force to find Yder quietly
+include(FindYder)
+find_package(Yder 1.1 QUIET) # try to find Yder
+if (NOT YDER_FOUND)
+    include(DownloadProject)
+    download_project(PROJ yder # ... otherwise, download archive
+                      URL "https://github.com/babelouest/yder/archive/v${YDER_VERSION_DOWNLOAD}.tar.gz"
+                      QUIET)
+    add_subdirectory(${yder_SOURCE_DIR} ${yder_BINARY_DIR})
+    include_directories(${yder_SOURCE_DIR}/include)
+    add_dependencies(hoel yder)
+    set(YDER_LIBRARIES yder orcania)
+    include_directories(${yder_BINARY_DIR})
+else()
+    set(LIBS ${LIBS} ${YDER_LIBRARIES})
+    include_directories(${YDER_INCLUDE_DIRS})
+endif ()
+target_link_libraries(hoel ${LIBS} ${YDER_LIBRARIES})
 
 # tests
 
@@ -307,15 +343,15 @@ set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/babelouest/hoel")
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.14), libjansson4 (>= 2.4), liborcania (>= 1.2), libyder (>= 1.3), zlib1g (>= 1:1.1.4)")
 
 if (WITH_SQLITE3)
-	set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libsqlite3-0 (>= 3.5.9)")
+  set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libsqlite3-0 (>= 3.5.9)")
 endif ()
 
 if (WITH_MARIADB)
-	set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libmariadbclient18 (>= 5.5.36)")
+  set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libmariadbclient18 (>= 5.5.36)")
 endif ()
 
 if (WITH_PGSQL)
-	set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libpq5 (>= 9.0~)")
+  set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libpq5 (>= 9.0~)")
 endif ()
 
 set(CPACK_PACKAGE_FILE_NAME ${PACKAGE_FILE_NAME})
@@ -328,3 +364,11 @@ include(CPack)
 
 add_custom_target(dist_h
         COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
+
+message(STATUS "SQLITE3 library support: ${USE_SQLITE3}")
+message(STATUS "MariaDB library support: ${USE_MARIADB}")
+message(STATUS "PostgreSQL library support: ${USE_PGSQL}")
+message(STATUS "Build static library: ${BUILD_STATIC}")
+message(STATUS "Build testing tree: ${BUILD_ULFIUS_TESTING}")
+message(STATUS "Install the header files: ${INSTALL_HEADER}")
+message(STATUS "Build RPM package: ${BUILD_RPM}")
