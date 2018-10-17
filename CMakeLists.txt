@@ -366,9 +366,9 @@ include(CPack)
 add_custom_target(dist_h
         COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
 
-message(STATUS "SQLITE3 library support: ${USE_SQLITE3}")
-message(STATUS "MariaDB library support: ${USE_MARIADB}")
-message(STATUS "PostgreSQL library support: ${USE_PGSQL}")
+message(STATUS "SQLITE3 library support: ${WITH_SQLITE3}")
+message(STATUS "MariaDB library support: ${WITH_MARIADB}")
+message(STATUS "PostgreSQL library support: ${WITH_PGSQL}")
 message(STATUS "Build static library: ${BUILD_STATIC}")
 message(STATUS "Build testing tree: ${BUILD_ULFIUS_TESTING}")
 message(STATUS "Install the header files: ${INSTALL_HEADER}")
