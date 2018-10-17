@@ -26,7 +26,28 @@ install:
 - rm -rf jansson-2.11
 
 script:
-  - cmake -DWITH_JOURNALD=off -DBUILD_HOEL_TESTING=on .
+  - mkdir build && cd build
+  - cmake -DWITH_JOURNALD=off -DBUILD_HOEL_TESTING=on ..
   - make
   - sqlite3 /tmp/test.db < test/test.sql
-  - make test
+  - make test package
+  - rm -rf && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE=off -DWITH_MARIADB=off -DWITH_PGSQL=on ..
+  - make package
+  - make test package
+  - rm -rf && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE=off -DWITH_MARIADB=on -DWITH_PGSQL=off ..
+  - make package
+  - make test package
+  - rm -rf && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE=off -DWITH_MARIADB=on -DWITH_PGSQL=on ..
+  - make package
+  - make test package
+  - rm -rf && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE=on -DWITH_MARIADB=off -DWITH_PGSQL=off ..
+  - make package
+  - make test package
+  - rm -rf && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE=on -DWITH_MARIADB=off -DWITH_PGSQL=on ..
+  - make package
+  - make test package
+  - rm -rf && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE=on -DWITH_MARIADB=on -DWITH_PGSQL=off ..
+  - make package
+  - make test package
+  - rm -rf && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE=on -DWITH_MARIADB=on -DWITH_PGSQL=on ..
+  - make package
