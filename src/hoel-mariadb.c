@@ -405,12 +405,19 @@ struct _h_data * h_get_mariadb_value(const char * value, const unsigned long len
  * Dummy functions when Hoel is not built with MariaDB
  */
 struct _h_connection * h_connect_mariadb(const char * host, const char * user, const char * passwd, const char * db, const unsigned int port, const char * unix_socket) {
-	y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with MariaDB backend");
-	return NULL;
+  UNUSED(host);
+  UNUSED(user);
+  UNUSED(passwd);
+  UNUSED(db);
+  UNUSED(port);
+  UNUSED(unix_socket);
+  y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with MariaDB backend");
+  return NULL;
 }
 
 void h_close_mariadb(struct _h_connection * conn) {
-	y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with MariaDB backend");
+  UNUSED(conn);
+  y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with MariaDB backend");
 }
 
 #endif

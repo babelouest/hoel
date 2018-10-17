@@ -26,7 +26,30 @@ install:
 - rm -rf jansson-2.11
 
 script:
-  - cmake -DWITH_JOURNALD=off -DBUILD_HOEL_TESTING=on .
+  - mkdir build && cd build
+  - cmake -DWITH_JOURNALD=off -DBUILD_HOEL_TESTING=on ..
   - make
-  - sqlite3 /tmp/test.db < test/test.sql
-  - make test
+  - sqlite3 /tmp/test.db < ../test/test.sql
+  - make test package
+  - rm -rf * && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=off -DWITH_MARIADB=off -DWITH_PGSQL=on ..
+  - make package
+  - make package
+  - rm -rf * && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=off -DWITH_MARIADB=on -DWITH_PGSQL=off ..
+  - make package
+  - make package
+  - rm -rf * && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=off -DWITH_MARIADB=on -DWITH_PGSQL=on ..
+  - make package
+  - make package
+  - rm -rf * && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=on -DWITH_MARIADB=off -DWITH_PGSQL=off ..
+  - make package
+  - make package
+  - rm -rf * && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=on -DWITH_MARIADB=off -DWITH_PGSQL=on ..
+  - make package
+  - make package
+  - rm -rf * && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=on -DWITH_MARIADB=on -DWITH_PGSQL=off ..
+  - make package
+  - make package
+  - rm -rf * && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=on -DWITH_MARIADB=on -DWITH_PGSQL=on ..
+  - make package
+  - rm -rf *
+  - if $(cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=off -DWITH_MARIADB=off -DWITH_PGSQL=off .. 1>/dev/null 2&>1); then echo "Build with no DB fail" && exit 1; else echo "Build with no DB success"; fi
