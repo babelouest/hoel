@@ -3,6 +3,7 @@
 ## 1.4.5
 
 - Add config file hoel-cfg.h dynamically built with the options
+- Improve CI
 
 ## 1.4.4
 
