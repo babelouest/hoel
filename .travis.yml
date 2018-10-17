@@ -52,4 +52,4 @@ script:
   - rm -rf * && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=on -DWITH_MARIADB=on -DWITH_PGSQL=on ..
   - make package
   - rm -rf *
-  - if `cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=off -DWITH_MARIADB=off -DWITH_PGSQL=off .. `; then exit 1; fi
+  - if $(cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=off -DWITH_MARIADB=off -DWITH_PGSQL=off .. 1>/dev/null 2&>1); then echo "Build with no DB fail" && exit 1; else echo "Build with no DB success"; fi
