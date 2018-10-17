@@ -285,13 +285,13 @@ int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * 
  */
 struct _h_connection * h_connect_sqlite(const char * db_path) {
   UNUSED(db_path);
-	y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with SQLite backend");
-	return NULL;
+  y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with SQLite backend");
+  return NULL;
 }
 
 void h_close_sqlite(struct _h_connection * conn) {
   UNUSED(conn);
-	y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with SQLite backend");
+  y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with SQLite backend");
 }
 
 #endif
