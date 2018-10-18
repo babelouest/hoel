@@ -40,7 +40,7 @@ ENABLE_PGSQL=1
 FLAGS_PGSQL=$(shell pkg-config --cflags libpq)
 LIBS_PGSQL=$(shell pkg-config --libs libpq)
 else
-ENABLE_PGSQL=1
+ENABLE_PGSQL=0
 endif
 
 HOEL_INCLUDE=../include
