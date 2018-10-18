@@ -163,19 +163,9 @@ By default, the shared library and the header file will be installed in the `/us
 
 ## Header files and compilation
 
-To use hoel in your code, you must use the `#define` corresponding to the backend you use before including the file `hoel.h`. For example:
+To use hoel in your code, include the file `hoel.h`.
 
 ```c
-#define _HOEL_SQLITE
-#include <hoel.h>
-```
-
-If you want to use different backends in your source code, just add its `#define` before including `hoel.h`.
-
-```c
-#define _HOEL_SQLITE
-#define _HOEL_MARIADB
-#define _HOEL_PGSQL
 #include <hoel.h>
 ```
 
