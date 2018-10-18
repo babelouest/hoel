@@ -54,8 +54,7 @@ VERSION=1.4.5
 
 all: release
 
-config:
-	@if [ -f $(CONFIG_FILE) ]; then rm -f $(CONFIG_FILE); fi
+$(CONFIG_FILE):
 	@cp $(CONFIG_TEMPLATE) $(CONFIG_FILE)
 	@sed -i -e 's/$${PROJECT_VERSION}/$(VERSION)/g' $(CONFIG_FILE)        
 	@if [ "$(ENABLE_SQLITE)" = "1" ]; then \
@@ -75,11 +74,11 @@ config:
 	fi
 	@echo Config file $(CONFIG_FILE) generated
 
-libhoel.so: config hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
+libhoel.so: $(CONFIG_FILE) hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
 	$(CC) -shared -fPIC -Wl,-soname,$(OUTPUT) -o $(OUTPUT).$(VERSION) hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o $(LIBS) $(LDFLAGS)
 	ln -sf $(OUTPUT).$(VERSION) $(OUTPUT)
 
-libhoel.a: config hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
+libhoel.a: $(CONFIG_FILE) hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
 	ar rcs libhoel.a hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
 
 hoel.o: hoel.c $(HOEL_INCLUDE)/hoel.h
@@ -102,17 +101,20 @@ clean:
 
 install: all
 	cp $(OUTPUT).$(VERSION) $(DESTDIR)/lib
-	cp $(HOEL_INCLUDE)/hoel.h $(DESTDIR)/include
+	install -m644 $(HOEL_INCLUDE)/hoel.h $(DESTDIR)/include
+	install -m644 $(CONFIG_FILE) $(DESTDIR)/include
 	/sbin/ldconfig
 
 static-install: static
 	cp libhoel.a $(DESTDIR)/lib
-	cp $(HOEL_INCLUDE)/hoel.h $(DESTDIR)/include
+	install -m644 $(HOEL_INCLUDE)/hoel.h $(DESTDIR)/include
+	install -m644 $(CONFIG_FILE) $(DESTDIR)/include
 
 uninstall:
 	rm -f $(DESTDIR)/lib/$(OUTPUT) $(DESTDIR)/lib/libhoel.a
 	rm -f $(DESTDIR)/lib/$(OUTPUT).*
 	rm -f $(DESTDIR)/include/hoel.h
+	rm -f $(DESTDIR)/include/hoel-cfg.h
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 
