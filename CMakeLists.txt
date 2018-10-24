@@ -28,7 +28,7 @@ set(PROJECT_HOMEPAGE_URL "https://github.com/babelouest/hoel/")
 set(PROJECT_BUGREPORT_PATH "https://github.com/babelouest/hoel/issues")
 set(LIBRARY_VERSION_MAJOR "1")
 set(LIBRARY_VERSION_MINOR "4")
-set(LIBRARY_VERSION_PATCH "5")
+set(LIBRARY_VERSION_PATCH "6")
 set(ORCANIA_VERSION_DOWNLOAD "1.2.7")
 set(YDER_VERSION_DOWNLOAD "1.4.3")
 
@@ -205,24 +205,28 @@ endif ()
 target_link_libraries(hoel ${LIBS} ${ORCANIA_LIBRARIES})
 
 set(SEARCH_ORCANIA OFF CACHE BOOL "Force to false") # Avoid to search and download orcania during yder search and download
-set(Yder_FIND_QUIETLY ON) # force to find Yder quietly
-include(FindYder)
-find_package(Yder 1.1 QUIET) # try to find Yder
-if (NOT YDER_FOUND)
-    include(DownloadProject)
-    download_project(PROJ yder # ... otherwise, download archive
-                      URL "https://github.com/babelouest/yder/archive/v${YDER_VERSION_DOWNLOAD}.tar.gz"
-                      QUIET)
-    add_subdirectory(${yder_SOURCE_DIR} ${yder_BINARY_DIR})
-    include_directories(${yder_SOURCE_DIR}/include)
-    add_dependencies(hoel yder)
-    set(YDER_LIBRARIES yder orcania)
-    include_directories(${yder_BINARY_DIR})
-else()
-    set(LIBS ${LIBS} ${YDER_LIBRARIES})
-    include_directories(${YDER_INCLUDE_DIRS})
+
+option(SEARCH_YDER "Search for Yder library" ON)
+if (SEARCH_YDER)
+    set(Yder_FIND_QUIETLY ON) # force to find Yder quietly
+    include(FindYder)
+    find_package(Yder 1.1 QUIET) # try to find Yder
+    if (NOT YDER_FOUND)
+        include(DownloadProject)
+        download_project(PROJ yder # ... otherwise, download archive
+                          URL "https://github.com/babelouest/yder/archive/v${YDER_VERSION_DOWNLOAD}.tar.gz"
+                          QUIET)
+        add_subdirectory(${yder_SOURCE_DIR} ${yder_BINARY_DIR})
+        include_directories(${yder_SOURCE_DIR}/include)
+        add_dependencies(hoel yder)
+        set(YDER_LIBRARIES yder orcania)
+        include_directories(${yder_BINARY_DIR})
+    else()
+        set(LIBS ${LIBS} ${YDER_LIBRARIES})
+        include_directories(${YDER_INCLUDE_DIRS})
+    endif ()
+    target_link_libraries(hoel ${LIBS} ${YDER_LIBRARIES})
 endif ()
-target_link_libraries(hoel ${LIBS} ${YDER_LIBRARIES})
 
 # tests
 
