@@ -184,8 +184,8 @@ target_link_libraries(hoel ${LIBS})
 
 # dependencies
 
-option(SEARCH_ORCANIA "Search for Orcania library" ON)
-if (SEARCH_ORCANIA)
+option(SEARCH_ORCANIA_H "Search for Orcania library" ON)
+if (SEARCH_ORCANIA_H)
     set(Orcania_FIND_QUIETLY ON) # force to find Orcania quietly
     include(FindOrcania)
     find_package(Orcania 1.1 QUIET) # try to find orcania
