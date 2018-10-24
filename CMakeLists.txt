@@ -184,25 +184,28 @@ target_link_libraries(hoel ${LIBS})
 
 # dependencies
 
-set(Orcania_FIND_QUIETLY ON) # force to find Orcania quietly
-include(FindOrcania)
-find_package(Orcania 1.1 QUIET) # try to find orcania
-if (NOT ORCANIA_FOUND)
-    include(DownloadProject)
-    download_project(PROJ orcania # ... otherwise, download archive
-        URL "https://github.com/babelouest/orcania/archive/v${ORCANIA_VERSION_DOWNLOAD}.tar.gz"
-        QUIET)
-    add_subdirectory(${orcania_SOURCE_DIR} ${orcania_BINARY_DIR})
-    include_directories(${orcania_SOURCE_DIR}/include)
-    add_dependencies(hoel orcania)
-    set(ORCANIA_LIBRARIES orcania)
-    set(LIBS ${LIBS} ${ORCANIA_LIBRARIES})
-    include_directories(${orcania_BINARY_DIR})
-else()
-    set(LIBS ${LIBS} ${ORCANIA_LIBRARIES})
-    include_directories(${ORCANIA_INCLUDE_DIRS})
+option(SEARCH_ORCANIA "Search for Orcania library" ON)
+if (SEARCH_ORCANIA)
+    set(Orcania_FIND_QUIETLY ON) # force to find Orcania quietly
+    include(FindOrcania)
+    find_package(Orcania 1.1 QUIET) # try to find orcania
+    if (NOT ORCANIA_FOUND)
+        include(DownloadProject)
+        download_project(PROJ orcania # ... otherwise, download archive
+            URL "https://github.com/babelouest/orcania/archive/v${ORCANIA_VERSION_DOWNLOAD}.tar.gz"
+            QUIET)
+        add_subdirectory(${orcania_SOURCE_DIR} ${orcania_BINARY_DIR})
+        include_directories(${orcania_SOURCE_DIR}/include)
+        add_dependencies(hoel orcania)
+        set(ORCANIA_LIBRARIES orcania)
+        set(LIBS ${LIBS} ${ORCANIA_LIBRARIES})
+        include_directories(${orcania_BINARY_DIR})
+    else()
+        set(LIBS ${LIBS} ${ORCANIA_LIBRARIES})
+        include_directories(${ORCANIA_INCLUDE_DIRS})
+    endif ()
+    target_link_libraries(hoel ${LIBS} ${ORCANIA_LIBRARIES})
 endif ()
-target_link_libraries(hoel ${LIBS} ${ORCANIA_LIBRARIES})
 
 set(SEARCH_ORCANIA OFF CACHE BOOL "Force to false") # Avoid to search and download orcania during yder search and download
 
