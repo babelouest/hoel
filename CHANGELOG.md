@@ -1,5 +1,9 @@
 # Hoel Changelog
 
+## 1.4.6
+
+- CMake scripts improvements
+
 ## 1.4.5
 
 - Add config file hoel-cfg.h dynamically built with the options
