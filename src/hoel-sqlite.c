@@ -145,7 +145,7 @@ int h_select_query_sqlite(const struct _h_connection * conn, const char * query,
               data = h_new_data_blob(sqlite3_column_blob(stmt, col), sqlite3_column_bytes(stmt, col));
               break;
             case SQLITE3_TEXT:
-              data = h_new_data_text((char*)sqlite3_column_text(stmt, col));
+              data = h_new_data_text((char*)sqlite3_column_text(stmt, col), sqlite3_column_bytes(stmt, col));
               break;
             case SQLITE_NULL:
               data = h_new_data_null();

@@ -391,7 +391,11 @@ struct _h_data * h_get_mariadb_value(const char * value, const unsigned long len
       case FIELD_TYPE_SET:
       case FIELD_TYPE_GEOMETRY:
       default:
-        data = h_new_data_text(value);
+        if (length > 0) {
+          data = h_new_data_text(value, length);
+        } else {
+          data = h_new_data_null();
+        }
         break;
     }
   } else {
