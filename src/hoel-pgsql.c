@@ -222,7 +222,7 @@ int h_execute_query_pgsql(const struct _h_connection * conn, const char * query,
             case HOEL_COL_TYPE_DATE:
             case HOEL_COL_TYPE_TEXT:
             default:
-              data = h_new_data_text(PQgetvalue(res, i, j));
+              data = h_new_data_text(PQgetvalue(res, i, j), PQfsize(res, i));
               break;
           }
         }

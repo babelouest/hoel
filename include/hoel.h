@@ -102,6 +102,7 @@ struct _h_type_datetime {
  * sql value string type
  */
 struct _h_type_text {
+  size_t length;
   char * value;
 };
 

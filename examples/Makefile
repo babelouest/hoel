@@ -20,10 +20,10 @@ HOEL_LOCATION=../src
 LIBS=-lc -lhoel -ljansson -lyder -lorcania -L$(HOEL_LOCATION)
 ADDITIONALFLAGS=-O3
 
-all: libhoel.so example_sqlite3 example_mariadb example_pgsql example_mariadb_json
+all: libhoel.so example_sqlite3 example_mariadb example_pgsql example_mariadb_json example_mariadb_binary
 
 clean:
-	rm -f *.o example_sqlite3 example_mariadb example_pgsql example_mariadb_json
+	rm -f *.o example_sqlite3 example_mariadb example_pgsql example_mariadb_json example_mariadb_binary
 
 debug: ADDITIONALFLAGS=-DDEBUG -g -O0
 
@@ -48,6 +48,10 @@ example_mariadb_json: example_mariadb_json.c
 	$(CC) -c $(CFLAGS) example_mariadb_json.c
 	$(CC) -o example_mariadb_json example_mariadb_json.o $(LIBS)
 
+example_mariadb_binary: example_mariadb_binary.c
+	$(CC) -c $(CFLAGS) example_mariadb_binary.c
+	$(CC) -o example_mariadb_binary example_mariadb_binary.o $(LIBS)
+
 test: test_pgsql test_mariadb test_sqlite3 test_mariadb_json
 
 test_pgsql: example_pgsql
@@ -61,3 +65,6 @@ test_sqlite3: example_sqlite3
 
 test_mariadb_json: example_mariadb_json
 	LD_LIBRARY_PATH=$(HOEL_LOCATION):${LD_LIBRARY_PATH} ./example_mariadb_json
+
+test_mariadb_binary: example_mariadb_binary
+	LD_LIBRARY_PATH=$(HOEL_LOCATION):${LD_LIBRARY_PATH} ./example_mariadb_binary

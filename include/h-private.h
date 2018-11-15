@@ -36,7 +36,7 @@ struct _h_data * h_new_data_double(const double value);
  * return pointer to the new structure
  * return NULL on error
  */
-struct _h_data * h_new_data_text(const char * value);
+struct _h_data * h_new_data_text(const char * value, const size_t length);
 
 /**
  * Allocate memory for a new struct _h_data * containing a blob
