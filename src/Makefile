@@ -49,6 +49,7 @@ CONFIG_TEMPLATE=$(HOEL_INCLUDE)/hoel-cfg.h.in
 CONFIG_FILE=$(HOEL_INCLUDE)/hoel-cfg.h
 CFLAGS+=-c -fPIC -Wall -I$(HOEL_INCLUDE) $(FLAGS_MARIADB) $(FLAGS_PGSQL) -D_REENTRANT $(ADDITIONALFLAGS) $(CPPFLAGS)
 LIBS=-L$(DESTDIR)/lib -lc -ljansson -lyder -lorcania $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MARIADB)
+OBJECTS=hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
 OUTPUT=libhoel.so
 VERSION=1.4.6
 
@@ -56,45 +57,39 @@ all: release
 
 $(CONFIG_FILE):
 	@cp $(CONFIG_TEMPLATE) $(CONFIG_FILE)
+	@echo Config file $(CONFIG_FILE) generated
 	@sed -i -e 's/$${PROJECT_VERSION}/$(VERSION)/g' $(CONFIG_FILE)        
 	@if [ "$(ENABLE_SQLITE)" = "1" ]; then \
 		sed -i -e 's/\#cmakedefine _HOEL_SQLITE/\#define _HOEL_SQLITE/g' $(CONFIG_FILE); \
+		echo "SQLITE SUPPORT  DISABLED"; \
 	else \
 		sed -i -e 's/\#cmakedefine _HOEL_SQLITE/\/* #undef _HOEL_SQLITE *\//g' $(CONFIG_FILE); \
+		echo "SQLITE SUPPORT  ENABLED"; \
 	fi
 	@if [ "$(ENABLE_MARIADB)" = "1" ]; then \
 		sed -i -e 's/\#cmakedefine _HOEL_MARIADB/\#define _HOEL_MARIADB/g' $(CONFIG_FILE); \
+		echo "MARIADB SUPPORT DISABLED"; \
 	else \
 		sed -i -e 's/\#cmakedefine _HOEL_MARIADB/\/* #undef _HOEL_MARIADB *\//g' $(CONFIG_FILE); \
+		echo "MARIADB SUPPORT ENABLED"; \
 	fi
 	@if [ "$(ENABLE_PGSQL)" = "1" ]; then \
 		sed -i -e 's/\#cmakedefine _HOEL_PGSQL/\#define _HOEL_PGSQL/g' $(CONFIG_FILE); \
+		echo "PGSQL SUPPORT   DISABLED"; \
 	else \
 		sed -i -e 's/\#cmakedefine _HOEL_PGSQL/\/* #undef _HOEL_PGSQL *\//g' $(CONFIG_FILE); \
+		echo "PGSQL SUPPORT   ENABLED"; \
 	fi
-	@echo Config file $(CONFIG_FILE) generated
 
-libhoel.so: $(CONFIG_FILE) hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
-	$(CC) -shared -fPIC -Wl,-soname,$(OUTPUT) -o $(OUTPUT).$(VERSION) hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o $(LIBS) $(LDFLAGS)
+libhoel.so: $(CONFIG_FILE) $(OBJECTS)
+	$(CC) -shared -fPIC -Wl,-soname,$(OUTPUT) -o $(OUTPUT).$(VERSION) $(OBJECTS) $(LIBS) $(LDFLAGS)
 	ln -sf $(OUTPUT).$(VERSION) $(OUTPUT)
 
-libhoel.a: $(CONFIG_FILE) hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
-	ar rcs libhoel.a hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
+libhoel.a: $(CONFIG_FILE) $(OBJECTS)
+	ar rcs libhoel.a $(OBJECTS)
 
-hoel.o: hoel.c $(HOEL_INCLUDE)/hoel.h
-	$(CC) $(CFLAGS) hoel.c
-
-hoel-sqlite.o: hoel-sqlite.c $(HOEL_INCLUDE)/hoel.h
-	$(CC) $(CFLAGS) hoel-sqlite.c
-
-hoel-mariadb.o: hoel-mariadb.c $(HOEL_INCLUDE)/hoel.h
-	$(CC) $(CFLAGS) hoel-mariadb.c
-
-hoel-pgsql.o: hoel-pgsql.c $(HOEL_INCLUDE)/hoel.h
-	$(CC) $(CFLAGS) hoel-pgsql.c
-
-hoel-simple-json.o: hoel-simple-json.c $(HOEL_INCLUDE)/hoel.h
-	$(CC) $(CFLAGS) hoel-simple-json.c
+%.o: %.c $(CONFIG_FILE) $(HOEL_INCLUDE)/hoel.h $(HOEL_INCLUDE)/h-private.h
+	$(CC) $(CFLAGS) $<
 
 clean:
 	rm -f *.o *.so *.a $(OUTPUT) $(OUTPUT).* $(CONFIG_FILE)
