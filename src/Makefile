@@ -81,11 +81,11 @@ $(CONFIG_FILE):
 		echo "PGSQL SUPPORT   ENABLED"; \
 	fi
 
-libhoel.so: $(CONFIG_FILE) $(OBJECTS)
+libhoel.so: $(OBJECTS)
 	$(CC) -shared -fPIC -Wl,-soname,$(OUTPUT) -o $(OUTPUT).$(VERSION) $(OBJECTS) $(LIBS) $(LDFLAGS)
 	ln -sf $(OUTPUT).$(VERSION) $(OUTPUT)
 
-libhoel.a: $(CONFIG_FILE) $(OBJECTS)
+libhoel.a: $(OBJECTS)
 	ar rcs libhoel.a $(OBJECTS)
 
 %.o: %.c $(CONFIG_FILE) $(HOEL_INCLUDE)/hoel.h $(HOEL_INCLUDE)/h-private.h
