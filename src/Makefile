@@ -61,24 +61,24 @@ $(CONFIG_FILE):
 	@sed -i -e 's/$${PROJECT_VERSION}/$(VERSION)/g' $(CONFIG_FILE)        
 	@if [ "$(ENABLE_SQLITE)" = "1" ]; then \
 		sed -i -e 's/\#cmakedefine _HOEL_SQLITE/\#define _HOEL_SQLITE/g' $(CONFIG_FILE); \
-		echo "SQLITE SUPPORT  DISABLED"; \
+		echo "SQLITE SUPPORT  ENABLED"; \
 	else \
 		sed -i -e 's/\#cmakedefine _HOEL_SQLITE/\/* #undef _HOEL_SQLITE *\//g' $(CONFIG_FILE); \
-		echo "SQLITE SUPPORT  ENABLED"; \
+		echo "SQLITE SUPPORT  DISABLED"; \
 	fi
 	@if [ "$(ENABLE_MARIADB)" = "1" ]; then \
 		sed -i -e 's/\#cmakedefine _HOEL_MARIADB/\#define _HOEL_MARIADB/g' $(CONFIG_FILE); \
-		echo "MARIADB SUPPORT DISABLED"; \
+		echo "MARIADB SUPPORT ENABLED"; \
 	else \
 		sed -i -e 's/\#cmakedefine _HOEL_MARIADB/\/* #undef _HOEL_MARIADB *\//g' $(CONFIG_FILE); \
-		echo "MARIADB SUPPORT ENABLED"; \
+		echo "MARIADB SUPPORT DISABLED"; \
 	fi
 	@if [ "$(ENABLE_PGSQL)" = "1" ]; then \
 		sed -i -e 's/\#cmakedefine _HOEL_PGSQL/\#define _HOEL_PGSQL/g' $(CONFIG_FILE); \
-		echo "PGSQL SUPPORT   DISABLED"; \
+		echo "PGSQL SUPPORT   ENABLED"; \
 	else \
 		sed -i -e 's/\#cmakedefine _HOEL_PGSQL/\/* #undef _HOEL_PGSQL *\//g' $(CONFIG_FILE); \
-		echo "PGSQL SUPPORT   ENABLED"; \
+		echo "PGSQL SUPPORT   DISABLED"; \
 	fi
 
 libhoel.so: $(OBJECTS)
