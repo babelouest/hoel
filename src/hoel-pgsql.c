@@ -60,6 +60,7 @@ struct _h_connection * h_connect_pgsql(char * conninfo) {
     conn = malloc(sizeof(struct _h_connection));
     if (conn == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for conn");
+      return NULL;
     }
     
     conn->type = HOEL_DB_TYPE_PGSQL;
@@ -67,7 +68,7 @@ struct _h_connection * h_connect_pgsql(char * conninfo) {
     if (conn->connection == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for conn->connection");
       free(conn);
-      conn = NULL;
+      return NULL;
     }
     ((struct _h_pgsql *)conn->connection)->db_handle = PQconnectdb(conninfo);
     ((struct _h_pgsql *)conn->connection)->nb_type = 0;
