@@ -1,5 +1,9 @@
 # Hoel Changelog
 
+## 1.4.8
+
+- Fix mariadb bug when empty column was returned as NULL
+
 ## 1.4.7
 
 - Add support for binary columns in `struct _h_data` by adding length parameter in `struct _h_type_text`
