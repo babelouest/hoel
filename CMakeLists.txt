@@ -76,6 +76,10 @@ set(LIB_SRC
 
 # dependencies
 
+# pthread libraries
+find_package (Threads)
+set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
+
 include(FindJansson)
 set(JANSSON_MIN_VERSION 2.4)
 find_package(Jansson ${JANSSON_MIN_VERSION} REQUIRED)
