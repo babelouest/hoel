@@ -9,7 +9,6 @@ ELSE()
   SET(PFILES $ENV{ProgramFiles})   
 ENDIF()
 
-message("grut 0")
 IF (NOT MARIADB_INCLUDE_DIR)
   IF(WIN32)
     FIND_PATH(MARIADB_INCLUDE_DIR mysql.h
@@ -18,13 +17,10 @@ IF (NOT MARIADB_INCLUDE_DIR)
       $ENV{MARIADB_DIR}/include/mariadb
       ${PFILES}/MariaDB/*/include)
   ELSE()
-    message("grut 1")
     FIND_PATH(MARIADB_BIN_DIR mariadb_config
               $ENV{MARIADB_DIR}/bin
               ${MARIADB_DIR}/bin)
-    message("grut 2 ${MARIADB_BIN_DIR}")
     IF(MARIADB_BIN_DIR)
-    message("grut 3")
       EXEC_PROGRAM(${MARIADB_BIN_DIR}/mariadb_config 
                    ARGS "--include"
                    OUTPUT_VARIABLE MARIADB_INCLUDE_DIR)
