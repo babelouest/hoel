@@ -437,7 +437,7 @@ struct _h_data * h_get_mariadb_value(const char * value, const unsigned long len
  * Opens a database connection to a PostgreSQL server
  * return pointer to a struct _h_connection * on sucess, NULL on error
  */
-struct _h_connection * h_connect_pgsql(char * conninfo);
+struct _h_connection * h_connect_pgsql(const char * conninfo);
 
 /**
  * h_execute_query_pgsql

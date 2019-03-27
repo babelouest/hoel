@@ -1,5 +1,10 @@
 # Hoel Changelog
 
+## 1.4.9
+
+- Fix h_connect_pgsql to accept const char * parameter instead of char *
+- minor bugfixes
+
 ## 1.4.8
 
 - Fix mariadb bug when empty column was returned as NULL

@@ -48,7 +48,7 @@ struct _h_pgsql {
  * Opens a database connection to a PostgreSQL server
  * return pointer to a struct _h_connection * on sucess, NULL on error
  */
-struct _h_connection * h_connect_pgsql(char * conninfo) {
+struct _h_connection * h_connect_pgsql(const char * conninfo) {
   struct _h_connection * conn = NULL;
   struct _h_result result_types;
   int res_types;
@@ -360,7 +360,7 @@ int h_last_insert_id_pgsql(const struct _h_connection * conn) {
 /**
  * Dummy functions when Hoel is not built with PostgreSQL
  */
-struct _h_connection * h_connect_pgsql(char * conninfo) {
+struct _h_connection * h_connect_pgsql(const char * conninfo) {
   UNUSED(conninfo);
   y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with PostgreSQL backend");
   return NULL;
