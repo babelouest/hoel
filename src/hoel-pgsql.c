@@ -50,11 +50,8 @@ struct _h_pgsql {
  */
 struct _h_connection * h_connect_pgsql(const char * conninfo) {
   struct _h_connection * conn = NULL;
-  struct _h_result result_types;
-  int res_types;
-  unsigned int row;
-  char * cur_type_name, * endptr = NULL;
-  Oid cur_type_oid;
+  int ntuples, i;
+  PGresult *res;
   
   if (conninfo != NULL) {
     conn = malloc(sizeof(struct _h_connection));
@@ -82,53 +79,47 @@ struct _h_connection * h_connect_pgsql(const char * conninfo) {
       free(conn);
       conn = NULL;
     } else {
-      res_types = h_execute_query_pgsql(conn, "select oid, typname from pg_type", &result_types);
-      if (res_types == H_OK) {
-        if (result_types.nb_columns == 2) {
-          for (row=0; row<result_types.nb_rows; row++) {
-            cur_type_oid = strtol(((struct _h_type_text *)result_types.data[row][0].t_data)->value, &endptr, 10);
-            cur_type_name = ((struct _h_type_text *)result_types.data[row][1].t_data)->value;
-            if (*endptr == '\0' && endptr != ((struct _h_type_text *)result_types.data[row][0].t_data)->value) {
-              ((struct _h_pgsql *)conn->connection)->list_type = o_realloc(((struct _h_pgsql *)conn->connection)->list_type, (((struct _h_pgsql *)conn->connection)->nb_type + 1) * sizeof(struct _h_pg_type));
-              if (((struct _h_pgsql *)conn->connection)->list_type != NULL) {
-                ((struct _h_pgsql *)conn->connection)->list_type[((struct _h_pgsql *)conn->connection)->nb_type].pg_type = cur_type_oid;
-                if (o_strcmp(cur_type_name, "bool") == 0) {
-                  ((struct _h_pgsql *)conn->connection)->list_type[((struct _h_pgsql *)conn->connection)->nb_type].h_type = HOEL_COL_TYPE_BOOL;
-                } else if (o_strncmp(cur_type_name, "int", 3) == 0 || (o_strncmp(cur_type_name+1, "id", 2) == 0 && o_strlen(cur_type_name) == 3)) {
-                  ((struct _h_pgsql *)conn->connection)->list_type[((struct _h_pgsql *)conn->connection)->nb_type].h_type = HOEL_COL_TYPE_INT;
-                } else if (o_strcmp(cur_type_name, "numeric") == 0 || o_strncmp(cur_type_name, "float", 5) == 0) {
-                  ((struct _h_pgsql *)conn->connection)->list_type[((struct _h_pgsql *)conn->connection)->nb_type].h_type = HOEL_COL_TYPE_DOUBLE;
-                } else if (o_strcmp(cur_type_name, "date") == 0 || o_strncmp(cur_type_name, "time", 4) == 0) {
-                  ((struct _h_pgsql *)conn->connection)->list_type[((struct _h_pgsql *)conn->connection)->nb_type].h_type = HOEL_COL_TYPE_DATE;
-                } else if (o_strcmp(cur_type_name, "bytea") == 0) {
-                  ((struct _h_pgsql *)conn->connection)->list_type[((struct _h_pgsql *)conn->connection)->nb_type].h_type = HOEL_COL_TYPE_BLOB;
-                } else if (o_strcmp(cur_type_name, "bool") == 0) {
-                  ((struct _h_pgsql *)conn->connection)->list_type[((struct _h_pgsql *)conn->connection)->nb_type].h_type = HOEL_COL_TYPE_BOOL;
-                } else {
-                  ((struct _h_pgsql *)conn->connection)->list_type[((struct _h_pgsql *)conn->connection)->nb_type].h_type = HOEL_COL_TYPE_TEXT;
-                }
-                ((struct _h_pgsql *)conn->connection)->nb_type++;
-              } else {
-                y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating resources for list_type");
-              }
+      res = PQexec(((struct _h_pgsql *)conn->connection)->db_handle, "select oid, typname from pg_type");
+      if (PQresultStatus(res) != PGRES_TUPLES_OK && PQresultStatus(res) != PGRES_COMMAND_OK && PQnfields(res) == 2) {
+        y_log_message(Y_LOG_LEVEL_ERROR, "Error executing sql query");
+        y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", PQerrorMessage(((struct _h_pgsql *)conn->connection)->db_handle));
+        y_log_message(Y_LOG_LEVEL_DEBUG, "Query: \"select oid, typname from pg_type\"");
+        PQfinish(((struct _h_pgsql *)conn->connection)->db_handle);
+        free(conn->connection);
+        free(conn);
+        conn = NULL;
+      } else {
+        ntuples = PQntuples(res);
+        ((struct _h_pgsql *)conn->connection)->list_type = o_malloc((ntuples+1)*sizeof(struct _h_pg_type));
+        if (((struct _h_pgsql *)conn->connection)->list_type != NULL) {
+          ((struct _h_pgsql *)conn->connection)->nb_type = ntuples;
+          for(i = 0; i < ntuples; i++) {
+            char * cur_type_name = PQgetvalue(res, i, 1);
+            ((struct _h_pgsql *)conn->connection)->list_type[i].pg_type = strtol(PQgetvalue(res, i, 0), NULL, 10);
+            if (o_strcmp(cur_type_name, "bool") == 0) {
+              ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_BOOL;
+            } else if (o_strncmp(cur_type_name, "int", 3) == 0 || (o_strncmp(cur_type_name+1, "id", 2) == 0 && o_strlen(cur_type_name) == 3)) {
+              ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_INT;
+            } else if (o_strcmp(cur_type_name, "numeric") == 0 || o_strncmp(cur_type_name, "float", 5) == 0) {
+              ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_DOUBLE;
+            } else if (o_strcmp(cur_type_name, "date") == 0 || o_strncmp(cur_type_name, "time", 4) == 0) {
+              ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_DATE;
+            } else if (o_strcmp(cur_type_name, "bytea") == 0) {
+              ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_BLOB;
+            } else if (o_strcmp(cur_type_name, "bool") == 0) {
+              ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_BOOL;
             } else {
-              y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error converting pg_type.oid to integer");
+              ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_TEXT;
             }
           }
         } else {
-          y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error pg_type result");
+          y_log_message(Y_LOG_LEVEL_ERROR, "Error allocating resources for list_type");
           PQfinish(((struct _h_pgsql *)conn->connection)->db_handle);
           free(conn->connection);
           free(conn);
           conn = NULL;
         }
-        h_clean_result(&result_types);
-      } else {
-        y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error getting pg_type");
-        PQfinish(((struct _h_pgsql *)conn->connection)->db_handle);
-        free(conn->connection);
-        free(conn);
-        conn = NULL;
+        PQclear(res);
       }
     }
   }
@@ -150,7 +141,12 @@ void h_close_pgsql(struct _h_connection * conn) {
  * returned value must be free'd after use
  */
 char * h_escape_string_pgsql(const struct _h_connection * conn, const char * unsafe) {
-  return PQescapeLiteral(((struct _h_pgsql *)conn->connection)->db_handle, unsafe, strlen(unsafe));
+  char * escaped = PQescapeLiteral(((struct _h_pgsql *)conn->connection)->db_handle, unsafe, strlen(unsafe)), * to_return = NULL;
+  if (escaped != NULL) {
+    to_return = o_strndup((escaped+1), o_strlen((escaped+1))-1);
+    PQfreemem(escaped);
+  }
+  return to_return;
 }
 
 /**
@@ -176,7 +172,7 @@ static unsigned short h_get_type_from_oid(const struct _h_connection * conn, Oid
  * return H_OK on success
  */
 int h_execute_query_pgsql(const struct _h_connection * conn, const char * query, struct _h_result * result) {
-  PGresult *res;
+  PGresult * res;
   int nfields, ntuples, i, j, h_res;
   struct _h_data * data, * cur_row = NULL;
   
@@ -203,18 +199,18 @@ int h_execute_query_pgsql(const struct _h_connection * conn, const char * query,
         } else {
           switch (h_get_type_from_oid(conn, PQftype(res, j))) {
             case HOEL_COL_TYPE_INT:
-              data = h_new_data_int(strtol(PQgetvalue(res, i, j), NULL, 10));
+              data = h_new_data_int(strtol(val, NULL, 10));
               break;
             case HOEL_COL_TYPE_DOUBLE:
-              data = h_new_data_double(strtod(PQgetvalue(res, i, j), NULL));
+              data = h_new_data_double(strtod(val, NULL));
               break;
             case HOEL_COL_TYPE_BLOB:
-              data = h_new_data_blob(PQgetvalue(res, i, j), PQfsize(res, i));
+              data = h_new_data_blob(val, PQfsize(res, i));
               break;
             case HOEL_COL_TYPE_BOOL:
-              if (o_strcasecmp(PQgetvalue(res, i, j), "t") == 0) {
+              if (o_strcasecmp(val, "t") == 0) {
                 data = h_new_data_int(1);
-              } else if (o_strcasecmp(PQgetvalue(res, i, j), "f") == 0) {
+              } else if (o_strcasecmp(val, "f") == 0) {
                 data = h_new_data_int(0);
               } else {
                 data = h_new_data_null();
@@ -223,7 +219,7 @@ int h_execute_query_pgsql(const struct _h_connection * conn, const char * query,
             case HOEL_COL_TYPE_DATE:
             case HOEL_COL_TYPE_TEXT:
             default:
-              data = h_new_data_text(PQgetvalue(res, i, j), PQfsize(res, i));
+              data = h_new_data_text(val, PQfsize(res, i));
               break;
           }
         }
