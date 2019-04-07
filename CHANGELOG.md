@@ -1,13 +1,10 @@
 # Hoel Changelog
 
-## 1.4.10
-
-- Fix PostgreSQL connect function
-- Remove backquotes because Postgre seems not to like them
-
 ## 1.4.9
 
 - Fix h_connect_pgsql to accept const char * parameter instead of char *
+- Fix PostgreSQL connect function
+- Remove backquotes because Postgre seems not to like them
 - minor bugfixes
 
 ## 1.4.8
