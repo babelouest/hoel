@@ -29,8 +29,8 @@ set(PROJECT_BUGREPORT_PATH "https://github.com/babelouest/hoel/issues")
 set(LIBRARY_VERSION_MAJOR "1")
 set(LIBRARY_VERSION_MINOR "4")
 set(LIBRARY_VERSION_PATCH "9")
-set(ORCANIA_VERSION_DOWNLOAD "1.2.9")
-set(YDER_VERSION_DOWNLOAD "1.4.4")
+set(ORCANIA_VERSION_REQUIRED "2.0.0")
+set(YDER_VERSION_REQUIRED "1.4.5")
 
 set(PROJECT_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}.${LIBRARY_VERSION_PATCH}")
 set(LIBRARY_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}.${LIBRARY_VERSION_PATCH}")
@@ -192,11 +192,11 @@ option(SEARCH_ORCANIA_H "Search for Orcania library" ON)
 if (SEARCH_ORCANIA_H)
     set(Orcania_FIND_QUIETLY ON) # force to find Orcania quietly
     include(FindOrcania)
-    find_package(Orcania 1.1 QUIET) # try to find orcania
+    find_package(Orcania ${ORCANIA_VERSION_REQUIRED} QUIET) # try to find orcania
     if (NOT ORCANIA_FOUND)
         include(DownloadProject)
         download_project(PROJ orcania # ... otherwise, download archive
-            URL "https://github.com/babelouest/orcania/archive/v${ORCANIA_VERSION_DOWNLOAD}.tar.gz"
+            URL "https://github.com/babelouest/orcania/archive/v${ORCANIA_VERSION_REQUIRED}.tar.gz"
             QUIET)
         add_subdirectory(${orcania_SOURCE_DIR} ${orcania_BINARY_DIR})
         include_directories(${orcania_SOURCE_DIR}/include)
@@ -221,7 +221,7 @@ if (SEARCH_YDER)
     if (NOT YDER_FOUND)
         include(DownloadProject)
         download_project(PROJ yder # ... otherwise, download archive
-                          URL "https://github.com/babelouest/yder/archive/v${YDER_VERSION_DOWNLOAD}.tar.gz"
+                          URL "https://github.com/babelouest/yder/archive/v${YDER_VERSION_REQUIRED}.tar.gz"
                           QUIET)
         add_subdirectory(${yder_SOURCE_DIR} ${yder_BINARY_DIR})
         include_directories(${yder_SOURCE_DIR}/include)
@@ -352,7 +352,7 @@ endif ()
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "mail@babelouest.org")
 set(CPACK_DEBIAN_PACKAGE_DESCRIPTION ${PROJECT_DESCRIPTION})
 set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/babelouest/hoel")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.14), libjansson4 (>= 2.4), liborcania (>= 1.2), libyder (>= 1.3), zlib1g (>= 1:1.1.4)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.14), libjansson4 (>= 2.4), liborcania (>= ${ORCANIA_VERSION_REQUIRED}), libyder (>= ${YDER_VERSION_REQUIRED}), zlib1g (>= 1:1.1.4)")
 
 if (WITH_SQLITE3)
   set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libsqlite3-0 (>= 3.5.9)")
@@ -381,6 +381,6 @@ message(STATUS "SQLITE3 library support: ${WITH_SQLITE3}")
 message(STATUS "MariaDB library support: ${WITH_MARIADB}")
 message(STATUS "PostgreSQL library support: ${WITH_PGSQL}")
 message(STATUS "Build static library: ${BUILD_STATIC}")
-message(STATUS "Build testing tree: ${BUILD_ULFIUS_TESTING}")
+message(STATUS "Build testing tree: ${BUILD_HOEL_TESTING}")
 message(STATUS "Install the header files: ${INSTALL_HEADER}")
 message(STATUS "Build RPM package: ${BUILD_RPM}")

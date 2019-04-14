@@ -3,9 +3,9 @@
 ## 1.4.9
 
 - Fix h_connect_pgsql to accept const char * parameter instead of char *
-- Fix PostgreSQL connect function
 - Remove backquotes because Postgre seems not to like them
 - minor bugfixes
+- Install pkgconfig file when using Makefile
 
 ## 1.4.8
 
