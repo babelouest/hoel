@@ -359,7 +359,7 @@ if (WITH_SQLITE3)
 endif ()
 
 if (WITH_MARIADB)
-  set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libmariadbclient18 (>= 5.5.36)")
+  set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, default-mysql-client (>= 1.0.0)")
 endif ()
 
 if (WITH_PGSQL)
