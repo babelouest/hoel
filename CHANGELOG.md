@@ -1,5 +1,9 @@
 # Hoel Changelog
 
+## 1.4.9-1
+
+- Fix mysql package name dependency when build deb package
+
 ## 1.4.9
 
 - Fix h_connect_pgsql to accept const char * parameter instead of char *
