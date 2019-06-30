@@ -356,7 +356,7 @@ set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/babelouest/hoel")
 if (INSTALL_HEADER)
   set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.14), libjansson-dev (>= 2.4), liborcania (>= ${ORCANIA_VERSION_REQUIRED}), libyder (>= ${YDER_VERSION_REQUIRED}), zlib1g (>= 1:1.1.4)")
   if (WITH_SQLITE3)
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libsqlite-dev (>= 3.5.9)")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libsqlite3-dev (>= 3.5.9)")
   endif ()
 
   if (WITH_MARIADB)
