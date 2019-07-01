@@ -1,10 +1,6 @@
 # Hoel Changelog
 
-## 1.4.9-2
-
-- Another cmake build package fix
-
-## 1.4.9-1
+## 1.4.10
 
 - Fix mysql package name dependency when build deb package
 
