@@ -94,6 +94,35 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe) {
 }
 
 /**
+ * h_escape_string_with_quotes
+ * Escapes a string and returns it ready to be inserted in the query
+ * returned value must be h_h_free'd after use
+ */
+char * h_escape_string_with_quotes(const struct _h_connection * conn, const char * unsafe) {
+  if (conn != NULL && conn->connection != NULL && unsafe != NULL) {
+    if (0) {
+      /* Not happening */
+#ifdef _HOEL_SQLITE
+    } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
+      return h_escape_string_with_quotes_sqlite(conn, unsafe);
+#endif
+#ifdef _HOEL_MARIADB
+    } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
+      return h_escape_string_with_quotes_mariadb(conn, unsafe);
+#endif
+#ifdef _HOEL_PGSQL
+    } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
+      return h_escape_string_with_quotes_pgsql(conn, unsafe);
+#endif
+    } else {
+      return NULL;
+    }
+  } else {
+    return NULL;
+  }
+}
+
+/**
  * h_execute_query
  * Execute a query, set the result structure with the returned values if available
  * if result is NULL, the query is executed but no value will be returned

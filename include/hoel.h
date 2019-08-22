@@ -145,9 +145,16 @@ void h_free(void * data);
 /**
  * h_escape_string
  * Escapes a string
- * returned value must be free'd after use
+ * returned value must be h_free'd after use
  */
 char * h_escape_string(const struct _h_connection * conn, const char * unsafe);
+
+/**
+ * h_escape_string_with_quotes
+ * Escapes a string and returns it ready to be inserted in the query
+ * returned value must be h_h_free'd after use
+ */
+char * h_escape_string_with_quotes(const struct _h_connection * conn, const char * unsafe);
 
 /**
  * h_execute_query
@@ -215,7 +222,7 @@ int h_query_select_json(const struct _h_connection * conn, const char * query, j
  * The following functions run a sql query based on a json_t * object for input parameters
  * The input parameter is called j_query
  * If the j_query is well-formed, the query is executed and if available and specified, the result is stored into the j_result object. j_result must be decref'd after use
- * Also, the sql query generated is stored into generated_query if specified, generated_query must be free'd after use
+ * Also, the sql query generated is stored into generated_query if specified, generated_query must be h_free'd after use
  * The query execution result is returned by the function
  * 
  * A j_query has the following form
@@ -261,7 +268,7 @@ int h_query_select_json(const struct _h_connection * conn, const char * query, j
  * Execute a select query
  * Uses a json_t * parameter for the query parameters
  * Store the result of the query in j_result if specified. j_result must be decref'd after use
- * Duplicate the generated query in generated_query if specified, must be free'd after use
+ * Duplicate the generated query in generated_query if specified, must be h_free'd after use
  * return H_OK on success
  */
 int h_select(const struct _h_connection * conn, const json_t * j_query, json_t ** j_result, char ** generated_query);
@@ -270,7 +277,7 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
  * h_insert
  * Execute an insert query
  * Uses a json_t * parameter for the query parameters
- * Duplicate the generated query in generated_query if specified, must be free'd after use
+ * Duplicate the generated query in generated_query if specified, must be h_free'd after use
  * return H_OK on success
  */
 int h_insert(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
@@ -287,7 +294,7 @@ json_t * h_last_insert_id(const struct _h_connection * conn);
  * h_update
  * Execute an update query
  * Uses a json_t * parameter for the query parameters
- * Duplicate the generated query in generated_query if specified, must be free'd after use
+ * Duplicate the generated query in generated_query if specified, must be h_free'd after use
  * return H_OK on success
  */
 int h_update(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
@@ -296,7 +303,7 @@ int h_update(const struct _h_connection * conn, const json_t * j_query, char ** 
  * h_delete
  * Execute a delete query
  * Uses a json_t * parameter for the query parameters
- * Duplicate the generated query in generated_query if specified, must be free'd after use
+ * Duplicate the generated query in generated_query if specified, must be h_free'd after use
  * return H_OK on success
  */
 int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
@@ -344,9 +351,15 @@ void h_close_sqlite(struct _h_connection * conn);
 
 /**
  * escape a string
- * returned value must be free'd after use
+ * returned value must be h_free'd after use
  */
 char * h_escape_string_sqlite(const struct _h_connection * conn, const char * unsafe);
+
+/**
+ * escape a string
+ * returned value must be h_free'd after use
+ */
+char * h_escape_string_with_quotes_sqlite(const struct _h_connection * conn, const char * unsafe);
 
 /**
  * Return the id of the last inserted value
@@ -396,9 +409,15 @@ void h_close_mariadb(struct _h_connection * conn);
 
 /**
  * escape a string
- * returned value must be free'd after use
+ * returned value must be h_free'd after use
  */
 char * h_escape_string_mariadb(const struct _h_connection * conn, const char * unsafe);
+
+/**
+ * escape a string
+ * returned value must be h_free'd after use
+ */
+char * h_escape_string_with_quotes_mariadb(const struct _h_connection * conn, const char * unsafe);
 
 /**
  * Return the id of the last inserted value
@@ -425,7 +444,7 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
 /**
  * h_get_mariadb_value
  * convert value into a struct _h_data * depening on the m_type given
- * returned value must be free'd with h_clean_data_full after use
+ * returned value must be h_free'd with h_clean_data_full after use
  */
 struct _h_data * h_get_mariadb_value(const char * value, const unsigned long length, const int m_type);
 
@@ -463,9 +482,15 @@ void h_close_pgsql(struct _h_connection * conn);
 
 /**
  * escape a string
- * returned value must be free'd after use
+ * returned value must be h_h_free'd after use
  */
 char * h_escape_string_pgsql(const struct _h_connection * conn, const char * unsafe);
+
+/**
+ * escape a string
+ * returned value must be h_h_free'd after use
+ */
+char * h_escape_string_with_quotes_pgsql(const struct _h_connection * conn, const char * unsafe);
 
 /**
  * Return the id of the last inserted value

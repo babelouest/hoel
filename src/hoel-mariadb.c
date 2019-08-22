@@ -125,6 +125,21 @@ char * h_escape_string_mariadb(const struct _h_connection * conn, const char * u
 }
 
 /**
+ * Escapes a string and returns it ready to be inserted in the query
+ * returned value must be free'd after use
+ */
+char * h_escape_string_with_quotes_mariadb(const struct _h_connection * conn, const char * unsafe) {
+  char * escaped = h_escape_string_mariadb(conn, unsafe), * escaped_returned = NULL;
+  if (escaped == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for escaped");
+    return NULL;
+  }
+  escaped_returned = msprintf("'%s'", escaped);
+  o_free(escaped);
+  return escaped_returned;
+}
+
+/**
  * Return the id of the last inserted value
  */
 int h_last_insert_id_mariadb(const struct _h_connection * conn) {

@@ -36,13 +36,13 @@ static char * h_get_insert_values_from_json_object(const struct _h_connection * 
   json_object_foreach((json_t *)data, key, value) {
     switch (json_typeof(value)) {
       case JSON_STRING:
-        escape = h_escape_string(conn, json_string_value(value));
+        escape = h_escape_string_with_quotes(conn, json_string_value(value));
         if (escape == NULL) {
           y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_values_from_json_object - Error escape");
           o_free(new_data);
           new_data = NULL;
         } else {
-          new_data = msprintf("'%s'", escape);
+          new_data = msprintf("%s", escape);
           o_free(escape);
         }
         break;
@@ -255,14 +255,14 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
                     return NULL;
                   } else {
                     if (json_is_string(j_element)) {
-                      escape = h_escape_string(conn, json_string_value(j_element));
+                      escape = h_escape_string_with_quotes(conn, json_string_value(j_element));
                       if (escape == NULL) {
                         y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error escape");
                         o_free(clause);
                         o_free(where_clause);
                         return NULL;
                       }
-                      dump = msprintf("'%s'", escape);
+                      dump = msprintf("%s", escape);
                       o_free(escape);
                     } else if (json_is_real(j_element)) {
                       dump = msprintf("%f", json_real_value(j_element));
@@ -293,13 +293,13 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
               } else if (json_is_integer(val)) {
                 clause = msprintf("%s %s %" JSON_INTEGER_FORMAT, key, json_string_value(ope), json_integer_value(val));
               } else {
-                escape = h_escape_string(conn, json_string_value(val));
+                escape = h_escape_string_with_quotes(conn, json_string_value(val));
                 if (escape == NULL) {
                   y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error escape");
                   o_free(where_clause);
                   return NULL;
                 }
-                clause = msprintf("%s %s '%s'", key, json_string_value(ope), escape);
+                clause = msprintf("%s %s %s", key, json_string_value(ope), escape);
                 o_free(escape);
               }
             }
@@ -313,13 +313,13 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
           if (json_is_null(value)) {
             clause = msprintf("%s IS NULL", key);
           } else if (json_is_string(value)) {
-            escape = h_escape_string(conn, json_string_value(value));
+            escape = h_escape_string_with_quotes(conn, json_string_value(value));
             if (escape == NULL) {
               y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error escape");
               o_free(where_clause);
               return NULL;
             }
-            clause = msprintf("%s='%s'", key, escape);
+            clause = msprintf("%s=%s", key, escape);
             o_free(escape);
           } else if (json_is_integer(value)) {
             clause = msprintf("%s='%"JSON_INTEGER_FORMAT"'", key, json_integer_value(value));
@@ -395,8 +395,8 @@ static char * h_get_set_clause_from_json_object(const struct _h_connection * con
         return NULL;
       } else {
         if (json_is_string(value)) {
-          tmp = h_escape_string(conn, json_string_value(value));
-          escape = msprintf("'%s'", tmp);
+          tmp = h_escape_string_with_quotes(conn, json_string_value(value));
+          escape = msprintf("%s", tmp);
           o_free(tmp);
         } else if (json_is_real(value)) {
           escape = msprintf("%f", json_real_value(value));

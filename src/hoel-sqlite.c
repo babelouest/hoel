@@ -100,6 +100,23 @@ char * h_escape_string_sqlite(const struct _h_connection * conn, const char * un
 }
 
 /**
+ * Escapes a string and returns it ready to be inserted in the query
+ * returned value must be free'd after use
+ */
+char * h_escape_string_with_quotes_sqlite(const struct _h_connection * conn, const char * unsafe) {
+  char * tmp = h_escape_string_sqlite(conn, unsafe), * ret;
+  if (tmp == NULL) {
+    return NULL;
+  }
+  ret = msprintf("'%s'", tmp);
+  o_free(tmp);
+  if (ret == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Error escaping with quotes (o_strdup)");
+  }
+  return ret;
+}
+
+/**
  * Return the id of the last inserted value
  */
 int h_last_insert_id_sqlite(const struct _h_connection * conn) {

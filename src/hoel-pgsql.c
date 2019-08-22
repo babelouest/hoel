@@ -150,6 +150,19 @@ char * h_escape_string_pgsql(const struct _h_connection * conn, const char * uns
 }
 
 /**
+ * Escapes a string and returns it ready to be inserted in the query
+ * returned value must be free'd after use
+ */
+char * h_escape_string_with_quotes_pgsql(const struct _h_connection * conn, const char * unsafe) {
+  char * escaped = PQescapeLiteral(((struct _h_pgsql *)conn->connection)->db_handle, unsafe, strlen(unsafe)), * to_return = NULL;
+  if (escaped != NULL) {
+    to_return = o_strdup(escaped);
+    PQfreemem(escaped);
+  }
+  return to_return;
+}
+
+/**
  * Return the hoel type of a column given its Oid
  * If type is not found, return HOEL_COL_TYPE_TEXT
  */
