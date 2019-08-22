@@ -114,6 +114,38 @@ START_TEST(test_hoel_escape_string)
 }
 END_TEST
 
+START_TEST(test_hoel_escape_string_with_quotes)
+{
+  struct _h_connection * conn;
+  char * escaped;
+  json_t * j_query, * j_result;
+  int res;
+  
+  conn = h_connect_sqlite(db_path);
+  ck_assert_ptr_ne(conn, NULL);
+  escaped = h_escape_string_with_quotes(conn, "value");
+  ck_assert_str_eq(escaped, "'value'");
+  h_free(escaped);
+  escaped = h_escape_string_with_quotes(conn, "unsafe ' value\"!");
+  ck_assert_str_eq(escaped, "'unsafe '' value\"!'");
+  h_free(escaped);
+  
+  j_query = json_pack("{sss{siss}}", "table", "test_table", "values", "integer_col", 666, "string_col", UNSAFE_STRING);
+  res = h_insert(conn, j_query, NULL);
+  json_decref(j_query);
+  ck_assert_int_eq(res, H_OK);
+  j_query = json_pack("{sss[s]s{si}}", "table", "test_table", "columns", "string_col", "where", "integer_col", 666);
+  res = h_select(conn, j_query, &j_result, NULL);
+  json_decref(j_query);
+  ck_assert_int_eq(res, H_OK);
+  ck_assert_str_eq(UNSAFE_STRING, json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")));
+  json_decref(j_result);
+  
+  ck_assert_int_eq(h_close_db(conn), H_OK);
+  ck_assert_int_eq(h_clean_connection(conn), H_OK);
+}
+END_TEST
+
 START_TEST(test_hoel_insert)
 {
   struct _h_connection * conn;
@@ -590,6 +622,7 @@ static Suite *hoel_suite(void)
 	tc_core = tcase_create("test_hoel_core");
 	tcase_add_test(tc_core, test_hoel_init);
 	tcase_add_test(tc_core, test_hoel_escape_string);
+	tcase_add_test(tc_core, test_hoel_escape_string_with_quotes);
 	tcase_add_test(tc_core, test_hoel_insert);
 	tcase_add_test(tc_core, test_hoel_update);
 	tcase_add_test(tc_core, test_hoel_delete);
