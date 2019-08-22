@@ -9,3 +9,4 @@ example_multi_mariadb
 core
 valgrind.txt
 hoel-cfg.h
+libhoel.pc
