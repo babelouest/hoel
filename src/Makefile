@@ -58,7 +58,7 @@ CFLAGS+=-c -fPIC -Wall -I$(HOEL_INCLUDE) $(FLAGS_MARIADB) $(FLAGS_PGSQL) -D_REEN
 LIBS=-L$(DESTDIR)/lib -lc -ljansson -lyder -lorcania $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MARIADB)
 OBJECTS=hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
 OUTPUT=libhoel.so
-VERSION=1.4.10
+VERSION=1.4.11
 
 all: release
 
