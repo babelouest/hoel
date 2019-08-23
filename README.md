@@ -250,6 +250,18 @@ int h_clean_connection(struct _h_connection * conn);
 
 If you need to escape parameters, you can use the functions `h_escape_string`, the returned value must be h_free'd after use.
 
+The meaning of existence of the function `h_escape_string_with_quotes` is because of PostgreSQL ways to escape an unsafe string.
+
+TL;DR:
+- Use `h_escape_string_with_quotes` only if you use a PostgreSQL database.
+- You can use both `h_escape_string_with_quotes` and `h_escape_string` if you use only SQlite3 and/or MariaDB/MySQL databases.
+
+If the unsafe string contains backslashes `"\"`, the escaped string will have the pattern `E'<safe>'`, otherwise it will have the pattern `'<safe>'`. Since the function `h_escape_string` must return the safe string only, withotu surroundings quotes `'`, the format `E'<safe>'`  is incompatible with Hoel API.
+
+Therefore, using `h_escape_string` with PostgreSQL could lead to undefined behaviour and more importantly exploitable bugs.
+
+To avoid this, on a PostgreSQL database, an escaped string using `h_escape_string` that should return the format `E'<safe>'` will return `NULL`, and an escaped string using `h_escape_string_with_quotes` will return the format `E'<safe>'`.
+
 ```c
 /**
  * h_escape_string
