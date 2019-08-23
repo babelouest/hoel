@@ -143,7 +143,9 @@ void h_close_pgsql(struct _h_connection * conn) {
 char * h_escape_string_pgsql(const struct _h_connection * conn, const char * unsafe) {
   char * escaped = PQescapeLiteral(((struct _h_pgsql *)conn->connection)->db_handle, unsafe, strlen(unsafe)), * to_return = NULL;
   if (escaped != NULL) {
-    to_return = o_strndup((escaped+1), o_strlen((escaped+1))-1);
+    if (escaped[0] == '\'' && escaped[o_strlen(escaped)-1] == '\'') {
+      to_return = o_strndup((escaped+1), o_strlen((escaped+1))-1);
+    }
     PQfreemem(escaped);
   }
   return to_return;
