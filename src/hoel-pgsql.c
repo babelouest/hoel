@@ -41,6 +41,7 @@ struct _h_pgsql {
   PGconn            * db_handle;
   unsigned int        nb_type;
   struct _h_pg_type * list_type;
+  pthread_mutex_t lock;
 };
 
 /**
@@ -52,6 +53,7 @@ struct _h_connection * h_connect_pgsql(const char * conninfo) {
   struct _h_connection * conn = NULL;
   int ntuples, i;
   PGresult *res;
+  pthread_mutexattr_t mutexattr;
   
   if (conninfo != NULL) {
     conn = malloc(sizeof(struct _h_connection));
@@ -112,6 +114,13 @@ struct _h_connection * h_connect_pgsql(const char * conninfo) {
               ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_TEXT;
             }
           }
+          /* Initialize MUTEX for connection */
+          pthread_mutexattr_init ( &mutexattr );
+          pthread_mutexattr_settype( &mutexattr, PTHREAD_MUTEX_RECURSIVE );
+          if (pthread_mutex_init(&(((struct _h_pgsql *)conn->connection)->lock), &mutexattr) != 0) {
+            y_log_message(Y_LOG_LEVEL_ERROR, "Impossible to initialize Mutex Lock for MariaDB connection");
+          }
+          pthread_mutexattr_destroy( &mutexattr );
         } else {
           y_log_message(Y_LOG_LEVEL_ERROR, "Error allocating resources for list_type");
           PQfinish(((struct _h_pgsql *)conn->connection)->db_handle);
@@ -134,6 +143,7 @@ void h_close_pgsql(struct _h_connection * conn) {
   o_free(((struct _h_pgsql *)conn->connection)->list_type);
   ((struct _h_pgsql *)conn->connection)->list_type = NULL;
   ((struct _h_pgsql *)conn->connection)->nb_type = 0;
+  pthread_mutex_destroy(&((struct _h_pgsql *)conn->connection)->lock);
 }
 
 /**
@@ -176,6 +186,7 @@ static unsigned short h_get_type_from_oid(const struct _h_connection * conn, Oid
       return ((struct _h_pgsql *)conn->connection)->list_type[i].h_type;
     }
   }
+  pthread_mutex_unlock(&(((struct _h_pgsql *)conn->connection)->lock));
   return HOEL_COL_TYPE_TEXT;
 }
 
@@ -188,72 +199,78 @@ static unsigned short h_get_type_from_oid(const struct _h_connection * conn, Oid
  */
 int h_execute_query_pgsql(const struct _h_connection * conn, const char * query, struct _h_result * result) {
   PGresult * res;
-  int nfields, ntuples, i, j, h_res;
+  int nfields, ntuples, i, j, h_res, ret = H_OK;
   struct _h_data * data, * cur_row = NULL;
   
-  res = PQexec(((struct _h_pgsql *)conn->connection)->db_handle, query);
-  if (PQresultStatus(res) != PGRES_TUPLES_OK && PQresultStatus(res) != PGRES_COMMAND_OK) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "Error executing sql query");
-    y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", PQerrorMessage(((struct _h_pgsql *)conn->connection)->db_handle));
-    y_log_message(Y_LOG_LEVEL_DEBUG, "Query: \"%s\"", query);
-    return H_ERROR_QUERY;
-  }
-  nfields = PQnfields(res);
-  ntuples = PQntuples(res);
+  if (pthread_mutex_lock(&(((struct _h_pgsql *)conn->connection)->lock))) {
+    ret = H_ERROR_QUERY;
+  } else {
+    res = PQexec(((struct _h_pgsql *)conn->connection)->db_handle, query);
+    if (PQresultStatus(res) != PGRES_TUPLES_OK && PQresultStatus(res) != PGRES_COMMAND_OK) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "Error executing sql query");
+      y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", PQerrorMessage(((struct _h_pgsql *)conn->connection)->db_handle));
+      y_log_message(Y_LOG_LEVEL_DEBUG, "Query: \"%s\"", query);
+      ret = H_ERROR_QUERY;
+    } else {
+      nfields = PQnfields(res);
+      ntuples = PQntuples(res);
 
-  if (result != NULL) {
-    result->nb_rows = 0;
-    result->nb_columns = nfields;
-    result->data = NULL;
-    for(i = 0; i < ntuples; i++) {
-      cur_row = NULL;
-      for(j = 0; j < nfields; j++) {
-        char * val = PQgetvalue(res, i, j);
-        if (val == NULL) {
-          data = h_new_data_null();
-        } else {
-          switch (h_get_type_from_oid(conn, PQftype(res, j))) {
-            case HOEL_COL_TYPE_INT:
-              data = h_new_data_int(strtol(val, NULL, 10));
-              break;
-            case HOEL_COL_TYPE_DOUBLE:
-              data = h_new_data_double(strtod(val, NULL));
-              break;
-            case HOEL_COL_TYPE_BLOB:
-              data = h_new_data_blob(val, PQfsize(res, i));
-              break;
-            case HOEL_COL_TYPE_BOOL:
-              if (o_strcasecmp(val, "t") == 0) {
-                data = h_new_data_int(1);
-              } else if (o_strcasecmp(val, "f") == 0) {
-                data = h_new_data_int(0);
-              } else {
-                data = h_new_data_null();
+      if (result != NULL) {
+        result->nb_rows = 0;
+        result->nb_columns = nfields;
+        result->data = NULL;
+        for(i = 0; ret == H_OK && i < ntuples; i++) {
+          cur_row = NULL;
+          for(j = 0; ret == H_OK && j < nfields; j++) {
+            char * val = PQgetvalue(res, i, j);
+            if (val == NULL) {
+              data = h_new_data_null();
+            } else {
+              switch (h_get_type_from_oid(conn, PQftype(res, j))) {
+                case HOEL_COL_TYPE_INT:
+                  data = h_new_data_int(strtol(val, NULL, 10));
+                  break;
+                case HOEL_COL_TYPE_DOUBLE:
+                  data = h_new_data_double(strtod(val, NULL));
+                  break;
+                case HOEL_COL_TYPE_BLOB:
+                  data = h_new_data_blob(val, PQfsize(res, i));
+                  break;
+                case HOEL_COL_TYPE_BOOL:
+                  if (o_strcasecmp(val, "t") == 0) {
+                    data = h_new_data_int(1);
+                  } else if (o_strcasecmp(val, "f") == 0) {
+                    data = h_new_data_int(0);
+                  } else {
+                    data = h_new_data_null();
+                  }
+                  break;
+                case HOEL_COL_TYPE_DATE:
+                case HOEL_COL_TYPE_TEXT:
+                default:
+                  data = h_new_data_text(val, PQfsize(res, i));
+                  break;
               }
-              break;
-            case HOEL_COL_TYPE_DATE:
-            case HOEL_COL_TYPE_TEXT:
-            default:
-              data = h_new_data_text(val, PQfsize(res, i));
-              break;
+            }
+            h_res = h_row_add_data(&cur_row, data, j);
+            h_clean_data_full(data);
+            if (h_res != H_OK) {
+              PQclear(res);
+              ret = h_res;
+            }
+          }
+          h_res = h_result_add_row(result, cur_row, i);
+          if (h_res != H_OK) {
+            PQclear(res);
+            ret = h_res;
           }
         }
-        h_res = h_row_add_data(&cur_row, data, j);
-        h_clean_data_full(data);
-        if (h_res != H_OK) {
-          PQclear(res);
-          return h_res;
-        }
       }
-      h_res = h_result_add_row(result, cur_row, i);
-      if (h_res != H_OK) {
-        PQclear(res);
-        return h_res;
-      }
+      PQclear(res);
     }
+    pthread_mutex_unlock(&(((struct _h_pgsql *)conn->connection)->lock));
   }
-  PQclear(res);
-  return H_OK;
+  return ret;
 }
 
 /**
@@ -264,73 +281,81 @@ int h_execute_query_pgsql(const struct _h_connection * conn, const char * query,
  */
 int h_execute_query_json_pgsql(const struct _h_connection * conn, const char * query, json_t ** j_result) {
   PGresult *res;
-  int nfields, ntuples, i, j;
+  int nfields, ntuples, i, j, ret = H_OK;
   json_t * j_data;
   
-  if (j_result == NULL) {
-    return H_ERROR_PARAMS;
-  }
-  
-  *j_result = json_array();
-  if (*j_result == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for *j_result");
-    return H_ERROR_MEMORY;
-  }
-  
-  res = PQexec(((struct _h_pgsql *)conn->connection)->db_handle, query);
-  if (PQresultStatus(res) != PGRES_TUPLES_OK && PQresultStatus(res) != PGRES_COMMAND_OK) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "Error executing sql query");
-    y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", PQerrorMessage(((struct _h_pgsql *)conn->connection)->db_handle));
-    y_log_message(Y_LOG_LEVEL_DEBUG, "Query: \"%s\"", query);
-    return H_ERROR_QUERY;
-  }
-  nfields = PQnfields(res);
-  ntuples = PQntuples(res);
-
-  for(i = 0; i < ntuples; i++) {
-    j_data = json_object();
-    if (j_data == NULL) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for j_data");
-      PQclear(res);
-      return H_ERROR_MEMORY;
-    }
-    for(j = 0; j < nfields; j++) {
-      char * val = PQgetvalue(res, i, j);
-      if (val == NULL || strlen(val) == 0) {
-        json_object_set_new(j_data, PQfname(res, j), json_null());
+  if (pthread_mutex_lock(&(((struct _h_pgsql *)conn->connection)->lock))) {
+    ret = H_ERROR_QUERY;
+  } else {
+    if (j_result == NULL) {
+      ret = H_ERROR_PARAMS;
+    } else {
+      *j_result = json_array();
+      if (*j_result == NULL) {
+        y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for *j_result");
+        ret = H_ERROR_MEMORY;
       } else {
-        switch (h_get_type_from_oid(conn, PQftype(res, j))) {
-          case HOEL_COL_TYPE_INT:
-            json_object_set_new(j_data, PQfname(res, j), json_integer(strtol(PQgetvalue(res, i, j), NULL, 10)));
-            break;
-          case HOEL_COL_TYPE_DOUBLE:
-            json_object_set_new(j_data, PQfname(res, j), json_real(strtod(PQgetvalue(res, i, j), NULL)));
-            break;
-          case HOEL_COL_TYPE_BLOB:
-            json_object_set_new(j_data, PQfname(res, j), json_stringn(PQgetvalue(res, i, j), PQfsize(res, i)));
-            break;
-          case HOEL_COL_TYPE_BOOL:
-            if (o_strcasecmp(PQgetvalue(res, i, j), "t") == 0) {
-              json_object_set_new(j_data, PQfname(res, j), json_integer(1));
-            } else if (o_strcasecmp(PQgetvalue(res, i, j), "f") == 0) {
-              json_object_set_new(j_data, PQfname(res, j), json_integer(0));
+        res = PQexec(((struct _h_pgsql *)conn->connection)->db_handle, query);
+        if (PQresultStatus(res) != PGRES_TUPLES_OK && PQresultStatus(res) != PGRES_COMMAND_OK) {
+          y_log_message(Y_LOG_LEVEL_ERROR, "Error executing sql query");
+          y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", PQerrorMessage(((struct _h_pgsql *)conn->connection)->db_handle));
+          y_log_message(Y_LOG_LEVEL_DEBUG, "Query: \"%s\"", query);
+          ret = H_ERROR_QUERY;
+        } else {
+          nfields = PQnfields(res);
+          ntuples = PQntuples(res);
+
+          for(i = 0; ret == H_OK && i < ntuples; i++) {
+            j_data = json_object();
+            if (j_data == NULL) {
+              y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for j_data");
+              PQclear(res);
+              ret = H_ERROR_MEMORY;
             } else {
-              json_object_set_new(j_data, PQfname(res, j), json_null());
+              for(j = 0; ret == H_OK && j < nfields; j++) {
+                char * val = PQgetvalue(res, i, j);
+                if (val == NULL || strlen(val) == 0) {
+                  json_object_set_new(j_data, PQfname(res, j), json_null());
+                } else {
+                  switch (h_get_type_from_oid(conn, PQftype(res, j))) {
+                    case HOEL_COL_TYPE_INT:
+                      json_object_set_new(j_data, PQfname(res, j), json_integer(strtol(PQgetvalue(res, i, j), NULL, 10)));
+                      break;
+                    case HOEL_COL_TYPE_DOUBLE:
+                      json_object_set_new(j_data, PQfname(res, j), json_real(strtod(PQgetvalue(res, i, j), NULL)));
+                      break;
+                    case HOEL_COL_TYPE_BLOB:
+                      json_object_set_new(j_data, PQfname(res, j), json_stringn(PQgetvalue(res, i, j), PQfsize(res, i)));
+                      break;
+                    case HOEL_COL_TYPE_BOOL:
+                      if (o_strcasecmp(PQgetvalue(res, i, j), "t") == 0) {
+                        json_object_set_new(j_data, PQfname(res, j), json_integer(1));
+                      } else if (o_strcasecmp(PQgetvalue(res, i, j), "f") == 0) {
+                        json_object_set_new(j_data, PQfname(res, j), json_integer(0));
+                      } else {
+                        json_object_set_new(j_data, PQfname(res, j), json_null());
+                      }
+                      break;
+                    case HOEL_COL_TYPE_DATE:
+                    case HOEL_COL_TYPE_TEXT:
+                    default:
+                      json_object_set_new(j_data, PQfname(res, j), json_string(PQgetvalue(res, i, j)));
+                      break;
+                  }
+                }
+              }
             }
-            break;
-          case HOEL_COL_TYPE_DATE:
-          case HOEL_COL_TYPE_TEXT:
-          default:
-            json_object_set_new(j_data, PQfname(res, j), json_string(PQgetvalue(res, i, j)));
-            break;
+            json_array_append_new(*j_result, j_data);
+            j_data = NULL;
+          }
         }
+        PQclear(res);
       }
     }
-    json_array_append_new(*j_result, j_data);
-    j_data = NULL;
+    pthread_mutex_unlock(&(((struct _h_pgsql *)conn->connection)->lock));
   }
-  PQclear(res);
-  return H_OK;
+  
+  return ret;
 }
 
 /**
