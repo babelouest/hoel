@@ -248,7 +248,7 @@ int h_clean_connection(struct _h_connection * conn);
 
 ### Escape string
 
-If you need to escape parameters, you can use the function `h_escape_string`, the returned value must be h_free'd after use.
+If you need to escape parameters, you can use the functions `h_escape_string`, the returned value must be h_free'd after use.
 
 ```c
 /**
@@ -257,6 +257,13 @@ If you need to escape parameters, you can use the function `h_escape_string`, th
  * returned value must be h_free'd after use
  */
 char * h_escape_string(const struct _h_connection * conn, const char * unsafe);
+
+/**
+ * h_escape_string_with_quotes
+ * Escapes a string and returns it ready to be inserted in the query
+ * returned value must be h_h_free'd after use
+ */
+char * h_escape_string_with_quotes(const struct _h_connection * conn, const char * unsafe);
 ```
 
 ### Execute a SQL query
