@@ -3,6 +3,7 @@
 ## 1.4.11
 
 - Add `h_escape_string_with_quotes` to help using escape strings with PostgreSQL
+- Add mutex in pgsql connection because libpq isn't thread safe, like libmysql...
 
 ## 1.4.10
 
