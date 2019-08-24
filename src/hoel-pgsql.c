@@ -41,7 +41,7 @@ struct _h_pgsql {
   PGconn            * db_handle;
   unsigned int        nb_type;
   struct _h_pg_type * list_type;
-  pthread_mutex_t lock;
+  pthread_mutex_t     lock;
 };
 
 /**
