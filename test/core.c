@@ -38,13 +38,13 @@
 const char * db_path;
 
 void print_result(struct _h_result result) {
-  int col, row, i;
+  size_t col, row, i;
   printf("rows: %u, col: %u\n", result.nb_rows, result.nb_columns);
   for (row = 0; row<result.nb_rows; row++) {
     for (col=0; col<result.nb_columns; col++) {
       switch(result.data[row][col].type) {
         case HOEL_COL_TYPE_INT:
-          printf("| %d ", ((struct _h_type_int *)result.data[row][col].t_data)->value);
+          printf("| %lld ", ((struct _h_type_int *)result.data[row][col].t_data)->value);
           break;
         case HOEL_COL_TYPE_DOUBLE:
           printf("| %f ", ((struct _h_type_double *)result.data[row][col].t_data)->value);
