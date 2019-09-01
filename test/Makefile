@@ -21,7 +21,7 @@
 
 HOEL_INCLUDE=../include
 CC=gcc
-CFLAGS=-Wall -I$(HOEL_INCLUDE) -D_REENTRANT -DDEBUG -g -O0
+CFLAGS=-Wall -Werror -Wextra -I$(HOEL_INCLUDE) -D_REENTRANT -DDEBUG -g -O0
 HOEL_LOCATION=../src
 LIBS=-lc -lyder -lhoel -ljansson -lcheck -lpthread -lm -lrt -lsubunit -L$(HOEL_LOCATION)
 
