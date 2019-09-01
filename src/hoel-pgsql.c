@@ -319,7 +319,7 @@ int h_execute_query_json_pgsql(const struct _h_connection * conn, const char * q
                 } else {
                   switch (h_get_type_from_oid(conn, PQftype(res, j))) {
                     case HOEL_COL_TYPE_INT:
-                      json_object_set_new(j_data, PQfname(res, j), json_integer(strtol(PQgetvalue(res, i, j), NULL, 10)));
+                      json_object_set_new(j_data, PQfname(res, j), json_integer(strtoll(PQgetvalue(res, i, j), NULL, 10)));
                       break;
                     case HOEL_COL_TYPE_DOUBLE:
                       json_object_set_new(j_data, PQfname(res, j), json_real(strtod(PQgetvalue(res, i, j), NULL)));
@@ -362,9 +362,9 @@ int h_execute_query_json_pgsql(const struct _h_connection * conn, const char * q
  * Return the id of the last inserted value
  * Assuming you use sequences for automatically generated ids
  */
-int h_last_insert_id_pgsql(const struct _h_connection * conn) {
+long long int h_last_insert_id_pgsql(const struct _h_connection * conn) {
   PGresult *res;
-  int int_res = 0;
+  long long int int_res = 0;
   char * str_res, * endptr = NULL;
   
   res = PQexec(((struct _h_pgsql *)conn->connection)->db_handle, "SELECT lastval()");

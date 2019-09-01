@@ -22,7 +22,7 @@ int h_result_add_row(struct _h_result * result, struct _h_data * row, int rows);
  * return pointer to the new structure
  * return NULL on error
  */
-struct _h_data * h_new_data_int(const int value);
+struct _h_data * h_new_data_int(const long long int value);
 
 /**
  * Allocate memory for a new struct _h_data * containing a double

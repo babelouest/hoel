@@ -472,7 +472,7 @@ int h_clean_data_full(struct _h_data * data) {
  * return pointer to the new structure
  * return NULL on error
  */
-struct _h_data * h_new_data_int(const int value) {
+struct _h_data * h_new_data_int(const long long int value) {
   struct _h_data * data = o_malloc(sizeof(struct _h_data));
   if (data != NULL) {
     data->t_data = o_malloc(sizeof(struct _h_type_int));

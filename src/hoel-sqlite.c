@@ -119,7 +119,7 @@ char * h_escape_string_with_quotes_sqlite(const struct _h_connection * conn, con
 /**
  * Return the id of the last inserted value
  */
-int h_last_insert_id_sqlite(const struct _h_connection * conn) {
+long long int h_last_insert_id_sqlite(const struct _h_connection * conn) {
   return sqlite3_last_insert_rowid(((struct _h_sqlite *)conn->connection)->db_handle);
 }
 
@@ -153,7 +153,7 @@ int h_select_query_sqlite(const struct _h_connection * conn, const char * query,
           data = NULL;
           switch (sqlite3_column_type(stmt, col)) {
             case SQLITE_INTEGER:
-              data = h_new_data_int(sqlite3_column_int(stmt, col));
+              data = h_new_data_int(sqlite3_column_int64(stmt, col));
               break;
             case SQLITE_FLOAT:
               data = h_new_data_double(sqlite3_column_double(stmt, col));
@@ -262,7 +262,7 @@ int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * 
       for (col = 0; col < nb_columns; col++) {
         switch (sqlite3_column_type(stmt, col)) {
           case SQLITE_INTEGER:
-            json_object_set_new(j_data, sqlite3_column_name(stmt, col), json_integer(sqlite3_column_int(stmt, col)));
+            json_object_set_new(j_data, sqlite3_column_name(stmt, col), json_integer(sqlite3_column_int64(stmt, col)));
             break;
           case SQLITE_FLOAT:
             json_object_set_new(j_data, sqlite3_column_name(stmt, col), json_real(sqlite3_column_double(stmt, col)));

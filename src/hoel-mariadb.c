@@ -142,8 +142,8 @@ char * h_escape_string_with_quotes_mariadb(const struct _h_connection * conn, co
 /**
  * Return the id of the last inserted value
  */
-int h_last_insert_id_mariadb(const struct _h_connection * conn) {
-  int id = mysql_insert_id(((struct _h_mariadb *)conn->connection)->db_handle);
+long long int h_last_insert_id_mariadb(const struct _h_connection * conn) {
+  long long int id = mysql_insert_id(((struct _h_mariadb *)conn->connection)->db_handle);
   if (id <= 0) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Error executing mysql_insert_id");
     y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", mysql_error(((struct _h_mariadb *)conn->connection)->db_handle));
@@ -326,7 +326,7 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
  */
 struct _h_data * h_get_mariadb_value(const char * value, const unsigned long length, const int m_type) {
   struct _h_data * data = NULL;
-  int i_value;
+  long long int i_value;
   double d_value;
   struct tm tm_value;
   char * endptr;
@@ -341,7 +341,7 @@ struct _h_data * h_get_mariadb_value(const char * value, const unsigned long len
       case FIELD_TYPE_LONGLONG:
       case FIELD_TYPE_INT24:
       case FIELD_TYPE_YEAR:
-        i_value = strtol(value, &endptr, 10);
+        i_value = strtoll(value, &endptr, 10);
         if (endptr != value) {
           data = h_new_data_int(i_value);
         } else {

@@ -81,7 +81,7 @@ struct _h_connection {
  * sql value integer type
  */
 struct _h_type_int {
-  int value;
+  long long int value;
 };
 
 /**
@@ -118,7 +118,7 @@ struct _h_type_blob {
  * sql data container
  */
 struct _h_data {
-  int type;
+  int    type;
   void * t_data;
 };
 
@@ -126,8 +126,8 @@ struct _h_data {
  * sql result structure
  */
 struct _h_result {
-  unsigned int nb_rows;
-  unsigned int nb_columns;
+  unsigned int      nb_rows;
+  unsigned int      nb_columns;
   struct _h_data ** data;
 };
 
@@ -364,7 +364,7 @@ char * h_escape_string_with_quotes_sqlite(const struct _h_connection * conn, con
 /**
  * Return the id of the last inserted value
  */
-int h_last_insert_id_sqlite(const struct _h_connection * conn);
+long long int h_last_insert_id_sqlite(const struct _h_connection * conn);
 
 /**
  * h_select_query_sqlite
@@ -422,7 +422,7 @@ char * h_escape_string_with_quotes_mariadb(const struct _h_connection * conn, co
 /**
  * Return the id of the last inserted value
  */
-int h_last_insert_id_mariadb(const struct _h_connection * conn);
+long long int h_last_insert_id_mariadb(const struct _h_connection * conn);
 
 /**
  * h_execute_query_mariadb
@@ -496,7 +496,7 @@ char * h_escape_string_with_quotes_pgsql(const struct _h_connection * conn, cons
  * Return the id of the last inserted value
  * Assuming you use sequences for automatically generated ids
  */
-int h_last_insert_id_pgsql(const struct _h_connection * conn);
+long long int h_last_insert_id_pgsql(const struct _h_connection * conn);
 #endif
 
 #endif /* __HOEL_H__ */
