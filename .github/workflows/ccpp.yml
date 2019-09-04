@@ -1,0 +1,50 @@
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake pkg-config check libsubunit-dev cppcheck libsystemd-dev libsqlite3-dev libmysqlclient-dev libpq-dev libjansson-dev
+    - name: cppcheck
+      run: cppcheck --force --enable=warning,missingInclude --error-exitcode=1 .
+    - name: build
+      run: |
+        mkdir build && cd build
+        cmake -DBUILD_HOEL_TESTING=on ..
+        make
+        sqlite3 /tmp/test.db < ../test/test.sql
+        make test package
+        sudo make install
+        rm -rf * && cmake -DWITH_SQLITE3=off -DWITH_MARIADB=off -DWITH_PGSQL=on ..
+        make package
+        rm -rf * && cmake -DWITH_SQLITE3=off -DWITH_MARIADB=on -DWITH_PGSQL=off ..
+        make package
+        rm -rf * && cmake -DWITH_SQLITE3=off -DWITH_MARIADB=on -DWITH_PGSQL=on ..
+        make package
+        rm -rf * && cmake -DWITH_SQLITE3=on -DWITH_MARIADB=off -DWITH_PGSQL=off ..
+        make package
+        rm -rf * && cmake -DWITH_SQLITE3=on -DWITH_MARIADB=off -DWITH_PGSQL=on ..
+        make package
+        rm -rf * && cmake -DWITH_SQLITE3=on -DWITH_MARIADB=on -DWITH_PGSQL=off ..
+        make package
+        rm -rf * && cmake -DWITH_SQLITE3=on -DWITH_MARIADB=on -DWITH_PGSQL=on ..
+        make package
+        rm -rf *
+        if $(cmake -DWITH_SQLITE3=off -DWITH_MARIADB=off -DWITH_PGSQL=off .. 1>/dev/null 2&>1); then echo "Build with no DB fail" && false; else echo "Build with no DB success"; fi
+        cd ../
+        make clean debug
+        make clean debug DISABLE_SQLITE=1 DISABLE_MARIADB=1
+        make clean debug DISABLE_SQLITE=1 DISABLE_POSTGRESQL=1
+        make clean debug DISABLE_SQLITE=1
+        make clean debug DISABLE_MARIADB=1 DISABLE_POSTGRESQL=1
+        make clean debug DISABLE_MARIADB=1
+        make clean debug DISABLE_POSTGRESQL=1
+        if $(make clean debug DISABLE_MARIADB=1 DISABLE_POSTGRESQL=1 1>/dev/null 2&>1); then echo "Build with no DB fail" && false; else echo "Build with no DB success"; fi
+        sqlite3 /tmp/test.db < test/test.sql
+        make clean check
