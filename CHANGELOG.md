@@ -4,6 +4,7 @@
 
 - Add `h_escape_string_with_quotes` to help using escape strings with PostgreSQL
 - Add mutex in pgsql connection because libpq isn't thread safe, like libmysql...
+- Change struct _h_type_int value type from int to long long int
 
 ## 1.4.10
 
