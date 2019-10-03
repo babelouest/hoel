@@ -56,7 +56,7 @@ struct _h_connection * h_connect_sqlite(const char * db_path) {
       free(conn);
       return NULL;
     }
-    if (sqlite3_open_v2(db_path, &((struct _h_sqlite *)conn->connection)->db_handle, SQLITE_OPEN_READWRITE, NULL) != SQLITE_OK) {
+    if (sqlite3_open_v2(db_path, &((struct _h_sqlite *)conn->connection)->db_handle, SQLITE_OPEN_READWRITE|SQLITE_OPEN_FULLMUTEX, NULL) != SQLITE_OK) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Error connecting to sqlite3 database, path: %s", db_path);
       y_log_message(Y_LOG_LEVEL_DEBUG, "Error code: %d, message: \"%s\"", 
                              sqlite3_errcode(((struct _h_sqlite *)conn->connection)->db_handle), 
