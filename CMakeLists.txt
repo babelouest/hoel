@@ -28,7 +28,7 @@ set(PROJECT_HOMEPAGE_URL "https://github.com/babelouest/hoel/")
 set(PROJECT_BUGREPORT_PATH "https://github.com/babelouest/hoel/issues")
 set(LIBRARY_VERSION_MAJOR "1")
 set(LIBRARY_VERSION_MINOR "4")
-set(LIBRARY_VERSION_PATCH "11")
+set(LIBRARY_VERSION_PATCH "12")
 set(ORCANIA_VERSION_REQUIRED "2.0.1")
 set(YDER_VERSION_REQUIRED "1.4.8")
 

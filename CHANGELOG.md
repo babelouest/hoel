@@ -1,5 +1,9 @@
 # Hoel Changelog
 
+## 1.4.12
+
+- Update SQlite `sqlite3_open_v2` optparameters to add `SQLITE_OPEN_FULLMUTEX` flag
+
 ## 1.4.11
 
 - Add `h_escape_string_with_quotes` to help using escape strings with PostgreSQL
