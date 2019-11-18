@@ -119,7 +119,7 @@ install: all $(PKGCONFIG_FILE)
 	install -m644 $(PKGCONFIG_FILE) $(DESTDIR)/lib/pkgconfig
 	install -m644 $(HOEL_INCLUDE)/hoel.h $(DESTDIR)/include
 	install -m644 $(CONFIG_FILE) $(DESTDIR)/include
-	/sbin/ldconfig
+	-ldconfig $(DESTDIR)/lib
 
 static-install: static
 	cp libhoel.a $(DESTDIR)/lib
