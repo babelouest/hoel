@@ -38,17 +38,9 @@
 #include <yder.h>
 #include <orcania.h>
 
-#ifdef _HOEL_SQLITE
 #define HOEL_DB_TYPE_SQLITE  0
-#endif
-
-#ifdef _HOEL_MARIADB
 #define HOEL_DB_TYPE_MARIADB 1
-#endif
-
-#ifdef _HOEL_PGSQL
 #define HOEL_DB_TYPE_PGSQL   2
-#endif
 
 #define HOEL_COL_TYPE_INT    0
 #define HOEL_COL_TYPE_DOUBLE 1
@@ -336,7 +328,6 @@ int h_clean_data_full(struct _h_data * data);
  */
 int h_clean_connection(struct _h_connection * conn);
 
-#ifdef _HOEL_SQLITE
 /**
  * h_connect_sqlite
  * Opens a database connection to a sqlite3 db file
@@ -392,9 +383,7 @@ int h_exec_query_sqlite(const struct _h_connection * conn, const char * query);
  * return H_OK on success
  */
 int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * query, json_t ** j_result);
-#endif
 
-#ifdef _HOEL_MARIADB
 /**
  * h_connect_mariadb
  * Opens a database connection to a mariadb server
@@ -448,9 +437,6 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
  */
 struct _h_data * h_get_mariadb_value(const char * value, const unsigned long length, const int m_type);
 
-#endif
-
-#ifdef _HOEL_PGSQL
 /**
  * h_connect_pgsql
  * Opens a database connection to a PostgreSQL server
@@ -497,6 +483,5 @@ char * h_escape_string_with_quotes_pgsql(const struct _h_connection * conn, cons
  * Assuming you use sequences for automatically generated ids
  */
 long long int h_last_insert_id_pgsql(const struct _h_connection * conn);
-#endif
 
 #endif /* __HOEL_H__ */
