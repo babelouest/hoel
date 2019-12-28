@@ -1,5 +1,11 @@
 # Hoel Changelog
 
+## 1.4.13
+
+- Fix build when databases are disabled
+- Fix ldconfig command in Makefile
+- Add doxygen documentation
+
 ## 1.4.12
 
 - Update SQlite `sqlite3_open_v2` optparameters to add `SQLITE_OPEN_FULLMUTEX` flag
