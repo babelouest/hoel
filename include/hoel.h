@@ -1,10 +1,11 @@
 /**
  * 
- * Hoel database abstraction library
+ * @file hoel.h
+ * @brief Hoel database abstraction library
  * 
  * hoel.h: structures and functions declarations
  * 
- * Copyright 2015-2018 Nicolas Mora <mail@babelouest.org>
+ * Copyright 2015-2019 Nicolas Mora <mail@babelouest.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -38,6 +39,11 @@
 #include <yder.h>
 #include <orcania.h>
 
+/**
+ * @defgroup const Constants
+ * @{
+ */
+
 #define HOEL_DB_TYPE_SQLITE  0
 #define HOEL_DB_TYPE_MARIADB 1
 #define HOEL_DB_TYPE_PGSQL   2
@@ -60,6 +66,15 @@
 #define H_OPTION_NONE   0x0000 /* Nothing whatsoever */
 #define H_OPTION_SELECT 0x0001 /* Execute a SELECT statement */
 #define H_OPTION_EXEC   0x0010 /* Execute an INSERT, UPDATE or DELETE statement */
+
+/**
+ * @}
+ */
+
+/**
+ * @defgroup struct struct _h_data
+ * @{
+ */
 
 /**
  * handle container
@@ -124,15 +139,42 @@ struct _h_result {
 };
 
 /**
+ * @}
+ */
+
+/**
+ * @defgroup init Initialize and cosing connection functions
+ * @{
+ */
+
+/**
  * Close a database connection
  * return H_OK on success
  */
 int h_close_db(struct _h_connection * conn);
 
 /**
+ * @}
+ */
+
+/**
+ * @defgroup memory Memory management functions
+ * @{
+ */
+
+/**
  * free data allocated by hoel functions
  */
 void h_free(void * data);
+
+/**
+ * @}
+ */
+
+/**
+ * @defgroup escape Escape string functions
+ * @{
+ */
 
 /**
  * h_escape_string
@@ -147,6 +189,16 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe);
  * returned value must be h_h_free'd after use
  */
 char * h_escape_string_with_quotes(const struct _h_connection * conn, const char * unsafe);
+
+/**
+ * @}
+ */
+
+/**
+ * @defgroup h_result _h_result SQL query management functions
+ * SQL query management for struct _h_result format
+ * @{
+ */
 
 /**
  * h_execute_query
@@ -194,6 +246,16 @@ int h_query_delete(const struct _h_connection * conn, const char * query);
  * return H_OK on success
  */
 int h_query_select(const struct _h_connection * conn, const char * query, struct _h_result * result);
+
+/**
+ * @}
+ */
+
+/**
+ * @defgroup json JSON SQL query management functions
+ * SQL query management for JSON format
+ * @{
+ */
 
 /**
  * h_execute_query_json
@@ -301,6 +363,16 @@ int h_update(const struct _h_connection * conn, const json_t * j_query, char ** 
 int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
 
 /**
+ * @}
+ */
+
+/**
+ * @defgroup h_result _h_result SQL query management functions
+ * SQL query management for struct _h_result format
+ * @{
+ */
+
+/**
  * h_clean_result
  * Free all the memory allocated by the struct _h_result
  * return H_OK on success
@@ -322,6 +394,15 @@ int h_clean_data(struct _h_data * data);
 int h_clean_data_full(struct _h_data * data);
 
 /**
+ * @}
+ */
+
+/**
+ * @defgroup init Initialize and cosing connection functions
+ * @{
+ */
+
+/**
  * h_clean_connection
  * free memory allocated by the struct _h_connection
  * return H_OK on success
@@ -341,6 +422,15 @@ struct _h_connection * h_connect_sqlite(const char * db_path);
 void h_close_sqlite(struct _h_connection * conn);
 
 /**
+ * @}
+ */
+
+/**
+ * @defgroup escape Escape string functions
+ * @{
+ */
+
+/**
  * escape a string
  * returned value must be h_free'd after use
  */
@@ -353,19 +443,19 @@ char * h_escape_string_sqlite(const struct _h_connection * conn, const char * un
 char * h_escape_string_with_quotes_sqlite(const struct _h_connection * conn, const char * unsafe);
 
 /**
+ * @}
+ */
+
+/**
+ * @defgroup json JSON SQL query management functions
+ * SQL query management for JSON format
+ * @{
+ */
+
+/**
  * Return the id of the last inserted value
  */
 long long int h_last_insert_id_sqlite(const struct _h_connection * conn);
-
-/**
- * h_select_query_sqlite
- * Execute a select query on a sqlite connection, set the result structure with the returned values
- * Should not be executed by the user because all parameters are supposed to be correct
- * if result is NULL, the query is executed but no value will be returned
- * Useful for SELECT statements
- * return H_OK on success
- */
-int h_select_query_sqlite(const struct _h_connection * conn, const char * query, struct _h_result * result);
 
 /**
  * h_exec_query_sqlite
@@ -385,6 +475,35 @@ int h_exec_query_sqlite(const struct _h_connection * conn, const char * query);
 int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * query, json_t ** j_result);
 
 /**
+ * @}
+ */
+
+/**
+ * @defgroup h_result _h_result SQL query management functions
+ * SQL query management for struct _h_result format
+ * @{
+ */
+
+/**
+ * h_select_query_sqlite
+ * Execute a select query on a sqlite connection, set the result structure with the returned values
+ * Should not be executed by the user because all parameters are supposed to be correct
+ * if result is NULL, the query is executed but no value will be returned
+ * Useful for SELECT statements
+ * return H_OK on success
+ */
+int h_select_query_sqlite(const struct _h_connection * conn, const char * query, struct _h_result * result);
+
+/**
+ * @}
+ */
+
+/**
+ * @defgroup init Initialize and cosing connection functions
+ * @{
+ */
+
+/**
  * h_connect_mariadb
  * Opens a database connection to a mariadb server
  * return pointer to a struct _h_connection * on success, NULL on error
@@ -395,6 +514,15 @@ struct _h_connection * h_connect_mariadb(const char * host, const char * user, c
  * close connection to database
  */
 void h_close_mariadb(struct _h_connection * conn);
+
+/**
+ * @}
+ */
+
+/**
+ * @defgroup escape Escape string functions
+ * @{
+ */
 
 /**
  * escape a string
@@ -409,9 +537,37 @@ char * h_escape_string_mariadb(const struct _h_connection * conn, const char * u
 char * h_escape_string_with_quotes_mariadb(const struct _h_connection * conn, const char * unsafe);
 
 /**
+ * @}
+ */
+
+/**
+ * @defgroup json JSON SQL query management functions
+ * SQL query management for JSON format
+ * @{
+ */
+
+/**
  * Return the id of the last inserted value
  */
 long long int h_last_insert_id_mariadb(const struct _h_connection * conn);
+
+/**
+ * h_execute_query_json_mariadb
+ * Execute a query on a mariadb connection, set the returned values in the json result
+ * Should not be executed by the user because all parameters are supposed to be correct
+ * return H_OK on success
+ */
+int h_execute_query_json_mariadb(const struct _h_connection * conn, const char * query, json_t ** j_result);
+
+/**
+ * @}
+ */
+
+/**
+ * @defgroup h_result _h_result SQL query management functions
+ * SQL query management for struct _h_result format
+ * @{
+ */
 
 /**
  * h_execute_query_mariadb
@@ -423,19 +579,20 @@ long long int h_last_insert_id_mariadb(const struct _h_connection * conn);
 int h_execute_query_mariadb(const struct _h_connection * conn, const char * query, struct _h_result * result);
 
 /**
- * h_execute_query_json_mariadb
- * Execute a query on a mariadb connection, set the returned values in the json result
- * Should not be executed by the user because all parameters are supposed to be correct
- * return H_OK on success
- */
-int h_execute_query_json_mariadb(const struct _h_connection * conn, const char * query, json_t ** j_result);
-
-/**
  * h_get_mariadb_value
  * convert value into a struct _h_data * depening on the m_type given
  * returned value must be h_free'd with h_clean_data_full after use
  */
 struct _h_data * h_get_mariadb_value(const char * value, const unsigned long length, const int m_type);
+
+/**
+ * @}
+ */
+
+/**
+ * @defgroup init Initialize and cosing connection functions
+ * @{
+ */
 
 /**
  * h_connect_pgsql
@@ -445,26 +602,18 @@ struct _h_data * h_get_mariadb_value(const char * value, const unsigned long len
 struct _h_connection * h_connect_pgsql(const char * conninfo);
 
 /**
- * h_execute_query_pgsql
- * Execute a query on a pgsql connection, set the result structure with the returned values
- * Should not be executed by the user because all parameters are supposed to be correct
- * if result is NULL, the query is executed but no value will be returned
- * return H_OK on success
- */
-int h_execute_query_pgsql(const struct _h_connection * conn, const char * query, struct _h_result * result);
-
-/**
- * h_execute_query_json_pgsql
- * Execute a query on a pgsql connection, set the returned values in the json results
- * Should not be executed by the user because all parameters are supposed to be correct
- * return H_OK on success
- */
-int h_execute_query_json_pgsql(const struct _h_connection * conn, const char * query, json_t ** j_result);
-
-/**
  * close a pgsql connection
  */
 void h_close_pgsql(struct _h_connection * conn);
+
+/**
+ * @}
+ */
+
+/**
+ * @defgroup escape Escape string functions
+ * @{
+ */
 
 /**
  * escape a string
@@ -479,9 +628,50 @@ char * h_escape_string_pgsql(const struct _h_connection * conn, const char * uns
 char * h_escape_string_with_quotes_pgsql(const struct _h_connection * conn, const char * unsafe);
 
 /**
+ * @}
+ */
+
+/**
+ * @defgroup json JSON SQL query management functions
+ * SQL query management for JSON format
+ * @{
+ */
+
+/**
+ * h_execute_query_json_pgsql
+ * Execute a query on a pgsql connection, set the returned values in the json results
+ * Should not be executed by the user because all parameters are supposed to be correct
+ * return H_OK on success
+ */
+int h_execute_query_json_pgsql(const struct _h_connection * conn, const char * query, json_t ** j_result);
+
+/**
  * Return the id of the last inserted value
  * Assuming you use sequences for automatically generated ids
  */
 long long int h_last_insert_id_pgsql(const struct _h_connection * conn);
+
+/**
+ * @}
+ */
+
+/**
+ * @defgroup h_result _h_result SQL query management functions
+ * SQL query management for struct _h_result format
+ * @{
+ */
+
+/**
+ * h_execute_query_pgsql
+ * Execute a query on a pgsql connection, set the result structure with the returned values
+ * Should not be executed by the user because all parameters are supposed to be correct
+ * if result is NULL, the query is executed but no value will be returned
+ * return H_OK on success
+ */
+int h_execute_query_pgsql(const struct _h_connection * conn, const char * query, struct _h_result * result);
+
+/**
+ * @}
+ */
 
 #endif /* __HOEL_H__ */

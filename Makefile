@@ -48,3 +48,6 @@ example_pgsql:
 
 check:
 	cd $(TEST_LOCATION) && $(MAKE) test $*
+
+doxygen:
+	doxygen doc/doxygen.cfg
