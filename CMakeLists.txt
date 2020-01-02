@@ -186,6 +186,28 @@ if (WIN32)
 endif ()
 target_link_libraries(hoel ${LIBS})
 
+# documentation
+
+option(BUILD_HOEL_DOCUMENTATION "Build the documentation." OFF)
+if (BUILD_HOEL_DOCUMENTATION)
+    find_package(Doxygen)
+    if (DOXYGEN_FOUND)
+        set(doxyfile_in ${CMAKE_CURRENT_SOURCE_DIR}/doc/doxygen.cfg)
+        set(doxyfile ${CMAKE_CURRENT_BINARY_DIR}/doxyfile)
+        
+        configure_file(${doxyfile_in} ${doxyfile} @ONLY)
+        
+        add_custom_target(doc
+                          COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile_in}
+                          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                          COMMENT "Generating documentation with Doxygen"
+                          VERBATIM)
+
+    else ()
+        message(FATAL_ERROR "Doxygen is needed to build the documentation.")
+    endif ()
+endif ()
+
 # dependencies
 
 option(SEARCH_ORCANIA_H "Search for Orcania library" ON)
@@ -399,3 +421,4 @@ message(STATUS "Build static library: ${BUILD_STATIC}")
 message(STATUS "Build testing tree: ${BUILD_HOEL_TESTING}")
 message(STATUS "Install the header files: ${INSTALL_HEADER}")
 message(STATUS "Build RPM package: ${BUILD_RPM}")
+message(STATUS "Build documentation: ${BUILD_HOEL_DOCUMENTATION}")
