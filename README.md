@@ -81,6 +81,7 @@ The available options for cmake are:
 - `-DWITH_JOURNALD=[on|off]` (default `on`): Build with journald (SystemD) support for logging
 - `-DBUILD_STATIC=[on|off]` (default `off`): Build the static archive in addition to the shared library
 - `-DBUILD_HOEL_TESTING=[on|off]` (default `off`): Build unit tests
+- `-DBUILD_HOEL_DOCUMENTATION=[on|off]` (default `off`): Build the documentation, doxygen is required
 - `-DINSTALL_HEADER=[on|off]` (default `on`): Install header file `hoel.h`
 - `-DBUILD_RPM=[on|off]` (default `off`): Build RPM package when running `make package`
 - `-DCMAKE_BUILD_TYPE=[Debug|Release]` (default `Release`): Compile with debugging symbols or not
