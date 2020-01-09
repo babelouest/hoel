@@ -25,6 +25,11 @@
 #ifndef __HOEL_H__
 #define __HOEL_H__
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #include "hoel-cfg.h"
 
 #include <jansson.h>
@@ -673,5 +678,9 @@ int h_execute_query_pgsql(const struct _h_connection * conn, const char * query,
 /**
  * @}
  */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __HOEL_H__ */
