@@ -154,7 +154,8 @@ struct _h_result {
 
 /**
  * Close a database connection
- * return H_OK on success
+ * @param conn the connection to the database
+ * @return H_OK on success
  */
 int h_close_db(struct _h_connection * conn);
 
@@ -169,6 +170,7 @@ int h_close_db(struct _h_connection * conn);
 
 /**
  * free data allocated by hoel functions
+ * @param data the data to free
  */
 void h_free(void * data);
 
@@ -184,6 +186,9 @@ void h_free(void * data);
 /**
  * h_escape_string
  * Escapes a string
+ * @param conn the connection to the database
+ * @param unsafe the string to escape
+ * @return a heap-allocated string
  * returned value must be h_free'd after use
  */
 char * h_escape_string(const struct _h_connection * conn, const char * unsafe);
@@ -191,6 +196,9 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe);
 /**
  * h_escape_string_with_quotes
  * Escapes a string and returns it ready to be inserted in the query
+ * @param conn the connection to the database
+ * @param unsafe the string to escape
+ * @return a heap-allocated string
  * returned value must be h_h_free'd after use
  */
 char * h_escape_string_with_quotes(const struct _h_connection * conn, const char * unsafe);
@@ -209,46 +217,60 @@ char * h_escape_string_with_quotes(const struct _h_connection * conn, const char
  * h_execute_query
  * Execute a query, set the result structure with the returned values if available
  * if result is NULL, the query is executed but no value will be returned
+ * @param conn the connection to the database
+ * @param query the SQL query to execute
+ * @param result the result structure to fill the result data
+ * @param options option to pass to the database engine
  * options available
  * H_OPTION_NONE (0): no option
  * H_OPTION_SELECT: Execute a prepare statement (sqlite only)
  * H_OPTION_EXEC: Execute an exec statement (sqlite only)
- * return H_OK on success
+ * @return H_OK on success
  */
 int h_execute_query(const struct _h_connection * conn, const char * query, struct _h_result * result, int options);
 
 /**
  * h_query_insert
  * Execute an insert query
- * return H_OK on success
+ * @param conn the connection to the database
+ * @param query the SQL query to execute
+ * @return H_OK on success
  */
 int h_query_insert(const struct _h_connection * conn, const char * query);
 
 /**
  * h_query_last_insert_id
  * return the id of the last inserted value
- * return a pointer to `struct _h_data *` on success, NULL otherwise.
+ * @param conn the connection to the database
+ * @return a pointer to `struct _h_data *` on success, NULL otherwise.
  */
 struct _h_data * h_query_last_insert_id(const struct _h_connection * conn);
 
 /**
  * h_query_update
  * Execute an update query
- * return H_OK on success
+ * @param conn the connection to the database
+ * @param query the SQL query to execute
+ * @return H_OK on success
  */
 int h_query_update(const struct _h_connection * conn, const char * query);
 
 /**
  * h_query_delete
  * Execute an delete query
- * return H_OK on success
+ * @param conn the connection to the database
+ * @param query the SQL query to execute
+ * @return H_OK on success
  */
 int h_query_delete(const struct _h_connection * conn, const char * query);
 
 /**
  * h_query_select
  * Execute a select query, set the result structure with the returned values
- * return H_OK on success
+ * @param conn the connection to the database
+ * @param query the SQL query to execute
+ * @param result the result structure to fill the result data
+ * @return H_OK on success
  */
 int h_query_select(const struct _h_connection * conn, const char * query, struct _h_result * result);
 
@@ -265,14 +287,21 @@ int h_query_select(const struct _h_connection * conn, const char * query, struct
 /**
  * h_execute_query_json
  * Execute a query, set the returned values in the json result
- * return H_OK on success
+ * @param conn the connection to the database
+ * @param query the SQL query to execute
+ * @param j_result a json_t * reference that will be allocated and filled with the result
+ * if the query succeeds and is a SELECT query
+ * @return H_OK on success
  */
 int h_execute_query_json(const struct _h_connection * conn, const char * query, json_t ** j_result);
 
 /**
  * h_query_select_json
  * Execute a select query, set the returned values in the json results
- * return H_OK on success
+ * @param conn the connection to the database
+ * @param query the SQL query to execute
+ * @param j_result a json_t * reference that will be allocated and filled with the result if the query succeeds
+ * @return H_OK on success
  */
 int h_query_select_json(const struct _h_connection * conn, const char * query, json_t ** j_result);
 
@@ -327,8 +356,12 @@ int h_query_select_json(const struct _h_connection * conn, const char * query, j
  * Execute a select query
  * Uses a json_t * parameter for the query parameters
  * Store the result of the query in j_result if specified. j_result must be decref'd after use
- * Duplicate the generated query in generated_query if specified, must be h_free'd after use
- * return H_OK on success
+ * @param conn the connection to the database
+ * @param j_query the query encapsulated ina JSON object to execute
+ * @param j_result a json_t * reference that will be allocated and filled with the result if the query succeeds
+ * @param generated_query a char * reference that will be allocated by the library and will contain the generated SQL query,
+ * optional, must be h_free'd after use
+ * @return H_OK on success
  */
 int h_select(const struct _h_connection * conn, const json_t * j_query, json_t ** j_result, char ** generated_query);
 
@@ -336,8 +369,11 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
  * h_insert
  * Execute an insert query
  * Uses a json_t * parameter for the query parameters
- * Duplicate the generated query in generated_query if specified, must be h_free'd after use
- * return H_OK on success
+ * @param conn the connection to the database
+ * @param j_query the query encapsulated ina JSON object to execute
+ * @param generated_query a char * reference that will be allocated by the library and will contain the generated SQL query,
+ * optional, must be h_free'd after use
+ * @return H_OK on success
  */
 int h_insert(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
 
@@ -346,6 +382,8 @@ int h_insert(const struct _h_connection * conn, const json_t * j_query, char ** 
  * return the id of the last inserted value
  * return a pointer to `json_t *` on success, NULL otherwise.
  * The returned value is of type JSON_INTEGER
+ * @param conn the connection to the database
+ * @return a json_t * containing the last insert id in integer format
  */
 json_t * h_last_insert_id(const struct _h_connection * conn);
 
@@ -353,8 +391,11 @@ json_t * h_last_insert_id(const struct _h_connection * conn);
  * h_update
  * Execute an update query
  * Uses a json_t * parameter for the query parameters
- * Duplicate the generated query in generated_query if specified, must be h_free'd after use
- * return H_OK on success
+ * @param conn the connection to the database
+ * @param j_query the query encapsulated ina JSON object to execute
+ * @param generated_query a char * reference that will be allocated by the library and will contain the generated SQL query,
+ * optional, must be h_free'd after use
+ * @return H_OK on success
  */
 int h_update(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
 
@@ -362,8 +403,11 @@ int h_update(const struct _h_connection * conn, const json_t * j_query, char ** 
  * h_delete
  * Execute a delete query
  * Uses a json_t * parameter for the query parameters
- * Duplicate the generated query in generated_query if specified, must be h_free'd after use
- * return H_OK on success
+ * @param conn the connection to the database
+ * @param j_query the query encapsulated ina JSON object to execute
+ * @param generated_query a char * reference that will be allocated by the library and will contain the generated SQL query,
+ * optional, must be h_free'd after use
+ * @return H_OK on success
  */
 int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
 
@@ -380,21 +424,24 @@ int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** 
 /**
  * h_clean_result
  * Free all the memory allocated by the struct _h_result
- * return H_OK on success
+ * @param result the result to free
+ * @return H_OK on success
  */
 int h_clean_result(struct _h_result * result);
 
 /**
  * h_clean_data
  * Free memory allocated by the struct _h_data
- * return H_OK on success
+ * @param data the data to free
+ * @return H_OK on success
  */
 int h_clean_data(struct _h_data * data);
 
 /**
  * h_clean_data_full
  * Free memory allocated by the struct _h_data and the struct _h_data pointer
- * return H_OK on success
+ * @param data the data to free
+ * @return H_OK on success
  */
 int h_clean_data_full(struct _h_data * data);
 
@@ -410,19 +457,22 @@ int h_clean_data_full(struct _h_data * data);
 /**
  * h_clean_connection
  * free memory allocated by the struct _h_connection
- * return H_OK on success
+ * @param conn the connection to the database
+ * @return H_OK on success
  */
 int h_clean_connection(struct _h_connection * conn);
 
 /**
  * h_connect_sqlite
  * Opens a database connection to a sqlite3 db file
- * return pointer to a struct _h_connection * on sucess, NULL on error
+ * @param db_path the path to the sqlite db file
+ * @return pointer to a struct _h_connection * on sucess, NULL on error
  */
 struct _h_connection * h_connect_sqlite(const char * db_path);
 
 /**
  * close a sqlite3 connection
+ * @param conn the connection to the database
  */
 void h_close_sqlite(struct _h_connection * conn);
 
@@ -438,12 +488,20 @@ void h_close_sqlite(struct _h_connection * conn);
 /**
  * escape a string
  * returned value must be h_free'd after use
+ * This is an internal function, you should use h_escape_string instead
+ * @param conn the connection to the database
+ * @param unsafe the string to escape
+ * @return a heap-allocated string
  */
 char * h_escape_string_sqlite(const struct _h_connection * conn, const char * unsafe);
 
 /**
  * escape a string
  * returned value must be h_free'd after use
+ * This is an internal function, you should use h_escape_string_with_quotes instead
+ * @param conn the connection to the database
+ * @param unsafe the string to escape
+ * @return a heap-allocated string
  */
 char * h_escape_string_with_quotes_sqlite(const struct _h_connection * conn, const char * unsafe);
 
@@ -459,23 +517,33 @@ char * h_escape_string_with_quotes_sqlite(const struct _h_connection * conn, con
 
 /**
  * Return the id of the last inserted value
+ * This is an internal function, you should use h_last_insert_id instead
+ * @param conn the connection to the database
+ * @return a long long int value
  */
 long long int h_last_insert_id_sqlite(const struct _h_connection * conn);
 
 /**
  * h_exec_query_sqlite
  * Execute a query on a sqlite connection
+ * This is an internal function, you should use h_exec_query instead
  * Should not be executed by the user because all parameters are supposed to be correct
  * No result is returned, useful for single INSERT, UPDATE or DELETE statements
- * return H_OK on success
+ * @param conn the connection to the database
+ * @param query the SQL query to execute
+ * @return H_OK on success
  */
 int h_exec_query_sqlite(const struct _h_connection * conn, const char * query);
 
 /**
  * h_execute_query_json_sqlite
  * Execute a query on a sqlite connection, set the returned values in the json result
+ * This is an internal function, you should use h_execute_query_json instead
  * Should not be executed by the user because all parameters are supposed to be correct
- * return H_OK on success
+ * @param conn the connection to the database
+ * @param query the SQL query to execute
+ * @param j_result a json_t * reference that will be allocated and filled with the result
+ * @return H_OK on success
  */
 int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * query, json_t ** j_result);
 
@@ -492,9 +560,13 @@ int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * 
 /**
  * h_select_query_sqlite
  * Execute a select query on a sqlite connection, set the result structure with the returned values
+ * This is an internal function, you should use h_select_query instead
  * Should not be executed by the user because all parameters are supposed to be correct
  * if result is NULL, the query is executed but no value will be returned
  * Useful for SELECT statements
+ * @param conn the connection to the database
+ * @param query the SQL query to execute
+ * @param result a _h_result that will be filled with the result
  * return H_OK on success
  */
 int h_select_query_sqlite(const struct _h_connection * conn, const char * query, struct _h_result * result);
@@ -511,7 +583,13 @@ int h_select_query_sqlite(const struct _h_connection * conn, const char * query,
 /**
  * h_connect_mariadb
  * Opens a database connection to a mariadb server
- * return pointer to a struct _h_connection * on success, NULL on error
+ * @param host the hostname of the database server
+ * @param user the username to connect to the database
+ * @param passwd the password to connect to the database
+ * @param db the database name
+ * @param port the TCP port number for the database connection, 0 means system default
+ * @param unix_socket a UNIX socket to use for the connection, optional
+ * @return pointer to a struct _h_connection * on success, NULL on error
  */
 struct _h_connection * h_connect_mariadb(const char * host, const char * user, const char * passwd, const char * db, const unsigned int port, const char * unix_socket);
 
@@ -531,13 +609,21 @@ void h_close_mariadb(struct _h_connection * conn);
 
 /**
  * escape a string
+ * This is an internal function, you should use h_escape_string instead
  * returned value must be h_free'd after use
+ * @param conn the connection to the database
+ * @param unsafe the string to escape
+ * @return a heap-allocated string
  */
 char * h_escape_string_mariadb(const struct _h_connection * conn, const char * unsafe);
 
 /**
  * escape a string
+ * This is an internal function, you should use h_escape_string_with_quotes instead
  * returned value must be h_free'd after use
+ * @param conn the connection to the database
+ * @param unsafe the string to escape
+ * @return a heap-allocated string
  */
 char * h_escape_string_with_quotes_mariadb(const struct _h_connection * conn, const char * unsafe);
 
@@ -553,14 +639,20 @@ char * h_escape_string_with_quotes_mariadb(const struct _h_connection * conn, co
 
 /**
  * Return the id of the last inserted value
+ * This is an internal function, you should use h_last_insert_id instead
+ * @param conn the connection to the database
+ * @return a long long int value
  */
 long long int h_last_insert_id_mariadb(const struct _h_connection * conn);
 
 /**
- * h_execute_query_json_mariadb
  * Execute a query on a mariadb connection, set the returned values in the json result
+ * This is an internal function, you should use h_execute_query_json instead
  * Should not be executed by the user because all parameters are supposed to be correct
- * return H_OK on success
+ * @param conn the connection to the database
+ * @param query the SQL query to execute
+ * @param j_result a json_t * reference that will be allocated and filled with the result
+ * @return H_OK on success
  */
 int h_execute_query_json_mariadb(const struct _h_connection * conn, const char * query, json_t ** j_result);
 
@@ -576,17 +668,27 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
 
 /**
  * h_execute_query_mariadb
- * Execute a query on a mariadb connection, set the result structure with the returned values
+ * Execute a select query on a mariadb connection, set the result structure with the returned values
+ * This is an internal function, you should use h_select_query instead
  * Should not be executed by the user because all parameters are supposed to be correct
  * if result is NULL, the query is executed but no value will be returned
- * return H_OK on success
+ * Useful for SELECT statements
+ * @param conn the connection to the database
+ * @param query the SQL query to execute
+ * @param result a _h_result that will be filled with the result
+ * @return H_OK on success
  */
 int h_execute_query_mariadb(const struct _h_connection * conn, const char * query, struct _h_result * result);
 
 /**
  * h_get_mariadb_value
  * convert value into a struct _h_data * depening on the m_type given
+ * This is an internal function, you should not use it
  * returned value must be h_free'd with h_clean_data_full after use
+ * @param value the value to convert
+ * @param length the length of the value
+ * @param m_type the data type
+ * @return a _h_data * contaning the converted value
  */
 struct _h_data * h_get_mariadb_value(const char * value, const unsigned long length, const int m_type);
 
@@ -602,12 +704,14 @@ struct _h_data * h_get_mariadb_value(const char * value, const unsigned long len
 /**
  * h_connect_pgsql
  * Opens a database connection to a PostgreSQL server
- * return pointer to a struct _h_connection * on sucess, NULL on error
+ * @param conninfo the connection info to connect to the pgsql database
+ * @return pointer to a struct _h_connection * on sucess, NULL on error
  */
 struct _h_connection * h_connect_pgsql(const char * conninfo);
 
 /**
  * close a pgsql connection
+ * @param conn the connection to the database
  */
 void h_close_pgsql(struct _h_connection * conn);
 
@@ -622,13 +726,21 @@ void h_close_pgsql(struct _h_connection * conn);
 
 /**
  * escape a string
- * returned value must be h_h_free'd after use
+ * This is an internal function, you should use h_escape_string instead
+ * returned value must be h_free'd after use
+ * @param conn the connection to the database
+ * @param unsafe the string to escape
+ * @return a heap-allocated string
  */
 char * h_escape_string_pgsql(const struct _h_connection * conn, const char * unsafe);
 
 /**
  * escape a string
- * returned value must be h_h_free'd after use
+ * This is an internal function, you should use h_escape_string_with_quotes instead
+ * returned value must be h_free'd after use
+ * @param conn the connection to the database
+ * @param unsafe the string to escape
+ * @return a heap-allocated string
  */
 char * h_escape_string_with_quotes_pgsql(const struct _h_connection * conn, const char * unsafe);
 
@@ -645,14 +757,20 @@ char * h_escape_string_with_quotes_pgsql(const struct _h_connection * conn, cons
 /**
  * h_execute_query_json_pgsql
  * Execute a query on a pgsql connection, set the returned values in the json results
+ * This is an internal function, you should use h_execute_query_json instead
  * Should not be executed by the user because all parameters are supposed to be correct
- * return H_OK on success
+ * @param conn the connection to the database
+ * @param query the SQL query to execute
+ * @param j_result a json_t * reference that will be allocated and filled with the result
+ * @return H_OK on success
  */
 int h_execute_query_json_pgsql(const struct _h_connection * conn, const char * query, json_t ** j_result);
 
 /**
  * Return the id of the last inserted value
- * Assuming you use sequences for automatically generated ids
+ * This is an internal function, you should use h_last_insert_id instead
+ * @param conn the connection to the database
+ * @return a long long int value
  */
 long long int h_last_insert_id_pgsql(const struct _h_connection * conn);
 
@@ -668,9 +786,14 @@ long long int h_last_insert_id_pgsql(const struct _h_connection * conn);
 
 /**
  * h_execute_query_pgsql
- * Execute a query on a pgsql connection, set the result structure with the returned values
+ * Execute a select query on a pgsql connection, set the result structure with the returned values
+ * This is an internal function, you should use h_select_query instead
  * Should not be executed by the user because all parameters are supposed to be correct
  * if result is NULL, the query is executed but no value will be returned
+ * Useful for SELECT statements
+ * @param conn the connection to the database
+ * @param query the SQL query to execute
+ * @param result a _h_result that will be filled with the result
  * return H_OK on success
  */
 int h_execute_query_pgsql(const struct _h_connection * conn, const char * query, struct _h_result * result);
