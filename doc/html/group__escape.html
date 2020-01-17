@@ -112,7 +112,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>h_escape_string Escapes a string returned value must be h_free'd after use</p>
+<p>h_escape_string Escapes a string </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+    <tr><td class="paramname">unsafe</td><td>the string to escape </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>a heap-allocated string returned value must be h_free'd after use</dd></dl>
 <p>h_escape_string Escapes a string returned value must be free'd after use </p>
 
 </div>
@@ -142,6 +149,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>h_escape_string_with_quotes Escapes a string and returns it ready to be inserted in the query </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+    <tr><td class="paramname">unsafe</td><td>the string to escape </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>a heap-allocated string returned value must be h_h_free'd after use</dd></dl>
 <p>h_escape_string_with_quotes Escapes a string and returns it ready to be inserted in the query returned value must be h_h_free'd after use </p>
 
 </div>
@@ -171,7 +186,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>escape a string returned value must be h_free'd after use </p>
+<p>escape a string returned value must be h_free'd after use This is an internal function, you should use h_escape_string instead </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+    <tr><td class="paramname">unsafe</td><td>the string to escape </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>a heap-allocated string </dd></dl>
 
 </div>
 </div>
@@ -200,7 +222,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>escape a string returned value must be h_free'd after use </p>
+<p>escape a string returned value must be h_free'd after use This is an internal function, you should use h_escape_string_with_quotes instead </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+    <tr><td class="paramname">unsafe</td><td>the string to escape </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>a heap-allocated string </dd></dl>
 
 </div>
 </div>
@@ -229,7 +258,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>escape a string returned value must be h_free'd after use </p>
+<p>escape a string This is an internal function, you should use h_escape_string instead returned value must be h_free'd after use </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+    <tr><td class="paramname">unsafe</td><td>the string to escape </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>a heap-allocated string </dd></dl>
 
 </div>
 </div>
@@ -258,7 +294,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>escape a string returned value must be h_free'd after use </p>
+<p>escape a string This is an internal function, you should use h_escape_string_with_quotes instead returned value must be h_free'd after use </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+    <tr><td class="paramname">unsafe</td><td>the string to escape </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>a heap-allocated string </dd></dl>
 
 </div>
 </div>
@@ -287,7 +330,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>escape a string returned value must be h_h_free'd after use </p>
+<p>escape a string This is an internal function, you should use h_escape_string instead returned value must be h_free'd after use </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+    <tr><td class="paramname">unsafe</td><td>the string to escape </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>a heap-allocated string </dd></dl>
 
 </div>
 </div>
@@ -316,7 +366,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>escape a string returned value must be h_h_free'd after use </p>
+<p>escape a string This is an internal function, you should use h_escape_string_with_quotes instead returned value must be h_free'd after use </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+    <tr><td class="paramname">unsafe</td><td>the string to escape </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>a heap-allocated string </dd></dl>
 
 </div>
 </div>

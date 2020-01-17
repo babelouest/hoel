@@ -135,6 +135,16 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>h_execute_query Execute a query, set the result structure with the returned values if available if result is NULL, the query is executed but no value will be returned </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+    <tr><td class="paramname">query</td><td>the SQL query to execute </td></tr>
+    <tr><td class="paramname">result</td><td>the result structure to fill the result data </td></tr>
+    <tr><td class="paramname">options</td><td>option to pass to the database engine options available H_OPTION_NONE (0): no option H_OPTION_SELECT: Execute a prepare statement (sqlite only) H_OPTION_EXEC: Execute an exec statement (sqlite only) </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>H_OK on success</dd></dl>
 <p>h_execute_query Execute a query, set the result structure with the returned values if available if result is NULL, the query is executed but no value will be returned options available H_OPTION_NONE (0): no option H_OPTION_SELECT: Execute a prepare statement (sqlite only) H_OPTION_EXEC: Execute an exec statement (sqlite only) return H_OK on success </p>
 
 </div>
@@ -164,6 +174,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>h_query_insert Execute an insert query </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+    <tr><td class="paramname">query</td><td>the SQL query to execute </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>H_OK on success</dd></dl>
 <p>h_query_insert Execute an insert query return H_OK on success </p>
 
 </div>
@@ -183,7 +201,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>h_query_last_insert_id return the id of the last inserted value return a pointer to <code>struct <a class="el" href="struct__h__data.html">_h_data</a> *</code> on success, NULL otherwise.</p>
+<p>h_query_last_insert_id return the id of the last inserted value </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>a pointer to <code>struct <a class="el" href="struct__h__data.html">_h_data</a> *</code> on success, NULL otherwise.</dd></dl>
 <p>h_query_last_insert_id return the id of the last inserted value return H_OK on success </p>
 
 </div>
@@ -213,6 +237,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>h_query_update Execute an update query </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+    <tr><td class="paramname">query</td><td>the SQL query to execute </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>H_OK on success</dd></dl>
 <p>h_query_update Execute an update query return H_OK on success </p>
 
 </div>
@@ -242,6 +274,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>h_query_delete Execute an delete query </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+    <tr><td class="paramname">query</td><td>the SQL query to execute </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>H_OK on success</dd></dl>
 <p>h_query_delete Execute an delete query return H_OK on success </p>
 
 </div>
@@ -277,6 +317,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>h_query_select Execute a select query, set the result structure with the returned values </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+    <tr><td class="paramname">query</td><td>the SQL query to execute </td></tr>
+    <tr><td class="paramname">result</td><td>the result structure to fill the result data </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>H_OK on success</dd></dl>
 <p>h_query_select Execute a select query, set the result structure with the returned values return H_OK on success </p>
 
 </div>
@@ -296,7 +345,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>h_clean_result Free all the memory allocated by the struct <a class="el" href="struct__h__result.html">_h_result</a> return H_OK on success</p>
+<p>h_clean_result Free all the memory allocated by the struct <a class="el" href="struct__h__result.html">_h_result</a> </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">result</td><td>the result to free </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>H_OK on success</dd></dl>
 <p>h_clean_result Free all the memory allocated by the struct <a class="el" href="struct__h__result.html">_h_result</a> </p>
 
 </div>
@@ -316,6 +371,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>h_clean_data Free memory allocated by the struct <a class="el" href="struct__h__data.html">_h_data</a> </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">data</td><td>the data to free </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>H_OK on success</dd></dl>
 <p>h_clean_data Free memory allocated by the struct <a class="el" href="struct__h__data.html">_h_data</a> return H_OK on success </p>
 
 </div>
@@ -335,6 +397,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>h_clean_data_full Free memory allocated by the struct <a class="el" href="struct__h__data.html">_h_data</a> and the struct <a class="el" href="struct__h__data.html">_h_data</a> pointer </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">data</td><td>the data to free </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>H_OK on success</dd></dl>
 <p>h_clean_data_full Free memory allocated by the struct <a class="el" href="struct__h__data.html">_h_data</a> and the struct <a class="el" href="struct__h__data.html">_h_data</a> pointer return H_OK on success </p>
 
 </div>
@@ -370,7 +439,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>h_select_query_sqlite Execute a select query on a sqlite connection, set the result structure with the returned values Should not be executed by the user because all parameters are supposed to be correct if result is NULL, the query is executed but no value will be returned Useful for SELECT statements return H_OK on success </p>
+<p>h_select_query_sqlite Execute a select query on a sqlite connection, set the result structure with the returned values This is an internal function, you should use h_select_query instead Should not be executed by the user because all parameters are supposed to be correct if result is NULL, the query is executed but no value will be returned Useful for SELECT statements </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+    <tr><td class="paramname">query</td><td>the SQL query to execute </td></tr>
+    <tr><td class="paramname">result</td><td>a <a class="el" href="struct__h__result.html">_h_result</a> that will be filled with the result return H_OK on success </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -405,7 +481,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>h_execute_query_mariadb Execute a query on a mariadb connection, set the result structure with the returned values Should not be executed by the user because all parameters are supposed to be correct if result is NULL, the query is executed but no value will be returned return H_OK on success </p>
+<p>h_execute_query_mariadb Execute a select query on a mariadb connection, set the result structure with the returned values This is an internal function, you should use h_select_query instead Should not be executed by the user because all parameters are supposed to be correct if result is NULL, the query is executed but no value will be returned Useful for SELECT statements </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+    <tr><td class="paramname">query</td><td>the SQL query to execute </td></tr>
+    <tr><td class="paramname">result</td><td>a <a class="el" href="struct__h__result.html">_h_result</a> that will be filled with the result </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>H_OK on success </dd></dl>
 
 </div>
 </div>
@@ -440,7 +524,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>h_get_mariadb_value convert value into a struct <a class="el" href="struct__h__data.html">_h_data</a> * depening on the m_type given returned value must be h_free'd with h_clean_data_full after use </p>
+<p>h_get_mariadb_value convert value into a struct <a class="el" href="struct__h__data.html">_h_data</a> * depening on the m_type given This is an internal function, you should not use it returned value must be h_free'd with h_clean_data_full after use </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">value</td><td>the value to convert </td></tr>
+    <tr><td class="paramname">length</td><td>the length of the value </td></tr>
+    <tr><td class="paramname">m_type</td><td>the data type </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>a <a class="el" href="struct__h__data.html">_h_data</a> * contaning the converted value </dd></dl>
 
 </div>
 </div>
@@ -475,7 +567,14 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>h_execute_query_pgsql Execute a query on a pgsql connection, set the result structure with the returned values Should not be executed by the user because all parameters are supposed to be correct if result is NULL, the query is executed but no value will be returned return H_OK on success </p>
+<p>h_execute_query_pgsql Execute a select query on a pgsql connection, set the result structure with the returned values This is an internal function, you should use h_select_query instead Should not be executed by the user because all parameters are supposed to be correct if result is NULL, the query is executed but no value will be returned Useful for SELECT statements </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+    <tr><td class="paramname">query</td><td>the SQL query to execute </td></tr>
+    <tr><td class="paramname">result</td><td>a <a class="el" href="struct__h__result.html">_h_result</a> that will be filled with the result return H_OK on success </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

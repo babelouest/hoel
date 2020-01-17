@@ -102,6 +102,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Close a database connection </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>H_OK on success</dd></dl>
 <p>Close a database connection return H_OK on success </p>
 
 </div>
@@ -121,6 +128,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>h_clean_connection free memory allocated by the struct <a class="el" href="struct__h__connection.html">_h_connection</a> </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>H_OK on success</dd></dl>
 <p>h_clean_connection free memory allocated by the struct <a class="el" href="struct__h__connection.html">_h_connection</a> return H_OK on success </p>
 
 </div>
@@ -140,7 +154,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>h_connect_sqlite Opens a database connection to a sqlite3 db file return pointer to a struct <a class="el" href="struct__h__connection.html">_h_connection</a> * on sucess, NULL on error</p>
+<p>h_connect_sqlite Opens a database connection to a sqlite3 db file </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">db_path</td><td>the path to the sqlite db file </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>pointer to a struct <a class="el" href="struct__h__connection.html">_h_connection</a> * on sucess, NULL on error</dd></dl>
 <p>Hoel database abstraction library</p>
 <p><a class="el" href="hoel-sqlite_8c.html">hoel-sqlite.c</a>: Sqlite3 specific functions</p>
 <p>Copyright 2015-2016 Nicolas Mora <a href="#" onclick="location.href='mai'+'lto:'+'mai'+'l@'+'bab'+'el'+'oue'+'st'+'.or'+'g'; return false;">mail@<span style="display: none;">.nosp@m.</span>babe<span style="display: none;">.nosp@m.</span>loues<span style="display: none;">.nosp@m.</span>t.or<span style="display: none;">.nosp@m.</span>g</a></p>
@@ -165,7 +185,12 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>close a sqlite3 connection </p>
+<p>close a sqlite3 connection </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -218,7 +243,18 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>h_connect_mariadb Opens a database connection to a mariadb server return pointer to a struct <a class="el" href="struct__h__connection.html">_h_connection</a> * on success, NULL on error</p>
+<p>h_connect_mariadb Opens a database connection to a mariadb server </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">host</td><td>the hostname of the database server </td></tr>
+    <tr><td class="paramname">user</td><td>the username to connect to the database </td></tr>
+    <tr><td class="paramname">passwd</td><td>the password to connect to the database </td></tr>
+    <tr><td class="paramname">db</td><td>the database name </td></tr>
+    <tr><td class="paramname">port</td><td>the TCP port number for the database connection, 0 means system default </td></tr>
+    <tr><td class="paramname">unix_socket</td><td>a UNIX socket to use for the connection, optional </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>pointer to a struct <a class="el" href="struct__h__connection.html">_h_connection</a> * on success, NULL on error</dd></dl>
 <p>Hoel database abstraction library</p>
 <p><a class="el" href="hoel-mariadb_8c.html">hoel-mariadb.c</a>: Maria DB/Mysql specific functions</p>
 <p>Copyright 2015-2016 Nicolas Mora <a href="#" onclick="location.href='mai'+'lto:'+'mai'+'l@'+'bab'+'el'+'oue'+'st'+'.or'+'g'; return false;">mail@<span style="display: none;">.nosp@m.</span>babe<span style="display: none;">.nosp@m.</span>loues<span style="display: none;">.nosp@m.</span>t.or<span style="display: none;">.nosp@m.</span>g</a></p>
@@ -262,7 +298,13 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>h_connect_pgsql Opens a database connection to a PostgreSQL server return pointer to a struct <a class="el" href="struct__h__connection.html">_h_connection</a> * on sucess, NULL on error</p>
+<p>h_connect_pgsql Opens a database connection to a PostgreSQL server </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conninfo</td><td>the connection info to connect to the pgsql database </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>pointer to a struct <a class="el" href="struct__h__connection.html">_h_connection</a> * on sucess, NULL on error</dd></dl>
 <p>Hoel database abstraction library</p>
 <p><a class="el" href="hoel-pgsql_8c.html">hoel-pgsql.c</a>: Postgre SQL specific functions</p>
 <p>Copyright 2015-2016 Nicolas Mora <a href="#" onclick="location.href='mai'+'lto:'+'mai'+'l@'+'bab'+'el'+'oue'+'st'+'.or'+'g'; return false;">mail@<span style="display: none;">.nosp@m.</span>babe<span style="display: none;">.nosp@m.</span>loues<span style="display: none;">.nosp@m.</span>t.or<span style="display: none;">.nosp@m.</span>g</a></p>
@@ -287,7 +329,12 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>close a pgsql connection </p>
+<p>close a pgsql connection </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">conn</td><td>the connection to the database </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
