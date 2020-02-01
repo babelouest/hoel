@@ -1,7 +1,7 @@
 # Hoel
 
 [![Build Status](https://travis-ci.com/babelouest/hoel.svg?branch=master)](https://travis-ci.com/babelouest/hoel)
-![C/C++ CI](https://github.com/babelouest/hoel/workflows/C/C++%20CI/badge.svg)
+![.github/workflows/ccpp.yml](https://github.com/babelouest/hoel/workflows/.github/workflows/ccpp.yml/badge.svg)
 
 Database abstraction library written in C.
 
