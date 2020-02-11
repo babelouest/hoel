@@ -1,5 +1,10 @@
 # Hoel Changelog
 
+## 1.4.14
+
+- Fix yet another set of bugs in the PostgreSQL backend
+- Add multi-backend test suite
+
 ## 1.4.13
 
 - Fix build when databases are disabled
