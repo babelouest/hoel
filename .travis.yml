@@ -29,7 +29,7 @@ script:
   - mkdir build && cd build
   - cmake -DWITH_JOURNALD=off -DBUILD_HOEL_TESTING=on ..
   - make
-  - sqlite3 /tmp/test.db < ../test/test.sql
+  - sqlite3 /tmp/test.db < ../test/test.sqlite3.sql
   - make test package
   - sudo make install
   - rm -rf * && cmake -DWITH_JOURNALD=OFF -DWITH_SQLITE3=off -DWITH_MARIADB=off -DWITH_PGSQL=on ..
@@ -57,5 +57,5 @@ script:
   - make clean debug DISABLE_MARIADB=1
   - make clean debug DISABLE_POSTGRESQL=1
   - if $(make clean debug DISABLE_SQLITE=1 DISABLE_MARIADB=1 DISABLE_POSTGRESQL=1 1>/dev/null 2&>1); then echo "Build with no DB fail" && exit 1; else echo "Build with no DB success"; fi
-  - sqlite3 /tmp/test.db < test/test.sql
+  - sqlite3 /tmp/test.db < test/test.sqlite3.sql
   - make clean check
