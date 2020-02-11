@@ -7,6 +7,7 @@ example_pgsql
 example_mariadb_json
 example_multi_mariadb
 core
+multi
 valgrind.txt
 hoel-cfg.h
 libhoel.pc
