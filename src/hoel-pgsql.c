@@ -186,7 +186,6 @@ static unsigned short h_get_type_from_oid(const struct _h_connection * conn, Oid
       return ((struct _h_pgsql *)conn->connection)->list_type[i].h_type;
     }
   }
-  pthread_mutex_unlock(&(((struct _h_pgsql *)conn->connection)->lock));
   return HOEL_COL_TYPE_TEXT;
 }
 
@@ -314,7 +313,7 @@ int h_execute_query_json_pgsql(const struct _h_connection * conn, const char * q
             } else {
               for(j = 0; ret == H_OK && j < nfields; j++) {
                 char * val = PQgetvalue(res, i, j);
-                if (val == NULL) {
+                if (val == NULL || PQgetisnull(res, i, j)) {
                   json_object_set_new(j_data, PQfname(res, j), json_null());
                 } else {
                   switch (h_get_type_from_oid(conn, PQftype(res, j))) {
