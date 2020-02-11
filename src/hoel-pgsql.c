@@ -233,7 +233,7 @@ int h_execute_query_pgsql(const struct _h_connection * conn, const char * query,
                   data = h_new_data_double(strtod(val, NULL));
                   break;
                 case HOEL_COL_TYPE_BLOB:
-                  data = h_new_data_blob(val, PQfsize(res, i));
+                  data = h_new_data_blob(val, PQgetlength(res, i, j));
                   break;
                 case HOEL_COL_TYPE_BOOL:
                   if (o_strcasecmp(val, "t") == 0) {
@@ -247,7 +247,7 @@ int h_execute_query_pgsql(const struct _h_connection * conn, const char * query,
                 case HOEL_COL_TYPE_DATE:
                 case HOEL_COL_TYPE_TEXT:
                 default:
-                  data = h_new_data_text(val, PQfsize(res, i));
+                  data = h_new_data_text(val, PQgetlength(res, i, j));
                   break;
               }
             }
@@ -324,7 +324,7 @@ int h_execute_query_json_pgsql(const struct _h_connection * conn, const char * q
                       json_object_set_new(j_data, PQfname(res, j), json_real(strtod(PQgetvalue(res, i, j), NULL)));
                       break;
                     case HOEL_COL_TYPE_BLOB:
-                      json_object_set_new(j_data, PQfname(res, j), json_stringn(PQgetvalue(res, i, j), PQfsize(res, i)));
+                      json_object_set_new(j_data, PQfname(res, j), json_stringn(PQgetvalue(res, i, j), PQgetlength(res, i, j)));
                       break;
                     case HOEL_COL_TYPE_BOOL:
                       if (o_strcasecmp(PQgetvalue(res, i, j), "t") == 0) {
