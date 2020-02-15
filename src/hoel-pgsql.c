@@ -54,6 +54,11 @@ struct _h_connection * h_connect_pgsql(const char * conninfo) {
   int ntuples, i;
   PGresult *res;
   pthread_mutexattr_t mutexattr;
+  o_malloc_t malloc_fn;
+  o_free_t free_fn;
+  
+  o_get_alloc_funcs(&malloc_fn, NULL, &free_fn);
+  json_set_alloc_funcs((json_malloc_t)malloc_fn, (json_free_t)free_fn);
   
   if (conninfo != NULL) {
     conn = o_malloc(sizeof(struct _h_connection));

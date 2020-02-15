@@ -42,6 +42,12 @@ struct _h_sqlite {
  */
 struct _h_connection * h_connect_sqlite(const char * db_path) {
   struct _h_connection * conn = NULL;
+  o_malloc_t malloc_fn;
+  o_free_t free_fn;
+  
+  o_get_alloc_funcs(&malloc_fn, NULL, &free_fn);
+  json_set_alloc_funcs((json_malloc_t)malloc_fn, (json_free_t)free_fn);
+
   if (db_path != NULL) {
     conn = o_malloc(sizeof(struct _h_connection));
     if (conn == NULL) {
