@@ -62,6 +62,7 @@ struct _h_connection * h_connect_sqlite(const char * db_path) {
                              sqlite3_errcode(((struct _h_sqlite *)conn->connection)->db_handle), 
                              sqlite3_errmsg(((struct _h_sqlite *)conn->connection)->db_handle));
       sqlite3_close(((struct _h_sqlite *)conn->connection)->db_handle);
+      free(conn->connection);
       free(conn);
       return NULL;
     } else {
