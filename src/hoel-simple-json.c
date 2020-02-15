@@ -559,15 +559,6 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
     return H_ERROR_MEMORY;
   }
   
-  if (str_order_by == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for str_order_by");
-    o_free(columns);
-    o_free(where_clause);
-    o_free(str_where_limit);
-    o_free(str_order_by);
-    return H_ERROR_MEMORY;
-  }
-  
   query = msprintf("SELECT %s FROM %s WHERE %s %s %s", columns, table, where_clause, str_order_by, str_where_limit);
   if (query == NULL) {
     y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_select Error allocating query");
