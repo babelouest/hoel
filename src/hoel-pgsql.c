@@ -56,17 +56,17 @@ struct _h_connection * h_connect_pgsql(const char * conninfo) {
   pthread_mutexattr_t mutexattr;
   
   if (conninfo != NULL) {
-    conn = malloc(sizeof(struct _h_connection));
+    conn = o_malloc(sizeof(struct _h_connection));
     if (conn == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for conn");
       return NULL;
     }
     
     conn->type = HOEL_DB_TYPE_PGSQL;
-    conn->connection = malloc(sizeof(struct _h_pgsql));
+    conn->connection = o_malloc(sizeof(struct _h_pgsql));
     if (conn->connection == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for conn->connection");
-      free(conn);
+      o_free(conn);
       return NULL;
     }
     ((struct _h_pgsql *)conn->connection)->db_handle = PQconnectdb(conninfo);
@@ -77,8 +77,8 @@ struct _h_connection * h_connect_pgsql(const char * conninfo) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error connecting to PostgreSQL Database");
       y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel - Error message: \"%s\"", PQerrorMessage(((struct _h_pgsql *)conn->connection)->db_handle));
       PQfinish(((struct _h_pgsql *)conn->connection)->db_handle);
-      free(conn->connection);
-      free(conn);
+      o_free(conn->connection);
+      o_free(conn);
       conn = NULL;
     } else {
       res = PQexec(((struct _h_pgsql *)conn->connection)->db_handle, "select oid, typname from pg_type");
@@ -87,8 +87,8 @@ struct _h_connection * h_connect_pgsql(const char * conninfo) {
         y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", PQerrorMessage(((struct _h_pgsql *)conn->connection)->db_handle));
         y_log_message(Y_LOG_LEVEL_DEBUG, "Query: \"select oid, typname from pg_type\"");
         PQfinish(((struct _h_pgsql *)conn->connection)->db_handle);
-        free(conn->connection);
-        free(conn);
+        o_free(conn->connection);
+        o_free(conn);
         conn = NULL;
       } else {
         ntuples = PQntuples(res);
@@ -124,8 +124,8 @@ struct _h_connection * h_connect_pgsql(const char * conninfo) {
         } else {
           y_log_message(Y_LOG_LEVEL_ERROR, "Error allocating resources for list_type");
           PQfinish(((struct _h_pgsql *)conn->connection)->db_handle);
-          free(conn->connection);
-          free(conn);
+          o_free(conn->connection);
+          o_free(conn);
           conn = NULL;
         }
         PQclear(res);

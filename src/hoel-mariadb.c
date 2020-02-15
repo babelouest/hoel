@@ -54,28 +54,28 @@ struct _h_connection * h_connect_mariadb(const char * host, const char * user, c
   my_bool reconnect = 1;
 
   if (host != NULL && db != NULL) {
-    conn = malloc(sizeof(struct _h_connection));
+    conn = o_malloc(sizeof(struct _h_connection));
     if (conn == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for conn");
       return NULL;
     }
     
     conn->type = HOEL_DB_TYPE_MARIADB;
-    conn->connection = malloc(sizeof(struct _h_mariadb));
+    conn->connection = o_malloc(sizeof(struct _h_mariadb));
     if (conn->connection == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for conn->connection");
-      free(conn);
+      o_free(conn);
       return NULL;
     }
     if (mysql_library_init(0, NULL, NULL)) {
       y_log_message(Y_LOG_LEVEL_ERROR, "mysql_library_init error, aborting");
-      free(conn);
+      o_free(conn);
       return NULL;
     }
     ((struct _h_mariadb *)conn->connection)->db_handle = mysql_init(NULL);
     if (((struct _h_mariadb *)conn->connection)->db_handle == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "mysql_init error, aborting");
-      free(conn);
+      o_free(conn);
       return NULL;
     }
     if (mysql_real_connect(((struct _h_mariadb *)conn->connection)->db_handle,
@@ -83,7 +83,7 @@ struct _h_connection * h_connect_mariadb(const char * host, const char * user, c
       y_log_message(Y_LOG_LEVEL_ERROR, "Error connecting to mariadb database %s", db);
       y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", mysql_error(((struct _h_mariadb *)conn->connection)->db_handle));
       mysql_close(((struct _h_mariadb *)conn->connection)->db_handle);
-      free(conn);
+      o_free(conn);
       return NULL;
     } else {
       /* Set MYSQL_OPT_RECONNECT to true to reconnect automatically when connection is closed by the server (to avoid CR_SERVER_GONE_ERROR) */
@@ -115,7 +115,7 @@ void h_close_mariadb(struct _h_connection * conn) {
  * returned value must be free'd after use
  */
 char * h_escape_string_mariadb(const struct _h_connection * conn, const char * unsafe) {
-  char * escaped = malloc(2 * strlen(unsafe) + sizeof(char));
+  char * escaped = o_malloc(2 * strlen(unsafe) + sizeof(char));
   if (escaped == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for escaped");
     return NULL;

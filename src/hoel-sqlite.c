@@ -43,17 +43,17 @@ struct _h_sqlite {
 struct _h_connection * h_connect_sqlite(const char * db_path) {
   struct _h_connection * conn = NULL;
   if (db_path != NULL) {
-    conn = malloc(sizeof(struct _h_connection));
+    conn = o_malloc(sizeof(struct _h_connection));
     if (conn == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "h_connect_sqlite - Error allocating resources");
       return NULL;
     }
     
     conn->type = HOEL_DB_TYPE_SQLITE;
-    conn->connection = malloc(sizeof(struct _h_sqlite));
+    conn->connection = o_malloc(sizeof(struct _h_sqlite));
     if (conn->connection == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "h_connect_sqlite - Error allocating resources");
-      free(conn);
+      o_free(conn);
       return NULL;
     }
     if (sqlite3_open_v2(db_path, &((struct _h_sqlite *)conn->connection)->db_handle, SQLITE_OPEN_READWRITE|SQLITE_OPEN_FULLMUTEX, NULL) != SQLITE_OK) {
@@ -62,8 +62,8 @@ struct _h_connection * h_connect_sqlite(const char * db_path) {
                              sqlite3_errcode(((struct _h_sqlite *)conn->connection)->db_handle), 
                              sqlite3_errmsg(((struct _h_sqlite *)conn->connection)->db_handle));
       sqlite3_close(((struct _h_sqlite *)conn->connection)->db_handle);
-      free(conn->connection);
-      free(conn);
+      o_free(conn->connection);
+      o_free(conn);
       return NULL;
     } else {
       return conn;
