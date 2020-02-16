@@ -537,15 +537,16 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
     } else {
       str_where_limit = msprintf("LIMIT %" JSON_INTEGER_FORMAT, limit);
     }
-    if (str_where_limit == NULL) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for str_where_limit");
-      o_free(columns);
-      o_free(where_clause);
-      return H_ERROR_MEMORY;
-    }
   } else {
     str_where_limit = o_strdup("");
   }
+  if (str_where_limit == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for str_where_limit");
+    o_free(columns);
+    o_free(where_clause);
+    return H_ERROR_MEMORY;
+  }
+
   if (order_by != NULL && json_is_string(order_by)) {
     str_order_by = msprintf("ORDER BY %s", json_string_value(order_by));
   } else {
@@ -556,15 +557,6 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
     o_free(columns);
     o_free(where_clause);
     o_free(str_where_limit);
-    return H_ERROR_MEMORY;
-  }
-  
-  if (str_order_by == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for str_order_by");
-    o_free(columns);
-    o_free(where_clause);
-    o_free(str_where_limit);
-    o_free(str_order_by);
     return H_ERROR_MEMORY;
   }
   
