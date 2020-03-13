@@ -9,7 +9,7 @@ Simple and easy to use database access library. Works with SQLite 3, MariaDB/Mys
 
 # Online documentation
 
-See the [online documentation](https://babelouest.github.io/hoel/doc/html/) for a doxygen format of the API documentation.
+See the [online documentation](https://babelouest.github.io/hoel/) for a doxygen format of the API documentation.
 
 # Installation
 
