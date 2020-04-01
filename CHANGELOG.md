@@ -1,5 +1,10 @@
 # Hoel Changelog
 
+## 1.4.15
+
+- Fix memory leak
+- Update doc
+
 ## 1.4.14
 
 - Fix yet another set of bugs in the PostgreSQL backend
