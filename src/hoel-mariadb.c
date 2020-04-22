@@ -51,7 +51,7 @@ struct _h_mariadb {
 struct _h_connection * h_connect_mariadb(const char * host, const char * user, const char * passwd, const char * db, const unsigned int port, const char * unix_socket) {
   struct _h_connection * conn = NULL;
   pthread_mutexattr_t mutexattr;
-  my_bool reconnect = 1;
+  bool reconnect = 1;
   o_malloc_t malloc_fn;
   o_free_t free_fn;
   
