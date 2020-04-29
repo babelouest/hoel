@@ -413,7 +413,7 @@ if (INSTALL_HEADER)
   endif ()
 
   if (WITH_MARIADB)
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, default-libmysqlclient-dev (>= 1.0.0)")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, default-libmysqlclient-dev|libmysqlclient-dev (>= 1.0.0)")
   endif ()
 
   if (WITH_PGSQL)
@@ -426,7 +426,7 @@ else ()
   endif ()
 
   if (WITH_MARIADB)
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, default-mysql-client (>= 1.0.0)")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, default-mysql-client|libmysqlclient (>= 1.0.0)")
   endif ()
 
   if (WITH_PGSQL)
