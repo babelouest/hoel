@@ -27,6 +27,7 @@
 /* MariaDB library Includes */
 #include <mysql.h>
 #include <string.h>
+#include <stdbool.h>
 
 /**
  * MariaDB handle
