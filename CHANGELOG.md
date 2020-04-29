@@ -1,5 +1,10 @@
 # Hoel Changelog
 
+## 1.4.16
+
+- Use stdbool instead of `my_bool` which is deprecated
+- Uppdate package dependencies in cmake script
+
 ## 1.4.15
 
 - Fix memory leak
