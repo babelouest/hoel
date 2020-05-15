@@ -5,6 +5,8 @@ sudo: required
 
 language: c
 
+dist: bionic
+
 addons:
   apt:
     packages: [ autoconf, automake, libtool, libsqlite3-dev, libmysqlclient-dev, libpq-dev, check, libsubunit-dev, cppcheck ]
