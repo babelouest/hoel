@@ -4,7 +4,7 @@
  * 
  * hoel-simple-json.c: hoel simple Json query functions
  * 
- * Copyright 2015-2016 Nicolas Mora <mail@babelouest.org>
+ * Copyright 2015-2020 Nicolas Mora <mail@babelouest.org>
  *
  * This program is o_free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License

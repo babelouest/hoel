@@ -1,3 +1,5 @@
+-- Public domain, no copyright. Use at your own risk
+
 DROP TABLE IF EXISTS test_table;
 
 CREATE TABLE test_table (
