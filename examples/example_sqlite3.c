@@ -1,3 +1,12 @@
+/**
+ * 
+ * Example program using SQLite3 to execute SQL statements
+ * 
+ * Copyright 2016-2018 Nicolas Mora <mail@babelouest.org>
+ *
+ * License: MIT
+ *
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <jansson.h>

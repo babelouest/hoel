@@ -1,3 +1,4 @@
+-- License: MIT
 CREATE TABLE other_test (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,

@@ -1,3 +1,4 @@
+-- License: MIT
 DROP TABLE IF EXISTS other_test;
 
 CREATE TABLE other_test (

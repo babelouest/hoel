@@ -1,3 +1,12 @@
+/**
+ * 
+ * Example program using MariaDB to execute SQL statements
+ * 
+ * Copyright 2016-2018 Nicolas Mora <mail@babelouest.org>
+ *
+ * License: MIT
+ *
+ */
 #include <hoel.h>
 #include <yder.h>
 
