@@ -50,8 +50,8 @@ jobs:
     #   make bootstrap
     #   make release
         mkdir build && cd build
-        cmake -DBUILD_HOEL_TESTING=on ..
-        make
+        cmake -DBUILD_HOEL_DOCUMENTATION=on ..
+        make && make doc
         sudo make install
 
     - name: Perform CodeQL Analysis
