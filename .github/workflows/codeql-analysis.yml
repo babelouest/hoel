@@ -47,8 +47,6 @@ jobs:
     #    uses a compiled language
 
     #- run: |
-    #   make bootstrap
-    #   make release
         mkdir build && cd build
         cmake -DBUILD_HOEL_DOCUMENTATION=on ..
         make && make doc
