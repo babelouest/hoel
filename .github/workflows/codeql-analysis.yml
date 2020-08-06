@@ -47,9 +47,13 @@ jobs:
     #    uses a compiled language
 
     - run: |
-        mkdir build && cd build
+        sudo apt-get update
+        sudo apt-get install -y cmake pkg-config libsystemd-dev libsqlite3-dev libmysqlclient-dev libpq-dev libjansson-dev sqlite3 doxygen
+        mkdir build
+        cd build
         cmake -DBUILD_HOEL_DOCUMENTATION=on ..
-        make && make doc
+        make
+        make doc
         sudo make install
 
     - name: Perform CodeQL Analysis
