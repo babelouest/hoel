@@ -5,7 +5,7 @@
 
 Database abstraction library written in C.
 
-Simple and easy to use database access library. Works with SQLite 3, MariaDB/MySQL and PostgreSQL databases. Uses a JSON-based language with `jansson` to execute simple queries based on one table.
+Simple and easy to use database access library. Works with SQLite 3, MariaDB and PostgreSQL databases. Uses a JSON-based language with `jansson` to execute simple queries based on one table.
 
 # Online documentation
 
@@ -27,7 +27,7 @@ $ sudo apt-get install libjansson-dev
 
 Install Hoel database dependencies based on your requirements:
 - SQLite3: Install the package `libsqlite3-dev`
-- MariaDB/MySQL: Install the package `libmysqlclient-dev` or `libmariadbclient-dev`
+- MariaDB: Install the package `libmariadb-dev`
 - PostgreSQL: Install the package `libpq-dev`
 
 ### Distribution packages
@@ -48,7 +48,7 @@ You can install Hoel with a pre-compiled package available in the [release pages
 For example, to install Hoel with the `hoel-dev-full_2.3.0_Debian_stretch_x86_64.tar.gz` package downloaded on the `releases` page, you must execute the following commands:
 
 ```shell
-$ sudo apt install -y libjansson-dev libmariadbclient-dev libsqlite3-dev libpq-dev libsystemd-dev
+$ sudo apt install -y libjansson-dev libmariadb-dev libsqlite3-dev libpq-dev libsystemd-dev
 $ wget https://github.com/babelouest/hoel/releases/download/v1.4.0/hoel-dev-full_1.4.0_Debian_stretch_x86_64.tar.gz
 $ tar xf hoel-dev-full_1.4.0_Debian_stretch_x86_64.tar.gz
 $ sudo dpkg -i liborcania-dev_1.2.0_Debian_stretch_x86_64.deb
@@ -77,7 +77,7 @@ $ make && sudo make install
 
 The available options for CMake are:
 - `-DWITH_SQLITE3=[on|off]` (default `on`): Enable/disable SQLite3 database backend
-- `-DWITH_MARIADB=[on|off]` (default `on`): Enable/disable MariaDB/MySQL database backend
+- `-DWITH_MARIADB=[on|off]` (default `on`): Enable/disable MariaDB database backend
 - `-DWITH_PGSQL=[on|off]` (default `on`): Enable/disable PostgreSQL database backend
 - `-DWITH_JOURNALD=[on|off]` (default `on`): Build with journald (SystemD) support for logging
 - `-DBUILD_STATIC=[on|off]` (default `off`): Build the static archive in addition to the shared library
@@ -131,7 +131,7 @@ $ make DISABLE_SQLITE=1
 $ sudo make install
 ```
 
-#### MariaDB/MySQL
+#### MariaDB
 
 Add DISABLE_MARIADB=1 to the `make` command:
 
@@ -260,7 +260,7 @@ The meaning of existence of the function `h_escape_string_with_quotes` is becaus
 
 TL;DR:
 - Use `h_escape_string_with_quotes` only if you use a PostgreSQL database.
-- You can use both `h_escape_string_with_quotes` and `h_escape_string` if you use only SQLite3 and/or MariaDB/MySQL databases.
+- You can use both `h_escape_string_with_quotes` and `h_escape_string` if you use only SQLite3 and/or MariaDB databases.
 
 If the unsafe string contains backslashes `"\"`, the escaped string will have the pattern `E'<safe>'`, otherwise it will have the pattern `'<safe>'`. Since the function `h_escape_string` must return the safe string only, without surroundings quotes `'`, the format `E'<safe>'`  is incompatible with Hoel API.
 
