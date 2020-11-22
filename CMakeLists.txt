@@ -127,7 +127,7 @@ else ()
   set(_HOEL_SQLITE OFF)
 endif ()
 
-option(WITH_MARIADB "Use MariaDB/MySQL library" ON)
+option(WITH_MARIADB "Use MariaDB library" ON)
 
 if (WITH_MARIADB)
   include(FindMYSQL)
@@ -169,7 +169,7 @@ set (CMAKE_EXTRA_INCLUDE_FILES ${PROJECT_BINARY_DIR})
 include_directories(${PROJECT_BINARY_DIR})
 
 if (NOT WITH_PGSQL AND NOT WITH_MARIADB AND NOT WITH_SQLITE3)
-  MESSAGE(FATAL_ERROR "You must enable at least one databasse backend: Sqlite3, MariaDB/MySQL or PostgreSQL")
+  MESSAGE(FATAL_ERROR "You must enable at least one databasse backend: Sqlite3, MariaDB or PostgreSQL")
 endif ()
 
 set (PKGCONF_REQ "")
@@ -414,7 +414,7 @@ if (INSTALL_HEADER)
   endif ()
 
   if (WITH_MARIADB)
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, default-libmysqlclient-dev|libmysqlclient-dev (>= 1.0.0)")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, default-libmysqlclient-dev|libmariadb-dev")
   endif ()
 
   if (WITH_PGSQL)
@@ -431,7 +431,7 @@ else ()
   endif ()
 
   if (WITH_MARIADB)
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, default-mysql-client|libmysqlclient (>= 1.0.0)")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, default-mysql-client|libmariadb3|libmariadb2")
   endif ()
 
   if (WITH_PGSQL)
