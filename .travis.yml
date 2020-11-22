@@ -7,7 +7,7 @@ dist: bionic
 
 addons:
   apt:
-    packages: [ autoconf, automake, libtool, libsqlite3-dev, libmysqlclient-dev, libpq-dev, libjansson-dev, libsystemd-dev, check, libsubunit-dev, cppcheck ]
+    packages: [ autoconf, automake, libtool, libsqlite3-dev, libmariadb-dev, libpq-dev, libjansson-dev, libsystemd-dev, check, libsubunit-dev, cppcheck ]
 
 jobs:
   include:

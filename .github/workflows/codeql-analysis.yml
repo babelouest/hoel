@@ -48,7 +48,7 @@ jobs:
 
     - run: |
         sudo apt-get update
-        sudo apt-get install -y cmake pkg-config libsystemd-dev libsqlite3-dev libmysqlclient-dev libpq-dev libjansson-dev sqlite3 doxygen
+        sudo apt-get install -y cmake pkg-config libsystemd-dev libsqlite3-dev libmariadb-dev libpq-dev libjansson-dev sqlite3 doxygen
         mkdir build
         cd build
         cmake -DBUILD_HOEL_DOCUMENTATION=on ..
