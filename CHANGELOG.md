@@ -1,5 +1,10 @@
 # Hoel Changelog
 
+## 1.4.17
+
+- Code cleaning
+- Increase dependencies version required
+
 ## 1.4.16
 
 - Use stdbool instead of `my_bool` which is deprecated
