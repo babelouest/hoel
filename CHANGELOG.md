@@ -1,5 +1,9 @@
 # Hoel Changelog
 
+## 1.4.18
+
+- Remove Travis CI tests
+
 ## 1.4.17
 
 - Code cleaning
