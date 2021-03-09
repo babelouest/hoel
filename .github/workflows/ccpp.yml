@@ -10,7 +10,7 @@ jobs:
     - name: install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake pkg-config check libsubunit-dev cppcheck libsystemd-dev libsqlite3-dev libmariadb-dev libpq-dev libjansson-dev sqlite3
+        sudo apt-get install -y cmake pkg-config check libsubunit-dev cppcheck libsystemd-dev libsqlite3-dev default-mysql-client default-libmysqlclient-dev libpq-dev libjansson-dev sqlite3
     - name: cppcheck
       run: cppcheck --force --enable=warning,missingInclude --error-exitcode=1 .
     - name: build
