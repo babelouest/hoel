@@ -10,26 +10,32 @@ HOEL_INCLUDE=../include
 CC=gcc
 CFLAGS=-Wall -I$(HOEL_INCLUDE) -D_REENTRANT -DDEBUG -g -O0
 HOEL_LOCATION=../src
-LIBS=-lc -lyder -lhoel -ljansson -lcheck -lpthread -lm -lrt -lsubunit -L$(HOEL_LOCATION)
+LDFLAGS=-lc $(shell pkg-config --libs liborcania) $(shell pkg-config --libs libyder) $(shell pkg-config --libs libhoel) $(shell pkg-config --libs jansson) -L$(HOEL_LOCATION) $(shell pkg-config --libs check)
+VALGRIND_COMMAND=valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all
+TARGET=core multi
+VERBOSE=0
+MEMCHECK=0
 
 all: test
 
 clean:
-	rm -f *.o core multi valgrind.txt
+	rm -f *.o $(TARGET) valgrind-*.txt *.log
 
-libhoel.so:
+$(HOEL_LIBRARY): $(HOEL_INCLUDE)/iddawc.h $(HOEL_LOCATION)/iddawc.c
 	cd $(HOEL_LOCATION) && $(MAKE) debug
 
-core: core.c
-	$(CC) $(CFLAGS) core.c -o core $(LIBS)
+%: $(HOEL_LIBRARY) %.c
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
-test_core: libhoel.so core
-	-LD_LIBRARY_PATH=$(HOEL_LOCATION):${LD_LIBRARY_PATH} ./core
+test_%: % $(HOEL_LIBRARY)
+	@if [ "$(VERBOSE)" = "0" ] && [ "$(MEMCHECK)" = "0" ]; then \
+		LD_LIBRARY_PATH=$(HOEL_LOCATION):${LD_LIBRARY_PATH} ./run_test.sh ./$^; \
+	elif [ "$(MEMCHECK)" = "0" ]; then \
+		LD_LIBRARY_PATH=$(HOEL_LOCATION):${LD_LIBRARY_PATH} ./$^ ; \
+	else \
+		CK_FORK=no LD_LIBRARY_PATH=$(HOEL_LOCATION):${LD_LIBRARY_PATH} $(VALGRIND_COMMAND) ./$^ 2>valgrind-$@.txt; \
+	fi
 
-multi: multi.c
-	$(CC) $(CFLAGS) multi.c -o multi $(LIBS)
+test: $(TARGET) test_core test_multi
 
-test_multi: libhoel.so multi
-	-LD_LIBRARY_PATH=$(HOEL_LOCATION):${LD_LIBRARY_PATH} ./multi
-
-test: test_core
+check: test
