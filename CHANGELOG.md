@@ -3,6 +3,7 @@
 ## 1.4.18
 
 - Remove Travis CI tests
+- Use `o_strlen` instead of `strlen`
 
 ## 1.4.17
 
