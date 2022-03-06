@@ -156,7 +156,7 @@ void h_close_pgsql(struct _h_connection * conn) {
  * returned value must be free'd after use
  */
 char * h_escape_string_pgsql(const struct _h_connection * conn, const char * unsafe) {
-  char * escaped = PQescapeLiteral(((struct _h_pgsql *)conn->connection)->db_handle, unsafe, strlen(unsafe)), * to_return = NULL;
+  char * escaped = PQescapeLiteral(((struct _h_pgsql *)conn->connection)->db_handle, unsafe, o_strlen(unsafe)), * to_return = NULL;
   if (escaped != NULL) {
     if (escaped[0] == '\'' && escaped[o_strlen(escaped)-1] == '\'') {
       to_return = o_strndup((escaped+1), o_strlen((escaped+1))-1);
@@ -171,7 +171,7 @@ char * h_escape_string_pgsql(const struct _h_connection * conn, const char * uns
  * returned value must be free'd after use
  */
 char * h_escape_string_with_quotes_pgsql(const struct _h_connection * conn, const char * unsafe) {
-  char * escaped = PQescapeLiteral(((struct _h_pgsql *)conn->connection)->db_handle, unsafe, strlen(unsafe)), * to_return = NULL;
+  char * escaped = PQescapeLiteral(((struct _h_pgsql *)conn->connection)->db_handle, unsafe, o_strlen(unsafe)), * to_return = NULL;
   if (escaped != NULL) {
     to_return = o_strdup(escaped);
     PQfreemem(escaped);

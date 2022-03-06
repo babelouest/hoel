@@ -121,12 +121,12 @@ void h_close_mariadb(struct _h_connection * conn) {
  * returned value must be free'd after use
  */
 char * h_escape_string_mariadb(const struct _h_connection * conn, const char * unsafe) {
-  char * escaped = o_malloc(2 * strlen(unsafe) + sizeof(char));
+  char * escaped = o_malloc(2 * o_strlen(unsafe) + sizeof(char));
   if (escaped == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for escaped");
     return NULL;
   }
-  mysql_real_escape_string(((struct _h_mariadb *)conn->connection)->db_handle, escaped, unsafe, strlen(unsafe));
+  mysql_real_escape_string(((struct _h_mariadb *)conn->connection)->db_handle, escaped, unsafe, o_strlen(unsafe));
   return escaped;
 }
 

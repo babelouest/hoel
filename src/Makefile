@@ -121,7 +121,7 @@ clean:
 	rm -f *.o *.so *.a $(OUTPUT) $(OUTPUT).* $(CONFIG_FILE) $(PKGCONFIG_FILE)
 
 install: all $(PKGCONFIG_FILE)
-	cp $(OUTPUT).$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH) $(DESTDIR)/lib
+	install $(OUTPUT).$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH) $(DESTDIR)/lib
 	mkdir -p $(DESTDIR)/lib/pkgconfig/ $(DESTDIR)/include
 	install -m644 $(PKGCONFIG_FILE) $(DESTDIR)/lib/pkgconfig/
 	install -m644 $(HOEL_INCLUDE)/hoel.h $(DESTDIR)/include

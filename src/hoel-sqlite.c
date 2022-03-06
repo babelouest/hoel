@@ -143,7 +143,7 @@ int h_select_query_sqlite(const struct _h_connection * conn, const char * query,
   int sql_result, row_result, nb_columns, col, row, res;
   struct _h_data * data = NULL, * cur_row = NULL;
   
-  sql_result = sqlite3_prepare_v2(((struct _h_sqlite *)conn->connection)->db_handle, query, strlen(query)+1, &stmt, NULL);
+  sql_result = sqlite3_prepare_v2(((struct _h_sqlite *)conn->connection)->db_handle, query, o_strlen(query)+1, &stmt, NULL);
   
   if (sql_result == SQLITE_OK) {
     nb_columns = sqlite3_column_count(stmt);
@@ -247,7 +247,7 @@ int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * 
     return H_ERROR_PARAMS;
   }
   
-  sql_result = sqlite3_prepare_v2(((struct _h_sqlite *)conn->connection)->db_handle, query, strlen(query)+1, &stmt, NULL);
+  sql_result = sqlite3_prepare_v2(((struct _h_sqlite *)conn->connection)->db_handle, query, o_strlen(query)+1, &stmt, NULL);
   
   if (sql_result == SQLITE_OK) {
     nb_columns = sqlite3_column_count(stmt);
