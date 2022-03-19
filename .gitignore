@@ -11,3 +11,4 @@ multi
 valgrind.txt
 hoel-cfg.h
 libhoel.pc
+*.log
