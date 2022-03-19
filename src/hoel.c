@@ -133,13 +133,14 @@ char * h_escape_string_with_quotes(const struct _h_connection * conn, const char
  * return H_OK on success
  */
 int h_execute_query(const struct _h_connection * conn, const char * query, struct _h_result * result, int options) {
+  UNUSED(result);
   if (conn != NULL && conn->connection != NULL && query != NULL) {
     if (0) {
       /* Not happening */
 #ifdef _HOEL_SQLITE
     } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
       if (options & H_OPTION_EXEC) {
-        return h_exec_query_sqlite(conn, query);
+        return h_execute_query_sqlite(conn, query);
       } else {
         return h_select_query_sqlite(conn, query, result);
       }
