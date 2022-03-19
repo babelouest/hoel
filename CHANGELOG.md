@@ -1,5 +1,10 @@
 # Hoel Changelog
 
+## 1.4.20
+
+- Rename `h_exec_query_sqlite` to `h_execute_query_sqlite`, add `h_exec_query_sqlite` that redirects to `h_execute_query_sqlite`
+- Implement all dummy functions when a database backend is not supported
+
 ## 1.4.19
 
 - Use `o_strlen` instead of `strlen`
