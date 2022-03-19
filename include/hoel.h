@@ -525,6 +525,16 @@ long long int h_last_insert_id_sqlite(const struct _h_connection * conn);
 
 /**
  * h_exec_query_sqlite
+ * legacy function name, didn't realize the typo until now...
+ * redirect to h_execute_query_sqlite
+ * @param conn the connection to the database
+ * @param query the SQL query to execute
+ * @return H_OK on success
+ */
+int h_exec_query_sqlite(const struct _h_connection * conn, const char * query);
+
+/**
+ * h_execute_query_sqlite
  * Execute a query on a sqlite connection
  * This is an internal function, you should use h_exec_query instead
  * Should not be executed by the user because all parameters are supposed to be correct
@@ -533,7 +543,7 @@ long long int h_last_insert_id_sqlite(const struct _h_connection * conn);
  * @param query the SQL query to execute
  * @return H_OK on success
  */
-int h_exec_query_sqlite(const struct _h_connection * conn, const char * query);
+int h_execute_query_sqlite(const struct _h_connection * conn, const char * query);
 
 /**
  * h_execute_query_json_sqlite
