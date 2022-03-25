@@ -531,7 +531,7 @@ long long int h_last_insert_id_sqlite(const struct _h_connection * conn);
  * @param query the SQL query to execute
  * @return H_OK on success
  */
-int h_exec_query_sqlite(const struct _h_connection * conn, const char * query);
+#define h_exec_query_sqlite(conn, query) h_execute_query_sqlite(conn, query)
 
 /**
  * h_execute_query_sqlite

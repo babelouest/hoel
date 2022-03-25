@@ -212,17 +212,6 @@ int h_select_query_sqlite(const struct _h_connection * conn, const char * query,
 }
 
 /**
- * h_exec_query_sqlite
- * Execute a query on a sqlite connection
- * Should not be executed by the user because all parameters are supposed to be correct
- * No result is returned, useful for single INSERT, UPDATE or DELETE statements
- * return H_OK on success
- */
-int h_exec_query_sqlite(const struct _h_connection * conn, const char * query) {
-  return h_execute_query_sqlite(conn, query);
-}
-
-/**
  * h_execute_query_sqlite
  * Execute a query on a sqlite connection
  * This is an internal function, you should use h_exec_query instead
@@ -349,13 +338,6 @@ long long int h_last_insert_id_sqlite(const struct _h_connection * conn) {
   UNUSED(conn);
   y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with SQLite backend");
   return 0;
-}
-
-int h_exec_query_sqlite(const struct _h_connection * conn, const char * query) {
-  UNUSED(conn);
-  UNUSED(query);
-  y_log_message(Y_LOG_LEVEL_ERROR, "Hoel was not compiled with SQLite backend");
-  return H_ERROR;
 }
 
 int h_execute_query_sqlite(const struct _h_connection * conn, const char * query) {
