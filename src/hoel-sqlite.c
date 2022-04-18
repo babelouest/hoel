@@ -235,6 +235,18 @@ int h_execute_query_sqlite(const struct _h_connection * conn, const char * query
 }
 
 /**
+ * h_exec_query_sqlite
+ * legacy function name, didn't realize the typo until now...
+ * redirect to h_execute_query_sqlite
+ * @param conn the connection to the database
+ * @param query the SQL query to execute
+ * @return H_OK on success
+ */
+int h_exec_query_sqlite(const struct _h_connection * conn, const char * query) {
+  return h_execute_query_sqlite(conn, query);
+}
+
+/**
  * h_execute_query_json_sqlite
  * Execute a query on a sqlite connection, set the returned values in the json result
  * Should not be executed by the user because all parameters are supposed to be correct
