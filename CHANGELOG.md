@@ -3,7 +3,7 @@
 ## 1.4.21
 
 - Replace `#define h_exec_query_sqlite` with a redefinition of `h_exec_query_sqlite` as a function
-- create or delete test db file for unit tests
+- Create or delete test db file for unit tests
 
 ## 1.4.20
 
