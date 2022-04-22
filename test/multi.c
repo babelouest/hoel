@@ -518,8 +518,8 @@ START_TEST(test_hoel_json_delete)
                       "test_table");
   ck_assert_int_eq(h_delete(conn, j_query, NULL), H_OK);
   ck_assert_int_eq(h_select(conn, j_query, &j_result, NULL), H_OK);
-  json_decref(j_result);
   ck_assert_int_eq(json_array_size(j_result), 0);
+  json_decref(j_result);
   json_decref(j_query);
   h_close_db(conn);
   h_clean_connection(conn);
