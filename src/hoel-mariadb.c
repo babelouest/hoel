@@ -55,7 +55,7 @@ struct _h_connection * h_connect_mariadb(const char * host, const char * user, c
   bool reconnect = 1;
   o_malloc_t malloc_fn;
   o_free_t free_fn;
-  
+
   o_get_alloc_funcs(&malloc_fn, NULL, &free_fn);
   json_set_alloc_funcs((json_malloc_t)malloc_fn, (json_free_t)free_fn);
 
@@ -65,7 +65,7 @@ struct _h_connection * h_connect_mariadb(const char * host, const char * user, c
       y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for conn");
       return NULL;
     }
-    
+
     conn->type = HOEL_DB_TYPE_MARIADB;
     conn->connection = o_malloc(sizeof(struct _h_mariadb));
     if (conn->connection == NULL) {
@@ -121,13 +121,19 @@ void h_close_mariadb(struct _h_connection * conn) {
  * returned value must be free'd after use
  */
 char * h_escape_string_mariadb(const struct _h_connection * conn, const char * unsafe) {
-  char * escaped = o_malloc(2 * o_strlen(unsafe) + sizeof(char));
+  char * escaped = o_malloc(2 * o_strlen(unsafe) + 1), * to_return = NULL;
+  unsigned long res;
+
   if (escaped == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for escaped");
     return NULL;
   }
-  mysql_real_escape_string(((struct _h_mariadb *)conn->connection)->db_handle, escaped, unsafe, o_strlen(unsafe));
-  return escaped;
+  res = mysql_real_escape_string(((struct _h_mariadb *)conn->connection)->db_handle, escaped, unsafe, o_strlen(unsafe));
+  if (res && res != (unsigned long)-1) {
+    to_return = o_strndup(escaped, (size_t)res);
+  }
+  o_free(escaped);
+  return to_return;
 }
 
 /**
@@ -135,14 +141,12 @@ char * h_escape_string_mariadb(const struct _h_connection * conn, const char * u
  * returned value must be free'd after use
  */
 char * h_escape_string_with_quotes_mariadb(const struct _h_connection * conn, const char * unsafe) {
-  char * escaped = h_escape_string_mariadb(conn, unsafe), * escaped_returned = NULL;
-  if (escaped == NULL) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for escaped");
-    return NULL;
+  char * escaped = h_escape_string_mariadb(conn, unsafe), * to_return = NULL;
+  if (escaped != NULL) {
+    to_return = msprintf("'%s'", escaped);
+    o_free(escaped);
   }
-  escaped_returned = msprintf("'%s'", escaped);
-  o_free(escaped);
-  return escaped_returned;
+  return to_return;
 }
 
 /**
@@ -172,7 +176,7 @@ int h_execute_query_mariadb(const struct _h_connection * conn, const char * quer
   struct _h_data * data, * cur_row = NULL;
   unsigned long * lengths;
   int res;
-  
+
   if (pthread_mutex_lock(&(((struct _h_mariadb *)conn->connection)->lock))) {
     return H_ERROR_QUERY;
   }
@@ -183,20 +187,20 @@ int h_execute_query_mariadb(const struct _h_connection * conn, const char * quer
     pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
     return H_ERROR_QUERY;
   }
-  
+
   if (h_result != NULL) {
     result = mysql_store_result(((struct _h_mariadb *)conn->connection)->db_handle);
-    
+
     if (result == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Error executing mysql_store_result");
       y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", mysql_error(((struct _h_mariadb *)conn->connection)->db_handle));
       pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
       return H_ERROR_QUERY;
     }
-    
+
     num_fields = mysql_num_fields(result);
     fields = mysql_fetch_fields(result);
-    
+
     h_result->nb_rows = 0;
     h_result->nb_columns = num_fields;
     h_result->data = NULL;
@@ -222,7 +226,7 @@ int h_execute_query_mariadb(const struct _h_connection * conn, const char * quer
     }
     mysql_free_result(result);
   }
-  
+
   pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
   return H_OK;
 }
@@ -242,7 +246,7 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
   json_t * j_data;
   struct _h_data * h_data;
   char date_stamp[20];
-  
+
   if (pthread_mutex_lock(&(((struct _h_mariadb *)conn->connection)->lock))) {
     return H_ERROR_QUERY;
   }
@@ -251,7 +255,7 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
     pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
     return H_ERROR_PARAMS;
   }
-  
+
   *j_result = json_array();
   if (*j_result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for *j_result");
@@ -267,9 +271,9 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
     json_decref(*j_result);
     return H_ERROR_QUERY;
   }
-  
+
   result = mysql_store_result(((struct _h_mariadb *)conn->connection)->db_handle);
-  
+
   if (result == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Error executing mysql_store_result");
     y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", mysql_error(((struct _h_mariadb *)conn->connection)->db_handle));
@@ -277,10 +281,10 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
     json_decref(*j_result);
     return H_ERROR_QUERY;
   }
-  
+
   num_fields = mysql_num_fields(result);
   fields = mysql_fetch_fields(result);
-  
+
   for (row = 0; (m_row = mysql_fetch_row(result)) != NULL; row++) {
     j_data = json_object();
     if (j_data == NULL) {
@@ -321,7 +325,7 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
   }
   mysql_free_result(result);
   pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
-  
+
   return H_OK;
 }
 
@@ -336,7 +340,7 @@ struct _h_data * h_get_mariadb_value(const char * value, const unsigned long len
   double d_value;
   struct tm tm_value;
   char * endptr;
-  
+
   if (value != NULL) {
     switch (m_type) {
       case FIELD_TYPE_DECIMAL:
