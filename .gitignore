@@ -8,7 +8,7 @@ example_mariadb_json
 example_multi_mariadb
 core
 multi
-valgrind.txt
+valgrind-test_*.txt
 hoel-cfg.h
 libhoel.pc
 *.log
