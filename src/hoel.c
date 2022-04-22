@@ -527,7 +527,7 @@ struct _h_data * h_new_data_text(const char * value, const size_t length) {
       return NULL;
     }
     data->type = HOEL_COL_TYPE_TEXT;
-    ((struct _h_type_text *)data->t_data)->value = o_malloc(length+sizeof(char));
+    ((struct _h_type_text *)data->t_data)->value = o_malloc(length+1);
     if (((struct _h_type_text *)data->t_data)->value == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for data->t_data->value");
       o_free(data);
@@ -549,26 +549,31 @@ struct _h_data * h_new_data_text(const char * value, const size_t length) {
  * return NULL on error
  */
 struct _h_data * h_new_data_blob(const void * value, const size_t length) {
-  struct _h_data * data = o_malloc(sizeof(struct _h_data));
-  if (data != NULL) {
-    data->t_data = o_malloc(sizeof(struct _h_type_blob));
-    if (data->t_data == NULL) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for data");
-      o_free(data);
-      return NULL;
-    }
-    data->type = HOEL_COL_TYPE_BLOB;
-    ((struct _h_type_blob *)data->t_data)->length = length;
-    ((struct _h_type_blob *)data->t_data)->value = o_malloc(length);
-    if (((struct _h_type_blob *)data->t_data)->value == NULL) {
-      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for t_data->value");
-      o_free(data);
-      return NULL;
+  struct _h_data * data = NULL;
+  if (value != NULL && length) {
+    data = o_malloc(sizeof(struct _h_data));
+    if (data != NULL) {
+      data->t_data = o_malloc(sizeof(struct _h_type_blob));
+      if (data->t_data == NULL) {
+        y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for data");
+        o_free(data);
+        return NULL;
+      }
+      data->type = HOEL_COL_TYPE_BLOB;
+      ((struct _h_type_blob *)data->t_data)->length = length;
+      ((struct _h_type_blob *)data->t_data)->value = o_malloc(length);
+      if (((struct _h_type_blob *)data->t_data)->value == NULL) {
+        y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for t_data->value");
+        o_free(data);
+        return NULL;
+      } else {
+        memcpy(((struct _h_type_blob *)data->t_data)->value, value, length);
+      }
     } else {
-      memcpy(((struct _h_type_blob *)data->t_data)->value, value, length);
+      y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for data");
     }
   } else {
-    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for data");
+    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - h_new_data_blob - Invalid parameters");
   }
   return data;
 }
