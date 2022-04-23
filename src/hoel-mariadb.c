@@ -122,16 +122,13 @@ void h_close_mariadb(struct _h_connection * conn) {
  */
 char * h_escape_string_mariadb(const struct _h_connection * conn, const char * unsafe) {
   char * escaped = o_malloc(2 * o_strlen(unsafe) + 1), * to_return = NULL;
-  unsigned long res;
-
   if (escaped == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for escaped");
     return NULL;
   }
-  res = mysql_real_escape_string(((struct _h_mariadb *)conn->connection)->db_handle, escaped, unsafe, o_strlen(unsafe));
-  if (res && res != (unsigned long)-1) {
-    to_return = o_strndup(escaped, (size_t)res);
-  }
+  escaped[0] = '\0';
+  mysql_real_escape_string(((struct _h_mariadb *)conn->connection)->db_handle, escaped, unsafe, o_strlen(unsafe));
+  to_return = o_strdup(escaped);
   o_free(escaped);
   return to_return;
 }
@@ -141,12 +138,14 @@ char * h_escape_string_mariadb(const struct _h_connection * conn, const char * u
  * returned value must be free'd after use
  */
 char * h_escape_string_with_quotes_mariadb(const struct _h_connection * conn, const char * unsafe) {
-  char * escaped = h_escape_string_mariadb(conn, unsafe), * to_return = NULL;
-  if (escaped != NULL) {
-    to_return = msprintf("'%s'", escaped);
-    o_free(escaped);
+  char * escaped = h_escape_string_mariadb(conn, unsafe), * escaped_returned = NULL;
+  if (escaped == NULL) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error h_escape_string_mariadb");
+    return NULL;
   }
-  return to_return;
+  escaped_returned = msprintf("'%s'", escaped);
+  o_free(escaped);
+  return escaped_returned;
 }
 
 /**
