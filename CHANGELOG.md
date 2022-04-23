@@ -1,5 +1,9 @@
 # Hoel Changelog
 
+## 1.4.22
+
+- Fix `h_escape_string_mariadb`
+
 ## 1.4.21
 
 - Replace `#define h_exec_query_sqlite` with a redefinition of `h_exec_query_sqlite` as a function
