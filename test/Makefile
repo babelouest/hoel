@@ -7,9 +7,10 @@
 #
 
 HOEL_INCLUDE=../include
+HOEL_LOCATION=../src
+HOEL_LIBRARY=$(HOEL_LOCATION)/libhoel.so
 CC=gcc
 CFLAGS=-Wall -I$(HOEL_INCLUDE) -D_REENTRANT -DDEBUG -g -O0
-HOEL_LOCATION=../src
 HOEL_DB_TEST=/tmp/test.db
 LDFLAGS=-lc $(shell pkg-config --libs liborcania) $(shell pkg-config --libs libyder) $(shell pkg-config --libs libhoel) $(shell pkg-config --libs jansson) -L$(HOEL_LOCATION) $(shell pkg-config --libs check)
 VALGRIND_COMMAND=valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all
@@ -25,7 +26,7 @@ clean:
 $(HOEL_DB_TEST):
 	sqlite3 $(HOEL_DB_TEST) < test.sqlite3.sql
 
-$(HOEL_LIBRARY): $(HOEL_INCLUDE)/iddawc.h $(HOEL_LOCATION)/iddawc.c
+$(HOEL_LIBRARY): $(HOEL_INCLUDE)/hoel.h $(HOEL_LOCATION)/hoel.c $(HOEL_LOCATION)/hoel-mariadb.c $(HOEL_LOCATION)/hoel-pgsql.c $(HOEL_LOCATION)/hoel-sqlite.c $(HOEL_LOCATION)/hoel-simple-json.c
 	cd $(HOEL_LOCATION) && $(MAKE) debug
 
 %: $(HOEL_LIBRARY) %.c
