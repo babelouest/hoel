@@ -42,7 +42,7 @@ static char * h_get_insert_values_from_json_object(const struct _h_connection * 
           o_free(new_data);
           new_data = NULL;
         } else {
-          new_data = msprintf("%s", escape);
+          new_data = o_strdup(escape);
           o_free(escape);
         }
         break;
