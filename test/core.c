@@ -35,8 +35,6 @@
 
 #define UPDATE_DATA_1 "UPDATE test_table SET string_col='new value1' WHERE integer_col = 1"
 
-const char * db_path;
-
 void print_result(struct _h_result result) {
   size_t col, row, i;
   printf("rows: %u, col: %u\n", result.nb_rows, result.nb_columns);
@@ -72,7 +70,7 @@ void print_result(struct _h_result result) {
 START_TEST(test_hoel_init)
 {
   struct _h_connection * conn;
-  conn = h_connect_sqlite(db_path);
+  conn = h_connect_sqlite(DEFAULT_BD_PATH);
   ck_assert_ptr_ne(conn, NULL);
   ck_assert_ptr_eq(h_connect_sqlite(WRONG_BD_PATH), NULL);
   ck_assert_int_eq(h_close_db(conn), H_OK);
@@ -89,7 +87,7 @@ START_TEST(test_hoel_escape_string)
   json_t * j_query, * j_result;
   int res;
   
-  conn = h_connect_sqlite(db_path);
+  conn = h_connect_sqlite(DEFAULT_BD_PATH);
   ck_assert_ptr_ne(conn, NULL);
   escaped = h_escape_string(conn, "value");
   ck_assert_str_eq(escaped, "value");
@@ -121,7 +119,7 @@ START_TEST(test_hoel_escape_string_with_quotes)
   json_t * j_query, * j_result;
   int res;
   
-  conn = h_connect_sqlite(db_path);
+  conn = h_connect_sqlite(DEFAULT_BD_PATH);
   ck_assert_ptr_ne(conn, NULL);
   escaped = h_escape_string_with_quotes(conn, "value");
   ck_assert_str_eq(escaped, "'value'");
@@ -151,7 +149,7 @@ START_TEST(test_hoel_insert)
   struct _h_connection * conn;
   struct _h_result result;
   struct _h_data * last_id;
-  conn = h_connect_sqlite(db_path);
+  conn = h_connect_sqlite(DEFAULT_BD_PATH);
   ck_assert_ptr_ne(conn, NULL);
   ck_assert_int_eq(h_query_delete(conn, DELETE_DATA_ALL), H_OK);
   ck_assert_int_eq(h_query_insert(conn, INSERT_DATA_1), H_OK);
@@ -184,7 +182,7 @@ START_TEST(test_hoel_update)
 {
   struct _h_connection * conn;
   struct _h_result result;
-  conn = h_connect_sqlite(db_path);
+  conn = h_connect_sqlite(DEFAULT_BD_PATH);
   ck_assert_ptr_ne(conn, NULL);
   ck_assert_int_eq(h_query_insert(conn, INSERT_DATA_1), H_OK);
   ck_assert_int_eq(h_query_insert(conn, NULL), H_ERROR_PARAMS);
@@ -211,7 +209,7 @@ START_TEST(test_hoel_delete)
 {
   struct _h_connection * conn;
   struct _h_result result;
-  conn = h_connect_sqlite(db_path);
+  conn = h_connect_sqlite(DEFAULT_BD_PATH);
   ck_assert_ptr_ne(conn, NULL);
   ck_assert_int_eq(h_query_insert(conn, INSERT_DATA_1), H_OK);
   ck_assert_int_eq(h_query_insert(conn, INSERT_DATA_2), H_OK);
@@ -259,7 +257,7 @@ START_TEST(test_hoel_json_insert)
                                  "date_col",
                                    "raw",
                                    "date('now')"), * j_result = NULL;
-  conn = h_connect_sqlite(db_path);
+  conn = h_connect_sqlite(DEFAULT_BD_PATH);
   ck_assert_ptr_ne(conn, NULL);
   ck_assert_int_eq(h_insert(conn, j_query, &str_query), H_OK);
   json_decref(j_query);
@@ -301,7 +299,7 @@ START_TEST(test_hoel_json_update)
                                    "raw",
                                    "date('now')"),
          * j_result = NULL;
-  conn = h_connect_sqlite(db_path);
+  conn = h_connect_sqlite(DEFAULT_BD_PATH);
   ck_assert_ptr_ne(conn, NULL);
   ck_assert_int_eq(h_insert(conn, j_query, NULL), H_OK);
   json_decref(j_query);
@@ -367,7 +365,7 @@ START_TEST(test_hoel_json_delete)
                                    "raw",
                                    "date('now')"),
          * j_result = NULL;
-  conn = h_connect_sqlite(db_path);
+  conn = h_connect_sqlite(DEFAULT_BD_PATH);
   ck_assert_ptr_ne(conn, NULL);
   ck_assert_int_eq(h_insert(conn, j_query, NULL), H_OK);
   json_decref(j_query);
@@ -442,7 +440,7 @@ START_TEST(test_hoel_json_select)
                                    "raw",
                                    "date('now')"),
          * j_result = NULL;
-  conn = h_connect_sqlite(db_path);
+  conn = h_connect_sqlite(DEFAULT_BD_PATH);
   ck_assert_ptr_ne(conn, NULL);
   ck_assert_int_eq(h_insert(conn, j_query, NULL), H_OK);
   json_decref(j_query);
@@ -642,11 +640,7 @@ int main(int argc, char *argv[])
   Suite *s;
   SRunner *sr;
   //y_init_logs("Hoel", Y_LOG_MODE_CONSOLE, Y_LOG_LEVEL_DEBUG, NULL, "Starting Hoel core tests");
-  if (argc > 1) {
-    db_path = argv[1];
-  } else {
-    db_path = DEFAULT_BD_PATH;
-  }
+
   s = hoel_suite();
   sr = srunner_create(s);
 
