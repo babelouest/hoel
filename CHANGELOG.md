@@ -1,5 +1,9 @@
 # Hoel Changelog
 
+## 1.4.23
+
+- Add missing `pthread_mutex_lock` for MariaDB and PostgreSQL in respective `h_last_insert_id`
+
 ## 1.4.22
 
 - Fix `h_escape_string_mariadb`
