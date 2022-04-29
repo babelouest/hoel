@@ -793,7 +793,7 @@ int main(void)
   int number_failed;
   Suite *s;
   SRunner *sr;
-  y_init_logs("Hoel", Y_LOG_MODE_CONSOLE, Y_LOG_LEVEL_DEBUG, NULL, "Starting Hoel multi-backend tests");
+  //y_init_logs("Hoel", Y_LOG_MODE_CONSOLE, Y_LOG_LEVEL_DEBUG, NULL, "Starting Hoel multi-backend tests");
   
   s = hoel_suite();
   sr = srunner_create(s);
@@ -802,6 +802,6 @@ int main(void)
   number_failed = srunner_ntests_failed(sr);
   srunner_free(sr);
   
-  y_close_logs();
+  //y_close_logs();
   return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
