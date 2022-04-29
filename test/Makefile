@@ -36,7 +36,7 @@ test_%: % $(HOEL_LIBRARY) $(HOEL_DB_TEST)
 	@if [ "$(VERBOSE)" = "0" ] && [ "$(MEMCHECK)" = "0" ]; then \
 		LD_LIBRARY_PATH=$(HOEL_LOCATION):${LD_LIBRARY_PATH} ./run_test.sh ./$^; \
 	elif [ "$(MEMCHECK)" = "0" ]; then \
-		LD_LIBRARY_PATH=$(HOEL_LOCATION):${LD_LIBRARY_PATH} ./$^ ; \
+		LD_LIBRARY_PATH=$(HOEL_LOCATION):${LD_LIBRARY_PATH} ./$^; \
 	else \
 		CK_FORK=no LD_LIBRARY_PATH=$(HOEL_LOCATION):${LD_LIBRARY_PATH} $(VALGRIND_COMMAND) ./$^ 2>valgrind-$@.txt; \
 	fi
