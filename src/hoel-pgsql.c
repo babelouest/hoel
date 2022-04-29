@@ -214,6 +214,7 @@ int h_execute_query_pgsql(const struct _h_connection * conn, const char * query,
       y_log_message(Y_LOG_LEVEL_ERROR, "Error executing sql query");
       y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", PQerrorMessage(((struct _h_pgsql *)conn->connection)->db_handle));
       y_log_message(Y_LOG_LEVEL_DEBUG, "Query: \"%s\"", query);
+      PQclear(res);
       ret = H_ERROR_QUERY;
     } else {
       nfields = PQnfields(res);
@@ -304,6 +305,7 @@ int h_execute_query_json_pgsql(const struct _h_connection * conn, const char * q
           y_log_message(Y_LOG_LEVEL_ERROR, "Error executing sql query");
           y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", PQerrorMessage(((struct _h_pgsql *)conn->connection)->db_handle));
           y_log_message(Y_LOG_LEVEL_DEBUG, "Query: \"%s\"", query);
+          PQclear(res);
           ret = H_ERROR_QUERY;
         } else {
           nfields = PQnfields(res);
