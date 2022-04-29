@@ -371,28 +371,33 @@ long long int h_last_insert_id_pgsql(const struct _h_connection * conn) {
   long long int int_res = 0;
   char * str_res, * endptr = NULL;
   
-  res = PQexec(((struct _h_pgsql *)conn->connection)->db_handle, "SELECT lastval()");
-  if (PQresultStatus(res) != PGRES_TUPLES_OK && PQresultStatus(res) != PGRES_COMMAND_OK) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "Error executing h_last_insert_id");
-    y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", PQerrorMessage(((struct _h_pgsql *)conn->connection)->db_handle));
-    return H_ERROR_QUERY;
-  }
-  
-  if (PQnfields(res) && PQntuples(res)) {
-    str_res = PQgetvalue(res, 0, 0);
-    if (str_res != NULL) {
-      int_res = strtol(str_res, &endptr, 10);
-      if (*endptr != '\0' || endptr == str_res) {
-        y_log_message(Y_LOG_LEVEL_ERROR, "Error h_last_insert_id, returned value can't be converted to numeric");
-        int_res = 0;
+  if (pthread_mutex_lock(&(((struct _h_pgsql *)conn->connection)->lock))) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Error h_last_insert_id - lock error");
+  } else {
+    res = PQexec(((struct _h_pgsql *)conn->connection)->db_handle, "SELECT lastval()");
+    if (PQresultStatus(res) != PGRES_TUPLES_OK && PQresultStatus(res) != PGRES_COMMAND_OK) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "Error executing h_last_insert_id");
+      y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", PQerrorMessage(((struct _h_pgsql *)conn->connection)->db_handle));
+      return H_ERROR_QUERY;
+    }
+
+    if (PQnfields(res) && PQntuples(res)) {
+      str_res = PQgetvalue(res, 0, 0);
+      if (str_res != NULL) {
+        int_res = strtol(str_res, &endptr, 10);
+        if (*endptr != '\0' || endptr == str_res) {
+          y_log_message(Y_LOG_LEVEL_ERROR, "Error h_last_insert_id, returned value can't be converted to numeric");
+          int_res = 0;
+        }
+      } else {
+        y_log_message(Y_LOG_LEVEL_ERROR, "Error h_last_insert_id, returned value is NULL");
       }
     } else {
-      y_log_message(Y_LOG_LEVEL_ERROR, "Error h_last_insert_id, returned value is NULL");
+      y_log_message(Y_LOG_LEVEL_ERROR, "Error h_last_insert_id, returned value has no data available");
     }
-  } else {
-    y_log_message(Y_LOG_LEVEL_ERROR, "Error h_last_insert_id, returned value has no data available");
+    PQclear(res);
+    pthread_mutex_unlock(&(((struct _h_pgsql *)conn->connection)->lock));
   }
-  PQclear(res);
   return int_res;
 }
 #else

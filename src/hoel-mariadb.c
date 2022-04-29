@@ -152,10 +152,16 @@ char * h_escape_string_with_quotes_mariadb(const struct _h_connection * conn, co
  * Return the id of the last inserted value
  */
 long long int h_last_insert_id_mariadb(const struct _h_connection * conn) {
-  long long int id = mysql_insert_id(((struct _h_mariadb *)conn->connection)->db_handle);
-  if (id <= 0) {
-    y_log_message(Y_LOG_LEVEL_ERROR, "Error executing mysql_insert_id");
-    y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", mysql_error(((struct _h_mariadb *)conn->connection)->db_handle));
+  long long int id = 0;
+  if (pthread_mutex_lock(&(((struct _h_mariadb *)conn->connection)->lock))) {
+    y_log_message(Y_LOG_LEVEL_ERROR, "Error h_last_insert_id - lock error");
+  } else {
+    id = mysql_insert_id(((struct _h_mariadb *)conn->connection)->db_handle);
+    if (id <= 0) {
+      y_log_message(Y_LOG_LEVEL_ERROR, "Error executing mysql_insert_id");
+      y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", mysql_error(((struct _h_mariadb *)conn->connection)->db_handle));
+    }
+    pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
   }
   return id;
 }
