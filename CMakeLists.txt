@@ -332,6 +332,18 @@ endif ()
 
 option(INSTALL_HEADER "Install the header files" ON) # Install hoel.h or not
 
+if(IS_ABSOLUTE "${CMAKE_INSTALL_INCLUDEDIR}")
+  set(PKGCONFIG_TARGET_INCLUDES "${CMAKE_INSTALL_INCLUDEDIR}")
+else()
+  set(PKGCONFIG_TARGET_INCLUDES "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
+endif()
+
+if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+  set(PKGCONFIG_TARGET_LIBDIR "${CMAKE_INSTALL_LIBDIR}")
+else()
+  set(PKGCONFIG_TARGET_LIBDIR "\${prefix}/${CMAKE_INSTALL_LIBDIR}")
+endif()
+
 configure_file(libhoel.pc.in libhoel.pc @ONLY)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libhoel.pc
