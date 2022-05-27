@@ -1,5 +1,10 @@
 # Hoel Changelog
 
+## 1.4.24
+
+- Fix pkg-config file with absolute path for `CMAKE_INSTALL_{INCLUDE,LIB}DIR`
+- Fix `CMAKE_MODULE_PATH` who was used as single value
+
 ## 1.4.23
 
 - Add missing `pthread_mutex_lock` for MariaDB and PostgreSQL in respective `h_last_insert_id`
