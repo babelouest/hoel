@@ -1,5 +1,9 @@
 # Hoel Changelog
 
+## 1.4.25
+
+- Fix `CMAKE_MODULE_PATH` who was used as single value (for real)
+
 ## 1.4.24
 
 - Fix pkg-config file with absolute path for `CMAKE_INSTALL_{INCLUDE,LIB}DIR`
