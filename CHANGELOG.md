@@ -1,5 +1,9 @@
 # Hoel Changelog
 
+## 1.4.26
+
+- Minor bugfixes
+
 ## 1.4.25
 
 - Fix `CMAKE_MODULE_PATH` who was used as single value (for real)
