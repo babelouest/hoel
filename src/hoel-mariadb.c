@@ -156,7 +156,7 @@ long long int h_last_insert_id_mariadb(const struct _h_connection * conn) {
   if (pthread_mutex_lock(&(((struct _h_mariadb *)conn->connection)->lock))) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Error h_last_insert_id - lock error");
   } else {
-    id = mysql_insert_id(((struct _h_mariadb *)conn->connection)->db_handle);
+    id = (long long int)mysql_insert_id(((struct _h_mariadb *)conn->connection)->db_handle);
     if (id <= 0) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Error executing mysql_insert_id");
       y_log_message(Y_LOG_LEVEL_DEBUG, "Error message: \"%s\"", mysql_error(((struct _h_mariadb *)conn->connection)->db_handle));
@@ -214,7 +214,7 @@ int h_execute_query_mariadb(const struct _h_connection * conn, const char * quer
       lengths = mysql_fetch_lengths(result);
       for (col=0; col<num_fields; col++) {
         data = h_get_mariadb_value(m_row[col], lengths[col], fields[col].type);
-        res = h_row_add_data(&cur_row, data, col);
+        res = h_row_add_data(&cur_row, data, (int)col);
         h_clean_data_full(data);
         if (res != H_OK) {
           mysql_free_result(result);
@@ -222,7 +222,7 @@ int h_execute_query_mariadb(const struct _h_connection * conn, const char * quer
           return res;
         }
       }
-      res = h_result_add_row(h_result, cur_row, row);
+      res = h_result_add_row(h_result, cur_row, (int)row);
       if (res != H_OK) {
         mysql_free_result(result);
         pthread_mutex_unlock(&(((struct _h_mariadb *)conn->connection)->lock));
@@ -250,7 +250,7 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
   unsigned long * lengths;
   json_t * j_data;
   struct _h_data * h_data;
-  char date_stamp[20];
+  char date_stamp[64] = {0};
 
   if (pthread_mutex_lock(&(((struct _h_mariadb *)conn->connection)->lock))) {
     return H_ERROR_QUERY;
@@ -313,7 +313,7 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
           json_object_set_new(j_data, fields[col].name, json_string(((struct _h_type_text *)h_data->t_data)->value));
           break;
         case HOEL_COL_TYPE_DATE:
-          strftime (date_stamp, sizeof(date_stamp), "%FT%TZ", &((struct _h_type_datetime *)h_data->t_data)->value);
+          strftime (date_stamp, sizeof(date_stamp), "%Y-%m-%dT%H:%M:%S", &((struct _h_type_datetime *)h_data->t_data)->value);
           json_object_set_new(j_data, fields[col].name, json_string(date_stamp));
           break;
         case HOEL_COL_TYPE_BLOB:
@@ -384,14 +384,14 @@ struct _h_data * h_get_mariadb_value(const char * value, const unsigned long len
         data = h_new_data_null();
         break;
       case FIELD_TYPE_DATE:
-        if (strptime(value, "%F", &tm_value) == NULL) {
+        if (strptime(value, "%Y-%m-%d", &tm_value) == NULL) {
           data = h_new_data_null();
         } else {
           data = h_new_data_datetime(&tm_value);
         }
         break;
       case FIELD_TYPE_TIME:
-        if (strptime(value, "%T", &tm_value) == NULL) {
+        if (strptime(value, "%H:%M:%S", &tm_value) == NULL) {
           data = h_new_data_null();
         } else {
           data = h_new_data_datetime(&tm_value);
@@ -400,7 +400,7 @@ struct _h_data * h_get_mariadb_value(const char * value, const unsigned long len
       case FIELD_TYPE_TIMESTAMP:
       case FIELD_TYPE_DATETIME:
       case FIELD_TYPE_NEWDATE:
-        if (strptime(value, "%F %T", &tm_value) == NULL) {
+        if (strptime(value, "%Y-%m-%d %H:%M:%S", &tm_value) == NULL) {
           data = h_new_data_null();
         } else {
           data = h_new_data_datetime(&tm_value);

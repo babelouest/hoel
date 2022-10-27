@@ -143,7 +143,7 @@ int h_select_query_sqlite(const struct _h_connection * conn, const char * query,
   int sql_result, row_result, nb_columns, col, row, res;
   struct _h_data * data = NULL, * cur_row = NULL;
   
-  sql_result = sqlite3_prepare_v2(((struct _h_sqlite *)conn->connection)->db_handle, query, o_strlen(query)+1, &stmt, NULL);
+  sql_result = sqlite3_prepare_v2(((struct _h_sqlite *)conn->connection)->db_handle, query, (int)o_strlen(query)+1, &stmt, NULL);
   
   if (sql_result == SQLITE_OK) {
     nb_columns = sqlite3_column_count(stmt);
@@ -152,7 +152,7 @@ int h_select_query_sqlite(const struct _h_connection * conn, const char * query,
       row_result = sqlite3_step(stmt);
       /* Filling result object with results in array format */
       result->nb_rows = 0;
-      result->nb_columns = nb_columns;
+      result->nb_columns = (unsigned int)nb_columns;
       result->data = NULL;
       while (row_result == SQLITE_ROW) {
         cur_row = NULL;
@@ -166,10 +166,10 @@ int h_select_query_sqlite(const struct _h_connection * conn, const char * query,
               data = h_new_data_double(sqlite3_column_double(stmt, col));
               break;
             case SQLITE_BLOB:
-              data = h_new_data_blob(sqlite3_column_blob(stmt, col), sqlite3_column_bytes(stmt, col));
+              data = h_new_data_blob(sqlite3_column_blob(stmt, col), (size_t)sqlite3_column_bytes(stmt, col));
               break;
             case SQLITE3_TEXT:
-              data = h_new_data_text((char*)sqlite3_column_text(stmt, col), sqlite3_column_bytes(stmt, col));
+              data = h_new_data_text((char*)sqlite3_column_text(stmt, col), (size_t)sqlite3_column_bytes(stmt, col));
               break;
             case SQLITE_NULL:
               data = h_new_data_null();
@@ -261,7 +261,7 @@ int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * 
     return H_ERROR_PARAMS;
   }
   
-  sql_result = sqlite3_prepare_v2(((struct _h_sqlite *)conn->connection)->db_handle, query, o_strlen(query)+1, &stmt, NULL);
+  sql_result = sqlite3_prepare_v2(((struct _h_sqlite *)conn->connection)->db_handle, query, (int)o_strlen(query)+1, &stmt, NULL);
   
   if (sql_result == SQLITE_OK) {
     nb_columns = sqlite3_column_count(stmt);
@@ -289,7 +289,7 @@ int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * 
             json_object_set_new(j_data, sqlite3_column_name(stmt, col), json_real(sqlite3_column_double(stmt, col)));
             break;
           case SQLITE_BLOB:
-            json_object_set_new(j_data, sqlite3_column_name(stmt, col), json_stringn(sqlite3_column_blob(stmt, col), sqlite3_column_bytes(stmt, col)));
+            json_object_set_new(j_data, sqlite3_column_name(stmt, col), json_stringn(sqlite3_column_blob(stmt, col), (size_t)sqlite3_column_bytes(stmt, col)));
             break;
           case SQLITE3_TEXT:
             json_object_set_new(j_data, sqlite3_column_name(stmt, col), json_string((char*)sqlite3_column_text(stmt, col)));

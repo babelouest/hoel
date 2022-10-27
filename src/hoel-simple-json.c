@@ -666,21 +666,21 @@ json_t * h_last_insert_id(const struct _h_connection * conn) {
       /* Not happening */
 #ifdef _HOEL_SQLITE
     } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
-      int last_id = h_last_insert_id_sqlite(conn);
+      long long int last_id = h_last_insert_id_sqlite(conn);
       if (last_id > 0) {
         j_data = json_integer(last_id);
       }
 #endif
 #ifdef _HOEL_MARIADB
     } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
-      int last_id = h_last_insert_id_mariadb(conn);
+      long long int last_id = h_last_insert_id_mariadb(conn);
       if (last_id > 0) {
         j_data = json_integer(last_id);
       }
 #endif
 #ifdef _HOEL_PGSQL
     } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
-      int last_id = h_last_insert_id_pgsql(conn);
+      long long int last_id = h_last_insert_id_pgsql(conn);
       if (last_id > 0) {
         j_data = json_integer(last_id);
       }

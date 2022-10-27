@@ -197,7 +197,7 @@ int h_execute_query_json(const struct _h_connection * conn, const char * query, 
  * return H_OK on success
  */
 int h_row_add_data(struct _h_data ** row, struct _h_data * data, int cols) {
-  struct _h_data * tmp = o_realloc(*row, (cols+1)*sizeof(struct _h_data));
+  struct _h_data * tmp = o_realloc(*row, ((size_t)cols+1)*sizeof(struct _h_data));
   * row = tmp;
   if (tmp == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for h_row_add_data");
@@ -290,7 +290,7 @@ int h_row_add_data(struct _h_data ** row, struct _h_data * data, int cols) {
  * return H_OK on success
  */
 int h_result_add_row(struct _h_result * result, struct _h_data * row, int rows) {
-  result->data = o_realloc(result->data, (rows+1)*sizeof(struct _h_data *));
+  result->data = o_realloc(result->data, ((size_t)rows+1)*sizeof(struct _h_data *));
   if (result->data == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for result->data");
     return H_ERROR_MEMORY;
@@ -326,7 +326,7 @@ struct _h_data * h_query_last_insert_id(const struct _h_connection * conn) {
       /* Not happening */
 #ifdef _HOEL_SQLITE
     } else if (conn->type == HOEL_DB_TYPE_SQLITE) {
-      int last_id = h_last_insert_id_sqlite(conn);
+      long long int last_id = h_last_insert_id_sqlite(conn);
       if (last_id > 0) {
         data = h_new_data_int(last_id);
       } else {
@@ -335,7 +335,7 @@ struct _h_data * h_query_last_insert_id(const struct _h_connection * conn) {
 #endif
 #ifdef _HOEL_MARIADB
     } else if (conn->type == HOEL_DB_TYPE_MARIADB) {
-      int last_id = h_last_insert_id_mariadb(conn);
+      long long int last_id = h_last_insert_id_mariadb(conn);
       if (last_id > 0) {
         data = h_new_data_int(last_id);
       } else {
@@ -344,7 +344,7 @@ struct _h_data * h_query_last_insert_id(const struct _h_connection * conn) {
 #endif
 #ifdef _HOEL_PGSQL
     } else if (conn->type == HOEL_DB_TYPE_PGSQL) {
-      int last_id = h_last_insert_id_pgsql(conn);
+      long long int last_id = h_last_insert_id_pgsql(conn);
       if (last_id > 0) {
         data = h_new_data_int(last_id);
       } else {
