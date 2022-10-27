@@ -197,7 +197,7 @@ endif ()
 
 add_library(hoel SHARED ${LIB_SRC})
 set_target_properties(hoel PROPERTIES
-        COMPILE_OPTIONS -Wextra
+        COMPILE_OPTIONS "-Wextra;-Wconversion"
         PUBLIC_HEADER "${INC_DIR}/hoel.h;${PROJECT_BINARY_DIR}/hoel-cfg.h"
         VERSION "${LIBRARY_VERSION}"
         SOVERSION "${LIBRARY_SOVERSION}")
@@ -241,22 +241,27 @@ if (SEARCH_ORCANIA_H)
         if (DOWNLOAD_DEPENDENCIES)
             include(DownloadProject)
             download_project(PROJ orcania # ... otherwise, download archive
-                URL "https://github.com/babelouest/orcania/archive/v${ORCANIA_VERSION_REQUIRED}.tar.gz"
-                QUIET)
+                             URL "https://github.com/babelouest/orcania/archive/v${ORCANIA_VERSION_REQUIRED}.tar.gz"
+                             QUIET)
             add_subdirectory(${orcania_SOURCE_DIR} ${orcania_BINARY_DIR})
             include_directories(${orcania_SOURCE_DIR}/include)
-            add_dependencies(hoel orcania)
+            include_directories(${orcania_BINARY_DIR})
+            add_dependencies(yder orcania)
             set(ORCANIA_LIBRARIES orcania)
             set(LIBS ${LIBS} ${ORCANIA_LIBRARIES})
-            include_directories(${orcania_BINARY_DIR})
         else ()
             message( FATAL_ERROR "Orcania not found")
         endif ()
     else()
-        set(LIBS ${LIBS} ${ORCANIA_LIBRARIES})
-        include_directories(${ORCANIA_INCLUDE_DIRS})
+        if ("${ORCANIA_VERSION_STRING}" VERSION_GREATER_EQUAL "${ORCANIA_VERSION_REQUIRED}")
+            message(STATUS "Orcania found: ${ORCANIA_VERSION_STRING}")
+            set(LIBS ${LIBS} ${ORCANIA_LIBRARIES})
+            include_directories(${ORCANIA_INCLUDE_DIRS})
+            include_directories(${orcania_BINARY_DIR})
+        else ()
+            message( FATAL_ERROR "Orcania version required: ${ORCANIA_VERSION_REQUIRED} - version installed: ${ORCANIA_VERSION_STRING}")
+        endif ()
     endif ()
-    target_link_libraries(hoel ${ORCANIA_LIBRARIES})
 endif ()
 
 set(SEARCH_ORCANIA OFF CACHE BOOL "Force to false") # Avoid to search and download orcania during yder search and download
@@ -265,7 +270,7 @@ option(SEARCH_YDER "Search for Yder library" ON)
 if (SEARCH_YDER)
     set(Yder_FIND_QUIETLY ON) # force to find Yder quietly
     include(FindYder)
-    find_package(Yder 1.1 QUIET) # try to find Yder
+    find_package(Yder ${YDER_VERSION_REQUIRED} QUIET) # try to find Yder
     if (NOT YDER_FOUND)
         if (DOWNLOAD_DEPENDENCIES)
             include(DownloadProject)
@@ -281,10 +286,16 @@ if (SEARCH_YDER)
             message( FATAL_ERROR "Yder not found")
         endif ()
     else()
-        set(LIBS ${LIBS} ${YDER_LIBRARIES})
-        include_directories(${YDER_INCLUDE_DIRS})
+        if ("${YDER_VERSION_STRING}" VERSION_GREATER_EQUAL "${YDER_VERSION_REQUIRED}")
+            message(STATUS "Yder found: ${YDER_VERSION_STRING}")
+            set(LIBS ${LIBS} ${YDER_LIBRARIES})
+            include_directories(${YDER_INCLUDE_DIRS})
+            include_directories(${yder_BINARY_DIR})
+        else ()
+            message( FATAL_ERROR "Yder version required: ${YDER_VERSION_REQUIRED} - version installed: ${YDER_VERSION_STRING}")
+        endif ()
     endif ()
-    target_link_libraries(hoel ${YDER_LIBRARIES})
+    target_link_libraries(hoel ${LIBS} ${YDER_LIBRARIES})
 endif ()
 
 # tests
