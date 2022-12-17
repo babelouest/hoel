@@ -1,5 +1,10 @@
 # Hoel Changelog
 
+## 1.4.27
+
+- Add `h_build_where_clause`
+- Build with flag `-Wconversion`
+
 ## 1.4.26
 
 - Minor bugfixes

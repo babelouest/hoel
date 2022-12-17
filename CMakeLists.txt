@@ -28,9 +28,9 @@ set(PROJECT_HOMEPAGE_URL "https://github.com/babelouest/hoel/")
 set(PROJECT_BUGREPORT_PATH "https://github.com/babelouest/hoel/issues")
 set(LIBRARY_VERSION_MAJOR "1")
 set(LIBRARY_VERSION_MINOR "4")
-set(LIBRARY_VERSION_PATCH "26")
-set(ORCANIA_VERSION_REQUIRED "2.3.1")
-set(YDER_VERSION_REQUIRED "1.4.18")
+set(LIBRARY_VERSION_PATCH "27")
+set(ORCANIA_VERSION_REQUIRED "2.3.2")
+set(YDER_VERSION_REQUIRED "1.4.19")
 set(JANSSON_VERSION_REQUIRED "2.4")
 
 set(PROJECT_VERSION "${LIBRARY_VERSION_MAJOR}.${LIBRARY_VERSION_MINOR}.${LIBRARY_VERSION_PATCH}")
@@ -65,6 +65,8 @@ list(APPEND CMAKE_MODULE_PATH "${H_CMAKE_MODULE_PATH}")
 
 include(GNUInstallDirs)
 include(CheckSymbolExists)
+include(CMakeDependentOption)
+include(CMakePackageConfigHelpers)
 
 # check if _GNU_SOURCE is available
 
@@ -101,14 +103,12 @@ set(LIB_SRC
 
 # pthread libraries
 find_package (Threads)
-set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
+list(APPEND LIBS ${CMAKE_THREAD_LIBS_INIT})
 
 include(FindJansson)
 set(JANSSON_MIN_VERSION 2.4)
 find_package(Jansson ${JANSSON_MIN_VERSION} REQUIRED)
-if (JANSSON_FOUND)
-  set(LIBS ${JANSSON_LIBRARIES})
-endif ()
+list(APPEND LIBS Jansson::Jansson)
 
 option(WITH_SQLITE3 "Use SQLite3 library" ON)
 
@@ -116,7 +116,7 @@ if (WITH_SQLITE3)
   include(FindSQLite3)
   find_package(SQLite3 REQUIRED)
   if (SQLITE3_FOUND)
-    set(LIBS ${LIBS} ${SQLITE3_LIBRARIES})
+    list(APPEND LIBS SQLite3::SQLite3)
     include_directories(${SQLITE3_INCLUDE_DIR})
     set(_HOEL_SQLITE ON)
   else ()
@@ -133,7 +133,7 @@ if (WITH_MARIADB)
   include(FindMYSQL)
   find_package(MYSQL REQUIRED)
   if (MYSQL_FOUND)
-    set(LIBS ${LIBS} ${MYSQL_LIBRARIES})
+    list(APPEND LIBS MYSQL::MYSQL)
     include_directories(${MYSQL_INCLUDE_DIRS})
     set(_HOEL_MARIADB ON)
   else ()
@@ -150,7 +150,7 @@ if (WITH_PGSQL)
   include(FindLibPQ)
   find_package(LibPQ REQUIRED)
   if(LIBPQ_FOUND)
-    set(LIBS ${LIBS} ${LIBPQ_LIBRARIES})
+    list(APPEND LIBS LibPQ::LibPQ)
     include_directories(${LIBPQ_INCLUDE_DIRS})
     set(_HOEL_PGSQL ON)
   else ()
@@ -182,29 +182,62 @@ if (WITH_PGSQL)
   set (PKGCONF_REQ_PRIVATE "${PKGCONF_REQ_PRIVATE}, libpq")
 endif ()
 
-# static library
-
+option(BUILD_SHARED "Build shared library." ON)
 option(BUILD_STATIC "Build static library." OFF)
+
+if (NOT BUILD_STATIC AND NOT BUILD_SHARED)
+    message(FATAL_ERROR "BUILD_SHARED and BUILD_STATIC cannot be both disabled")
+endif ()
+
+# static library
 
 if (BUILD_STATIC)
     add_library(hoel_static STATIC ${LIB_SRC})
-    target_compile_definitions(hoel_static PUBLIC -DO_STATIC_LIBRARY)
+    add_library(Hoel::Hoel-static ALIAS hoel_static)
+    target_include_directories(hoel_static
+        PUBLIC "$<BUILD_INTERFACE:${INC_DIR}>"
+        PUBLIC "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>"
+        PUBLIC "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
+    target_link_libraries(hoel_static PUBLIC ${LIBS})
+    target_compile_definitions(hoel_static PUBLIC O_STATIC_LIBRARY)
     set_target_properties(hoel_static PROPERTIES
-            OUTPUT_NAME hoel)
+            PUBLIC_HEADER "${INC_DIR}/hoel.h;${PROJECT_BINARY_DIR}/hoel-cfg.h"
+            OUTPUT_NAME hoel
+            EXPORT_NAME Hoel-static)
+    if (MSVC)
+        set_target_properties(hoel_static PROPERTIES
+                OUTPUT_NAME hoel-static)
+    endif ()
+    if (NOT MSVC)
+        target_compile_options(hoel_static PRIVATE -Wextra -Wconversion -Werror=sign-conversion)
+    endif ()
+    set(hoel_lib hoel_static)
 endif ()
 
 # shared library
 
-add_library(hoel SHARED ${LIB_SRC})
-set_target_properties(hoel PROPERTIES
-        COMPILE_OPTIONS "-Wextra;-Wconversion"
-        PUBLIC_HEADER "${INC_DIR}/hoel.h;${PROJECT_BINARY_DIR}/hoel-cfg.h"
-        VERSION "${LIBRARY_VERSION}"
-        SOVERSION "${LIBRARY_SOVERSION}")
-if (WIN32)
-    set_target_properties(hoel PROPERTIES SUFFIX "-${LIBRARY_VERSION_MAJOR}.dll")
+if (BUILD_SHARED)
+    add_library(hoel SHARED ${LIB_SRC})
+    add_library(Hoel::Hoel ALIAS hoel)
+    target_include_directories(hoel
+        PUBLIC "$<BUILD_INTERFACE:${INC_DIR}>"
+        PUBLIC "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>"
+        PUBLIC "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
+    target_link_libraries(hoel PUBLIC ${LIBS})
+    set_target_properties(hoel PROPERTIES
+            PUBLIC_HEADER "${INC_DIR}/hoel.h;${PROJECT_BINARY_DIR}/hoel-cfg.h"
+            VERSION "${LIBRARY_VERSION}"
+            SOVERSION "${LIBRARY_SOVERSION}"
+            WINDOWS_EXPORT_ALL_SYMBOLS TRUE
+            EXPORT_NAME Hoel)
+    if (WIN32)
+        set_target_properties(hoel PROPERTIES SUFFIX "-${LIBRARY_VERSION_MAJOR}.dll")
+    endif ()
+    if (NOT MSVC)
+        target_compile_options(hoel PRIVATE -Wextra -Wconversion -Werror=sign-conversion)
+    endif()
+    set(hoel_lib hoel)
 endif ()
-target_link_libraries(hoel ${LIBS})
 
 # documentation
 
@@ -232,70 +265,108 @@ endif ()
 
 option(DOWNLOAD_DEPENDENCIES "Download required dependencies" ON)
 
-option(SEARCH_ORCANIA_H "Search for Orcania library" ON)
-if (SEARCH_ORCANIA_H)
+option(SEARCH_ORCANIA_U "Search for ORCANIA library" ON)
+if (SEARCH_ORCANIA_U)
     set(Orcania_FIND_QUIETLY ON) # force to find Orcania quietly
-    include(FindOrcania)
     find_package(Orcania ${ORCANIA_VERSION_REQUIRED} QUIET) # try to find orcania
-    if (NOT ORCANIA_FOUND)
+    if (NOT Orcania_FOUND)
         if (DOWNLOAD_DEPENDENCIES)
             include(DownloadProject)
             download_project(PROJ orcania # ... otherwise, download archive
                              URL "https://github.com/babelouest/orcania/archive/v${ORCANIA_VERSION_REQUIRED}.tar.gz"
                              QUIET)
             add_subdirectory(${orcania_SOURCE_DIR} ${orcania_BINARY_DIR})
-            include_directories(${orcania_SOURCE_DIR}/include)
-            include_directories(${orcania_BINARY_DIR})
-            add_dependencies(yder orcania)
-            set(ORCANIA_LIBRARIES orcania)
-            set(LIBS ${LIBS} ${ORCANIA_LIBRARIES})
+            # The following lines can be removed once Orcania has full target support
+            if (TARGET orcania)
+                if (NOT TARGET Orcania::Orcania)
+                    add_library(Orcania::Orcania INTERFACE IMPORTED)
+                    set_target_properties(Orcania::Orcania PROPERTIES
+                            INTERFACE_INCLUDE_DIRECTORIES "${orcania_SOURCE_DIR};${orcania_SOURCE_DIR}/include;${orcania_BINARY_DIR}"
+                            INTERFACE_LINK_LIBRARIES orcania)
+                endif ()
+            endif ()
+            if (TARGET orcania_static)
+                if (NOT TARGET Orcania::Orcania-static)
+                    add_library(Orcania::Orcania-static INTERFACE IMPORTED)
+                    set_target_properties(Orcania::Orcania-static PROPERTIES
+                        INTERFACE_INCLUDE_DIRECTORIES "${orcania_SOURCE_DIR};${orcania_SOURCE_DIR}/include;${orcania_BINARY_DIR}"
+                        INTERFACE_LINK_LIBRARIES orcania-_static)
+                endif ()
+            endif ()
         else ()
             message( FATAL_ERROR "Orcania not found")
         endif ()
     else()
         if ("${ORCANIA_VERSION_STRING}" VERSION_GREATER_EQUAL "${ORCANIA_VERSION_REQUIRED}")
             message(STATUS "Orcania found: ${ORCANIA_VERSION_STRING}")
-            set(LIBS ${LIBS} ${ORCANIA_LIBRARIES})
-            include_directories(${ORCANIA_INCLUDE_DIRS})
-            include_directories(${orcania_BINARY_DIR})
         else ()
             message( FATAL_ERROR "Orcania version required: ${ORCANIA_VERSION_REQUIRED} - version installed: ${ORCANIA_VERSION_STRING}")
         endif ()
     endif ()
 endif ()
 
+if (BUILD_SHARED)
+    target_link_libraries(ulfius PUBLIC $<TARGET_NAME:Orcania::Orcania>)
+endif ()
+if (BUILD_STATIC)
+    if(TARGET Orcania::Orcania-static)
+        target_link_libraries(ulfius_static PUBLIC $<TARGET_NAME:Orcania::Orcania-static>)
+    else()
+        target_link_libraries(ulfius_static PUBLIC $<TARGET_NAME:Orcania::Orcania>)
+    endif()
+endif ()
+
 set(SEARCH_ORCANIA OFF CACHE BOOL "Force to false") # Avoid to search and download orcania during yder search and download
 
-option(SEARCH_YDER "Search for Yder library" ON)
-if (SEARCH_YDER)
+option(SEARCH_YDER_U "Search for YDER library" ON)
+if (SEARCH_YDER_U)
     set(Yder_FIND_QUIETLY ON) # force to find Yder quietly
-    include(FindYder)
-    find_package(Yder ${YDER_VERSION_REQUIRED} QUIET) # try to find Yder
-    if (NOT YDER_FOUND)
+    find_package(Yder ${YDER_VERSION_REQUIRED} QUIET) # try to find yder
+    if (NOT Yder_FOUND)
         if (DOWNLOAD_DEPENDENCIES)
             include(DownloadProject)
             download_project(PROJ yder # ... otherwise, download archive
-                              URL "https://github.com/babelouest/yder/archive/v${YDER_VERSION_REQUIRED}.tar.gz"
-                              QUIET)
+                             URL "https://github.com/babelouest/yder/archive/v${YDER_VERSION_REQUIRED}.tar.gz"
+                             QUIET)
             add_subdirectory(${yder_SOURCE_DIR} ${yder_BINARY_DIR})
-            include_directories(${yder_SOURCE_DIR}/include)
-            add_dependencies(hoel yder)
-            set(YDER_LIBRARIES yder orcania)
-            include_directories(${yder_BINARY_DIR})
+            # The following lines can be removed once Yder has full target support
+            if (TARGET yder)
+                if (NOT TARGET Yder::Yder)
+                    add_library(Yder::Yder INTERFACE IMPORTED)
+                    set_target_properties(Yder::Yder PROPERTIES
+                            INTERFACE_INCLUDE_DIRECTORIES "${yder_SOURCE_DIR};${yder_SOURCE_DIR}/include;${yder_BINARY_DIR}"
+                            INTERFACE_LINK_LIBRARIES yder)
+                endif ()
+            endif ()
+            if (TARGET yder_static)
+                if (NOT TARGET Yder::Yder-static)
+                    add_library(Yder::Yder-static INTERFACE IMPORTED)
+                    set_target_properties(Yder::Yder-static PROPERTIES
+                        INTERFACE_INCLUDE_DIRECTORIES "${yder_SOURCE_DIR};${yder_SOURCE_DIR}/include;${yder_BINARY_DIR}"
+                        INTERFACE_LINK_LIBRARIES yder-_static)
+                endif ()
+            endif ()
         else ()
             message( FATAL_ERROR "Yder not found")
         endif ()
     else()
         if ("${YDER_VERSION_STRING}" VERSION_GREATER_EQUAL "${YDER_VERSION_REQUIRED}")
             message(STATUS "Yder found: ${YDER_VERSION_STRING}")
-            set(LIBS ${LIBS} ${YDER_LIBRARIES})
-            include_directories(${YDER_INCLUDE_DIRS})
-            include_directories(${yder_BINARY_DIR})
         else ()
             message( FATAL_ERROR "Yder version required: ${YDER_VERSION_REQUIRED} - version installed: ${YDER_VERSION_STRING}")
         endif ()
     endif ()
-    target_link_libraries(hoel ${LIBS} ${YDER_LIBRARIES})
+endif ()
+
+if (BUILD_SHARED)
+    target_link_libraries(ulfius PUBLIC $<TARGET_NAME:Yder::Yder>)
+endif ()
+if (BUILD_STATIC)
+    if(TARGET Yder::Yder-static)
+        target_link_libraries(ulfius_static PUBLIC $<TARGET_NAME:Yder::Yder-static>)
+    else()
+        target_link_libraries(ulfius_static PUBLIC $<TARGET_NAME:Yder::Yder>)
+    endif()
 endif ()
 
 # tests
@@ -303,8 +374,7 @@ endif ()
 option(BUILD_HOEL_TESTING "Build the testing tree." OFF) # because we don not use include(CTest)
 
 if (BUILD_HOEL_TESTING)
-    include(FindCheck)
-    find_package(Check)
+    find_package(Check REQUIRED)
     if (CHECK_FOUND)
         if (NOT WIN32)
             include(FindSubunit)
@@ -316,7 +386,7 @@ if (BUILD_HOEL_TESTING)
         set(CMAKE_CTEST_COMMAND ctest -V)
 
         set(TST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
-        set(LIBS hoel yder orcania ${LIBS} ${CHECK_LIBRARIES})
+        set(TEST_LIBS Hoel::Hoel Check::Check)
         if (NOT WIN32)
             find_package(Threads REQUIRED)
             set(LIBS ${LIBS} ${SUBUNIT_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} m rt)

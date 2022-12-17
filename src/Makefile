@@ -54,13 +54,13 @@ CONFIG_TEMPLATE=$(HOEL_INCLUDE)/hoel-cfg.h.in
 CONFIG_FILE=$(HOEL_INCLUDE)/hoel-cfg.h
 PKGCONFIG_FILE=../libhoel.pc
 PKGCONFIG_TEMPLATE=../libhoel.pc.in
-CFLAGS+=-c -fPIC -Wall -Werror -Wextra -Wconversion -I$(HOEL_INCLUDE) $(FLAGS_MARIADB) $(FLAGS_PGSQL) -D_REENTRANT $(ADDITIONALFLAGS) $(CPPFLAGS)
+CFLAGS+=-c -fPIC -Wall -Werror -Wextra -Wconversion -Werror=sign-conversion -I$(HOEL_INCLUDE) $(FLAGS_MARIADB) $(FLAGS_PGSQL) -D_REENTRANT $(ADDITIONALFLAGS) $(CPPFLAGS)
 LIBS=-L$(DESTDIR)/lib -lc -ljansson -lyder -lorcania $(LIBS_SQLITE) $(LIBS_PGSQL) $(LIBS_MARIADB)
 OBJECTS=hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
 OUTPUT=libhoel.so
 VERSION_MAJOR=1
 VERSION_MINOR=4
-VERSION_PATCH=26
+VERSION_PATCH=27
 
 all: release
 

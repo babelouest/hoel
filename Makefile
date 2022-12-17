@@ -35,6 +35,7 @@ clean:
 	cd $(LIBHOEL_LOCATION) && $(MAKE) clean
 	cd $(EXAMPLE_LOCATION) && $(MAKE) clean
 	cd $(TEST_LOCATION) && $(MAKE) clean
+	rm -rf doc/html/
 
 release:
 	cd $(LIBHOEL_LOCATION) && $(MAKE) $*
