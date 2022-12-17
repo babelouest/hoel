@@ -35,6 +35,8 @@
 
 #define UPDATE_DATA_1 "UPDATE test_table SET string_col='new value1' WHERE integer_col = 1"
 
+#define WHERE_CLAUSE_NO_FORMAT "And then, nothing happened"
+
 void print_result(struct _h_result result) {
   size_t col, row, i;
   printf("rows: %u, col: %u\n", result.nb_rows, result.nb_columns);
@@ -611,6 +613,444 @@ START_TEST(test_hoel_json_select)
 }
 END_TEST
 
+START_TEST(test_hoel_json_escape)
+{
+  struct _h_connection * conn;
+  char * str_query = NULL, * escaped, * str_query_wip;
+  json_t * j_query, * j_result = NULL;
+  
+  conn = h_connect_sqlite(DEFAULT_BD_PATH);
+  ck_assert_ptr_ne(conn, NULL);
+  ck_assert_ptr_ne(NULL, escaped = h_escape_string(conn, UNSAFE_STRING));
+  j_query = json_pack("{sss{sisss{ss}}}",
+                       "table",
+                       "test_table",
+                       "values",
+                         "integer_col",
+                         43,
+                         "string_col",
+                         UNSAFE_STRING,
+                         "date_col",
+                           "raw",
+                           "date('now')");
+  ck_assert_int_eq(h_insert(conn, j_query, &str_query), H_OK);
+  json_decref(j_query);
+  j_query = json_pack("{sss{si}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "integer_col",
+                        43);
+  ck_assert_int_eq(h_select(conn, j_query, &j_result, NULL), H_OK);
+  ck_assert_ptr_ne(j_result, NULL);
+  ck_assert_int_eq(json_is_array(j_result), 1);
+  ck_assert_int_eq(json_array_size(j_result), 1);
+  ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), UNSAFE_STRING);
+  ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 43);
+  json_decref(j_result);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query, escaped));
+  ck_assert_ptr_eq(NULL, o_strstr(str_query, UNSAFE_STRING));
+  h_free(str_query);
+  json_decref(j_query);
+  
+  j_query = json_pack("{sss{ss}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "string_col",
+                        UNSAFE_STRING);
+  ck_assert_int_eq(h_select(conn, j_query, &j_result, &str_query), H_OK);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query, escaped));
+  ck_assert_ptr_eq(NULL, o_strstr(str_query, UNSAFE_STRING));
+  h_free(str_query);
+  ck_assert_ptr_ne(j_result, NULL);
+  ck_assert_int_eq(json_is_array(j_result), 1);
+  ck_assert_int_eq(json_array_size(j_result), 1);
+  ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), UNSAFE_STRING);
+  ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 43);
+  json_decref(j_result);
+  json_decref(j_query);
+  
+  j_query = json_pack("{sss{sssi}s{siss}}",
+                      "table",
+                      "test_table",
+                      "set",
+                        "string_col",
+                        UNSAFE_STRING " - updated",
+                        "integer_col",
+                        44,
+                      "where",
+                        "integer_col",
+                        43,
+                        "string_col",
+                        UNSAFE_STRING);
+  ck_assert_int_eq(h_update(conn, j_query, &str_query), H_OK);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query, escaped));
+  str_query_wip = o_strstr(str_query, escaped)+o_strlen(escaped);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query_wip, escaped));
+  ck_assert_ptr_eq(NULL, o_strstr(str_query, UNSAFE_STRING));
+  h_free(str_query);
+  json_decref(j_query);
+  
+  j_query = json_pack("{sss{siss}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "integer_col",
+                        44,
+                        "string_col",
+                        UNSAFE_STRING " - updated");
+  ck_assert_int_eq(h_select(conn, j_query, &j_result, &str_query), H_OK);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query, escaped));
+  ck_assert_ptr_eq(NULL, o_strstr(str_query, UNSAFE_STRING));
+  h_free(str_query);
+  ck_assert_ptr_ne(j_result, NULL);
+  ck_assert_int_eq(json_is_array(j_result), 1);
+  ck_assert_int_eq(json_array_size(j_result), 1);
+  ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), UNSAFE_STRING " - updated");
+  ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 44);
+  json_decref(j_result);
+  
+  ck_assert_int_eq(h_delete(conn, j_query, NULL), H_OK);
+  json_decref(j_query);
+
+  // Test multiple escape
+  j_query = json_pack("{sss[{sissss}{sissss}{sissss}]}",
+                      "table",
+                        "test_table",
+                      "values",
+                        "integer_col",
+                        48,
+                        "string_col",
+                        UNSAFE_STRING " - 2",
+                        "string_col ",
+                        UNSAFE_STRING,
+                        "integer_col",
+                        48,
+                        "string_col",
+                        UNSAFE_STRING " - updated12",
+                        "string_col ",
+                        UNSAFE_STRING " - updated1",
+                        "integer_col",
+                        48,
+                        "string_col",
+                        UNSAFE_STRING " - updated22",
+                        "string_col ",
+                        UNSAFE_STRING " - updated2");
+  ck_assert_int_eq(h_insert(conn, j_query, &str_query), H_OK);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query, escaped));
+  str_query_wip = o_strstr(str_query, escaped)+o_strlen(escaped);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query_wip, escaped));
+  str_query_wip = o_strstr(str_query, escaped)+o_strlen(escaped);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query_wip, escaped));
+  str_query_wip = o_strstr(str_query, escaped)+o_strlen(escaped);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query_wip, escaped));
+  str_query_wip = o_strstr(str_query, escaped)+o_strlen(escaped);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query_wip, escaped));
+  str_query_wip = o_strstr(str_query, escaped)+o_strlen(escaped);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query_wip, escaped));
+  str_query_wip = o_strstr(str_query, escaped)+o_strlen(escaped);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query_wip, escaped));
+  ck_assert_ptr_eq(NULL, o_strstr(str_query, UNSAFE_STRING));
+  json_decref(j_query);
+  h_free(str_query);
+  j_query = json_pack("{sss{si}}",
+                      "table",
+                        "test_table",
+                      "where",
+                        "integer_col",
+                        48);
+  ck_assert_int_eq(h_select(conn, j_query, &j_result, NULL), H_OK);
+  json_decref(j_query);
+  ck_assert_ptr_ne(j_result, NULL);
+  ck_assert_int_eq(json_is_array(j_result), 1);
+  ck_assert_int_eq(json_array_size(j_result), 3);
+  ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), UNSAFE_STRING " - 2");
+  ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 1), "string_col")), UNSAFE_STRING " - updated12");
+  ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 2), "string_col")), UNSAFE_STRING " - updated22");
+  json_decref(j_result);
+  j_query = json_pack("{sss{ssssss}}",
+                      "table",
+                        "test_table",
+                      "where",
+                        "string_col",
+                        UNSAFE_STRING,
+                        "string_col ",
+                        UNSAFE_STRING " - updated1",
+                        "string_col  ",
+                        UNSAFE_STRING " - updated2");
+  ck_assert_int_eq(h_select(conn, j_query, &j_result, &str_query), H_OK);
+  json_decref(j_query);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query, escaped));
+  ck_assert_ptr_ne(NULL, o_strstr(o_strstr(str_query, escaped)+o_strlen(escaped), escaped));
+  str_query_wip = o_strstr(str_query, escaped)+o_strlen(escaped);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query_wip, escaped));
+  str_query_wip = o_strstr(str_query, escaped)+o_strlen(escaped);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query_wip, escaped));
+  ck_assert_ptr_eq(NULL, o_strstr(str_query, UNSAFE_STRING));
+  ck_assert_ptr_ne(j_result, NULL);
+  ck_assert_int_eq(json_is_array(j_result), 1);
+  ck_assert_int_eq(json_array_size(j_result), 0);
+  json_decref(j_result);
+  h_free(str_query);
+  j_query = json_pack("{sss{ssssss}s{sissssss}}",
+                      "table",
+                      "test_table",
+                      "set",
+                        "string_col",
+                        UNSAFE_STRING " - updated",
+                        "string_col ",
+                        UNSAFE_STRING " - updated14",
+                        "string_col  ",
+                        UNSAFE_STRING " - updated24",
+                      "where",
+                        "integer_col",
+                        48,
+                        "string_col",
+                        UNSAFE_STRING,
+                        "string_col ",
+                        UNSAFE_STRING " - updated1",
+                        "string_col  ",
+                        UNSAFE_STRING " - updated2");
+  ck_assert_int_eq(h_update(conn, j_query, &str_query), H_OK);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query, escaped));
+  str_query_wip = o_strstr(str_query, escaped)+o_strlen(escaped);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query_wip, escaped));
+  str_query_wip = o_strstr(str_query, escaped)+o_strlen(escaped);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query_wip, escaped));
+  str_query_wip = o_strstr(str_query, escaped)+o_strlen(escaped);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query_wip, escaped));
+  str_query_wip = o_strstr(str_query, escaped)+o_strlen(escaped);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query_wip, escaped));
+  str_query_wip = o_strstr(str_query, escaped)+o_strlen(escaped);
+  ck_assert_ptr_ne(NULL, o_strstr(str_query_wip, escaped));
+  ck_assert_ptr_eq(NULL, o_strstr(str_query, UNSAFE_STRING));
+  h_free(str_query);
+  json_decref(j_query);
+
+  j_query = json_pack("{sss{si}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "integer_col",
+                        48);
+  ck_assert_int_eq(h_delete(conn, j_query, NULL), H_OK);
+  json_decref(j_query);
+  
+  h_free(escaped);
+  ck_assert_int_eq(h_close_db(conn), H_OK);
+  ck_assert_int_eq(h_clean_connection(conn), H_OK);
+}
+END_TEST
+
+START_TEST(test_hoel_json_generate_where_clause)
+{
+  struct _h_connection * conn;
+  char * where_clause = NULL;
+  json_t * j_query = json_pack("{sss{sisss{ss}}}",
+                               "table",
+                               "test_table",
+                               "values",
+                                 "integer_col",
+                                 55,
+                                 "string_col",
+                                 "value1",
+                                 "date_col",
+                                   "raw",
+                                   "date('now')"), * j_result = NULL, * j_string = json_string(UNSAFE_STRING), * j_integer = json_integer(22), * j_real = json_real(9.9);
+  conn = h_connect_sqlite(DEFAULT_BD_PATH);
+  ck_assert_ptr_ne(conn, NULL);
+  ck_assert_int_eq(h_insert(conn, j_query, NULL), H_OK);
+  json_decref(j_query);
+  
+  where_clause = h_build_where_clause(conn, "integer_col = %d AND string_col = %s", 55, "value1");
+  j_query = json_pack("{sss{s{ssss}}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "",
+                          "operator",
+                          "raw",
+                          "value",
+                          where_clause);
+  ck_assert_int_eq(h_select(conn, j_query, &j_result, NULL), H_OK);
+  ck_assert_ptr_ne(j_result, NULL);
+  ck_assert_int_eq(json_is_array(j_result), 1);
+  ck_assert_int_eq(json_array_size(j_result), 1);
+  json_decref(j_query);
+  json_decref(j_result);
+  h_free(where_clause);
+
+  where_clause = h_build_where_clause(conn, "0.0 = %f AND '%%lol' = '%%lol' AND string_col = %s", (double)0.0, UNSAFE_STRING);
+  j_query = json_pack("{sss{s{ssss}}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "",
+                          "operator",
+                          "raw",
+                          "value",
+                          where_clause);
+  ck_assert_int_eq(h_select(conn, j_query, &j_result, NULL), H_OK);
+  ck_assert_ptr_ne(j_result, NULL);
+  ck_assert_int_eq(json_is_array(j_result), 1);
+  ck_assert_int_eq(json_array_size(j_result), 0);
+  json_decref(j_query);
+  json_decref(j_result);
+  h_free(where_clause);
+
+  where_clause = h_build_where_clause(conn, "0.0 = %f AND '%%lol' = '%%lol' AND string_col = '%S'", (double)0.0, UNSAFE_STRING);
+  j_query = json_pack("{sss{s{ssss}}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "",
+                          "operator",
+                          "raw",
+                          "value",
+                          where_clause);
+  ck_assert_int_eq(h_select(conn, j_query, &j_result, NULL), H_OK);
+  ck_assert_ptr_ne(j_result, NULL);
+  ck_assert_int_eq(json_is_array(j_result), 1);
+  ck_assert_int_eq(json_array_size(j_result), 0);
+  json_decref(j_query);
+  json_decref(j_result);
+  h_free(where_clause);
+
+  where_clause = h_build_where_clause(conn, "string_col = '%S' OR string_col = '%S' OR string_col = '%S'", UNSAFE_STRING, UNSAFE_STRING " - updated1", UNSAFE_STRING " - updated2");
+  j_query = json_pack("{sss{s{ssss}}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "",
+                          "operator",
+                          "raw",
+                          "value",
+                          where_clause);
+  ck_assert_int_eq(h_select(conn, j_query, &j_result, NULL), H_OK);
+  ck_assert_ptr_ne(j_result, NULL);
+  ck_assert_int_eq(json_is_array(j_result), 1);
+  ck_assert_int_eq(json_array_size(j_result), 0);
+  json_decref(j_query);
+  json_decref(j_result);
+  h_free(where_clause);
+
+  where_clause = h_build_where_clause(conn, "string_col = '%S' OR string_col = %s OR string_col = %c OR string_col = '%C'", UNSAFE_STRING, UNSAFE_STRING " - updated1", "value1", "value2");
+  j_query = json_pack("{sss{s{ssss}}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "",
+                          "operator",
+                          "raw",
+                          "value",
+                          where_clause);
+  ck_assert_int_eq(h_select(conn, j_query, &j_result, NULL), H_OK);
+  ck_assert_ptr_ne(j_result, NULL);
+  ck_assert_int_eq(json_is_array(j_result), 1);
+  ck_assert_int_eq(json_array_size(j_result), 1);
+  json_decref(j_query);
+  json_decref(j_result);
+  h_free(where_clause);
+
+  where_clause = h_build_where_clause(conn, "0.0 = %f AND '%%lol' = '%%lol' AND string_col = %c", (double)0.0, "value1");
+  j_query = json_pack("{sss{s{ssss}}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "",
+                          "operator",
+                          "raw",
+                          "value",
+                          where_clause);
+  ck_assert_int_eq(h_select(conn, j_query, &j_result, NULL), H_OK);
+  ck_assert_ptr_ne(j_result, NULL);
+  ck_assert_int_eq(json_is_array(j_result), 1);
+  ck_assert_int_eq(json_array_size(j_result), 1);
+  json_decref(j_query);
+  json_decref(j_result);
+  h_free(where_clause);
+
+  where_clause = h_build_where_clause(conn, "0.0 = %f AND '%%lol' = '%%lol' AND string_col = '%C'", (double)0.0, "value1");
+  j_query = json_pack("{sss{s{ssss}}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "",
+                          "operator",
+                          "raw",
+                          "value",
+                          where_clause);
+  ck_assert_int_eq(h_select(conn, j_query, &j_result, NULL), H_OK);
+  ck_assert_ptr_ne(j_result, NULL);
+  ck_assert_int_eq(json_is_array(j_result), 1);
+  ck_assert_int_eq(json_array_size(j_result), 1);
+  json_decref(j_query);
+  json_decref(j_result);
+  h_free(where_clause);
+
+  where_clause = h_build_where_clause(conn, "0.0 = %f AND '%%lol' = '%%lol' AND string_col = %c", (double)0.0, UNSAFE_STRING);
+  j_query = json_pack("{sss{s{ssss}}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "",
+                          "operator",
+                          "raw",
+                          "value",
+                          where_clause);
+  j_result = NULL;
+  ck_assert_int_eq(h_select(conn, j_query, &j_result, NULL), H_ERROR_QUERY);
+  ck_assert_ptr_eq(j_result, NULL);
+  json_decref(j_query);
+  h_free(where_clause);
+
+  j_query = json_pack("{sss{si}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "integer_col",
+                        55);
+  ck_assert_int_eq(h_delete(conn, j_query, NULL), H_OK);
+  json_decref(j_query);
+
+  where_clause = h_build_where_clause(conn, "0.0 = %j AND integer_col = %j AND string_col = %j AND string_col = %s", j_real, j_integer, j_string, UNSAFE_STRING);
+  j_query = json_pack("{sss{s{ssss}}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "",
+                          "operator",
+                          "raw",
+                          "value",
+                          where_clause);
+  ck_assert_int_eq(h_select(conn, j_query, &j_result, NULL), H_OK);
+  ck_assert_ptr_ne(j_result, NULL);
+  ck_assert_int_eq(json_is_array(j_result), 1);
+  ck_assert_int_eq(json_array_size(j_result), 0);
+  json_decref(j_query);
+  json_decref(j_result);
+  h_free(where_clause);
+
+  where_clause = h_build_where_clause(conn, WHERE_CLAUSE_NO_FORMAT);
+  ck_assert_str_eq(where_clause, WHERE_CLAUSE_NO_FORMAT);
+  h_free(where_clause);
+  
+  ck_assert_ptr_eq(NULL, h_build_where_clause(NULL, "0.0 = %f AND '%%lol' = '%%lol' AND string_col = '%S'", (double)0.0, UNSAFE_STRING));
+  ck_assert_ptr_eq(NULL, h_build_where_clause(conn, "error = %j", json_null()));
+  ck_assert_ptr_eq(NULL, h_build_where_clause(conn, NULL, (double)0.0, UNSAFE_STRING));
+  ck_assert_ptr_eq(NULL, h_build_where_clause(conn, "", (double)0.0, UNSAFE_STRING));
+  ck_assert_ptr_eq(NULL, h_build_where_clause(conn, "this is an error %", (double)0.0, UNSAFE_STRING));
+  ck_assert_ptr_eq(NULL, h_build_where_clause(conn, "this is another error %n to test", (double)0.0, UNSAFE_STRING));
+  
+  json_decref(j_real);
+  json_decref(j_integer);
+  json_decref(j_string);
+  ck_assert_int_eq(h_close_db(conn), H_OK);
+  ck_assert_int_eq(h_clean_connection(conn), H_OK);
+}
+END_TEST
+
 static Suite *hoel_suite(void)
 {
 	Suite *s;
@@ -628,6 +1068,8 @@ static Suite *hoel_suite(void)
 	tcase_add_test(tc_core, test_hoel_json_update);
 	tcase_add_test(tc_core, test_hoel_json_delete);
 	tcase_add_test(tc_core, test_hoel_json_select);
+	tcase_add_test(tc_core, test_hoel_json_escape);
+	tcase_add_test(tc_core, test_hoel_json_generate_where_clause);
 	tcase_set_timeout(tc_core, 30);
 	suite_add_tcase(s, tc_core);
 
