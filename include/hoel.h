@@ -199,7 +199,7 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe);
  * @param conn the connection to the database
  * @param unsafe the string to escape
  * @return a heap-allocated string
- * returned value must be h_h_free'd after use
+ * returned value must be h_free'd after use
  */
 char * h_escape_string_with_quotes(const struct _h_connection * conn, const char * unsafe);
 
@@ -410,6 +410,25 @@ int h_update(const struct _h_connection * conn, const json_t * j_query, char ** 
  * @return H_OK on success
  */
 int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** generated_query);
+
+/**
+ * h_build_where_clause
+ * Generates a where clause based on the pattern and the values given
+ * @param conn the connection to the database
+ * @param pattern the pattern to build the where clause
+ * the pattern variables available are the following:
+ * - %s: a string value to escape with quotes
+ * - %S: a string value to escape without quotes
+ * - %c: a string value not to escape with quotes
+ * - %C: a string value not to escape without quotes
+ * - %d: an integer value in json_int_t format
+ * - %f: a double value
+ * - %j: a json_t value, the value must be of the type JSON_INTEGER, JSON_REAL or JSON_STRING, string values will be escaped with quotes
+ * - %%: the value '%'
+ * @return a heap-allocated string
+ * returned value must be h_free'd after use
+ */
+char * h_build_where_clause(const struct _h_connection * conn, const char * pattern, ...);
 
 /**
  * @}
