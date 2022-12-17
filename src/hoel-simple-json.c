@@ -6,7 +6,7 @@
  * 
  * Copyright 2015-2020 Nicolas Mora <mail@babelouest.org>
  *
- * This program is o_free software; you can redistribute it and/or
+ * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation;
  * version 2.1 of the License.
@@ -39,11 +39,11 @@ static char * h_get_insert_values_from_json_object(const struct _h_connection * 
         escape = h_escape_string_with_quotes(conn, json_string_value(value));
         if (escape == NULL) {
           y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_values_from_json_object - Error escape");
-          o_free(new_data);
+          h_free(new_data);
           new_data = NULL;
         } else {
           new_data = o_strdup(escape);
-          o_free(escape);
+          h_free(escape);
         }
         break;
       case JSON_INTEGER:
@@ -72,7 +72,7 @@ static char * h_get_insert_values_from_json_object(const struct _h_connection * 
       default:
         tmp = json_dumps(value, JSON_ENCODE_ANY);
         y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_values_from_json_object - Error decoding value %s, inserting NULL value", tmp);
-        o_free(tmp);
+        h_free(tmp);
         new_data = o_strdup("NULL");
         break;
     }
@@ -86,22 +86,22 @@ static char * h_get_insert_values_from_json_object(const struct _h_connection * 
         y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_values_from_json_object - Error allocating insert_data");
       }
       i = 1;
-      o_free(new_data);
+      h_free(new_data);
     } else {
       tmp = msprintf("%s,%s", insert_data, new_data);
       if (tmp == NULL) {
         y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_values_from_json_object - Error allocating tmp");
-        o_free(insert_data);
-        o_free(new_data);
+        h_free(insert_data);
+        h_free(new_data);
         return NULL;
       }
-      o_free(insert_data);
-      o_free(new_data);
+      h_free(insert_data);
+      h_free(new_data);
       insert_data = tmp;
     }
   }
   tmp = msprintf("%s)", insert_data);
-  o_free(insert_data);
+  h_free(insert_data);
   if (tmp == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_values_from_json_object - Error final allocation for tmp");
   }
@@ -124,7 +124,7 @@ static char * h_get_insert_columns_from_json_object(json_t * data) {
       i = 1;
     } else {
       tmp = msprintf("%s,%s", insert_cols, key);
-      o_free(insert_cols);
+      h_free(insert_cols);
       if (tmp == NULL) {
         y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_columns_from_json_object - Error allocating insert_cols");
         return NULL;
@@ -138,7 +138,7 @@ static char * h_get_insert_columns_from_json_object(json_t * data) {
 
 /**
  * Builds an insert query from a json object and a table name
- * Returned value must be o_free'd after use
+ * Returned value must be h_free'd after use
  */
 static char * h_get_insert_query_from_json_object(const struct _h_connection * conn, json_t * data, const char * table) {
   char * to_return = NULL, * insert_cols, * insert_data;
@@ -150,8 +150,8 @@ static char * h_get_insert_query_from_json_object(const struct _h_connection * c
   } else {
     to_return = msprintf("INSERT INTO %s (%s) VALUES %s", table, insert_cols, insert_data);
   }
-  o_free(insert_cols);
-  o_free(insert_data);
+  h_free(insert_cols);
+  h_free(insert_data);
   if (to_return == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_query_from_json_object - Error allocating memory for h_get_insert_query_from_json_object");
   }
@@ -160,7 +160,7 @@ static char * h_get_insert_query_from_json_object(const struct _h_connection * c
 
 /**
  * Builds an insert query from a json object and a table name
- * Returned value must be o_free'd after use
+ * Returned value must be h_free'd after use
  */
 static char * h_get_insert_query_from_json_array(const struct _h_connection * conn, json_t * j_array, const char * table) {
   json_t * j_row = NULL;
@@ -172,23 +172,23 @@ static char * h_get_insert_query_from_json_array(const struct _h_connection * co
     if (!index) {
       insert_cols = h_get_insert_columns_from_json_object(j_row);
       to_return = msprintf("INSERT INTO %s (%s) VALUES %s", table, insert_cols, insert_data);
-      o_free(insert_cols);
+      h_free(insert_cols);
       if (to_return == NULL) {
         y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_query_from_json_array - Error allocating to_return");
-        o_free(insert_data);
+        h_free(insert_data);
         return NULL;
       }
     } else {
       tmp = msprintf("%s,%s", to_return, insert_data);
       if (tmp == NULL) {
         y_log_message(Y_LOG_LEVEL_ERROR, "Hoel/h_get_insert_query_from_json_array - Error allocating tmp");
-        o_free(insert_data);
+        h_free(insert_data);
         return NULL;
       }
-      o_free(to_return);
+      h_free(to_return);
       to_return = tmp;
     }
-    o_free(insert_data);
+    h_free(insert_data);
   }
   return to_return;
 }
@@ -203,7 +203,7 @@ static char * h_get_insert_query_from_json_array(const struct _h_connection * co
  * the output is a WHERE query will use only '=' and 'AND' keywords
  * col1='value1' AND col2='value2'
  * return a char * containing the WHERE clause, NULL on error
- * the returned value must be o_free'd after use
+ * the returned value must be h_free'd after use
  */
 static char * h_get_where_clause_from_json_object(const struct _h_connection * conn, const json_t * where) {
   const char * key = NULL;
@@ -222,7 +222,7 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
       if (!json_is_string(value) && !json_is_real(value) && !json_is_integer(value) && !json_is_object(value) && !json_is_null(value)) {
         dump = json_dumps(value, JSON_ENCODE_ANY);
         y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_where_clause_from_json_object - Error where value is invalid: %s", dump);
-        o_free(dump);
+        h_free(dump);
         return NULL;
       } else {
         if (json_is_object(value)) {
@@ -235,9 +235,9 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
             dump = json_dumps(val, JSON_ENCODE_ANY);
             dump2 = json_dumps(ope, JSON_ENCODE_ANY);
             y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_where_clause_from_json_object - Error where object value is invalid: %s %s", dump, dump2);
-            o_free(dump);
-            o_free(dump2);
-            o_free(where_clause);
+            h_free(dump);
+            h_free(dump2);
+            h_free(where_clause);
             return NULL;
           } else {
             if (0 == o_strcasecmp("NOT NULL", json_string_value(ope))) {
@@ -249,8 +249,8 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
                 clause = NULL, tmp = NULL;
                 json_array_foreach(val, index, j_element) {
                   if (!json_is_string(j_element) && !json_is_real(j_element) && !json_is_integer(j_element)) {
-                    o_free(clause);
-                    o_free(where_clause);
+                    h_free(clause);
+                    h_free(where_clause);
                     y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error element value in IN statement array must be real, integer or string");
                     return NULL;
                   } else {
@@ -258,12 +258,12 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
                       escape = h_escape_string_with_quotes(conn, json_string_value(j_element));
                       if (escape == NULL) {
                         y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error escape");
-                        o_free(clause);
-                        o_free(where_clause);
+                        h_free(clause);
+                        h_free(where_clause);
                         return NULL;
                       }
                       dump = msprintf("%s", escape);
-                      o_free(escape);
+                      h_free(escape);
                     } else if (json_is_real(j_element)) {
                       dump = msprintf("%f", json_real_value(j_element));
                     } else {
@@ -273,17 +273,17 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
                       clause = msprintf("%s IN (%s", key, dump);
                     } else {
                       tmp = msprintf("%s,%s", clause, dump);
-                      o_free(clause);
+                      h_free(clause);
                       clause = tmp;
                     }
-                    o_free(dump);
+                    h_free(dump);
                   }
                 }
                 tmp = msprintf("%s)", clause);
-                o_free(clause);
+                h_free(clause);
                 clause = tmp;
               } else {
-                o_free(where_clause);
+                h_free(where_clause);
                 y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error value in IN statement must be a non empty JSON array");
                 return NULL;
               }
@@ -296,16 +296,16 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
                 escape = h_escape_string_with_quotes(conn, json_string_value(val));
                 if (escape == NULL) {
                   y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error escape");
-                  o_free(where_clause);
+                  h_free(where_clause);
                   return NULL;
                 }
                 clause = msprintf("%s %s %s", key, json_string_value(ope), escape);
-                o_free(escape);
+                h_free(escape);
               }
             }
             if (clause == NULL) {
               y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for clause");
-              o_free(where_clause);
+              h_free(where_clause);
               return NULL;
             }
           }
@@ -316,11 +316,11 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
             escape = h_escape_string_with_quotes(conn, json_string_value(value));
             if (escape == NULL) {
               y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error escape");
-              o_free(where_clause);
+              h_free(where_clause);
               return NULL;
             }
             clause = msprintf("%s=%s", key, escape);
-            o_free(escape);
+            h_free(escape);
           } else if (json_is_integer(value)) {
             clause = msprintf("%s='%"JSON_INTEGER_FORMAT"'", key, json_integer_value(value));
           } else if (json_is_real(value)) {
@@ -332,7 +332,7 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
           }
           if (clause == NULL) {
             y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for clause");
-            o_free(where_clause);
+            h_free(where_clause);
             return NULL;
           }
         }
@@ -340,22 +340,22 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
           where_clause = o_strdup(clause);
           if (where_clause == NULL) {
             y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_where_clause_from_json_object - Error where_clause");
-            o_free(clause);
-            o_free(where_clause);
+            h_free(clause);
+            h_free(where_clause);
             return NULL;
           }
-          o_free(clause);
+          h_free(clause);
           i = 1;
         } else {
           tmp = msprintf("%s AND %s", where_clause, clause);
-          o_free(where_clause);
+          h_free(where_clause);
           if (tmp == NULL) {
             y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_where_clause_from_json_object - Error tmp where_clause");
-            o_free(clause);
-            o_free(where_clause);
+            h_free(clause);
+            h_free(where_clause);
             return NULL;
           }
-          o_free(clause);
+          h_free(clause);
           where_clause = tmp;
         }
       }
@@ -374,7 +374,7 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
  * the output is a WHERE query will use only '=' and 'AND' keywords
  * col1='value1', col2='value2'
  * return a char * containing the WHERE clause, NULL on error
- * the returned value must be o_free'd after use
+ * the returned value must be h_free'd after use
  */
 static char * h_get_set_clause_from_json_object(const struct _h_connection * conn, const json_t * set) {
   const char * key = NULL;
@@ -390,14 +390,14 @@ static char * h_get_set_clause_from_json_object(const struct _h_connection * con
       if (!json_is_string(value) && !json_is_real(value) && !json_is_integer(value) && !json_is_null(value) && !json_is_object(value)) {
         tmp = json_dumps(value, JSON_ENCODE_ANY);
         y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_set_clause_from_json_object - Error value invalid: %s", tmp);
-        o_free(tmp);
-        o_free(where_clause);
+        h_free(tmp);
+        h_free(where_clause);
         return NULL;
       } else {
         if (json_is_string(value)) {
           tmp = h_escape_string_with_quotes(conn, json_string_value(value));
           escape = msprintf("%s", tmp);
-          o_free(tmp);
+          h_free(tmp);
         } else if (json_is_real(value)) {
           escape = msprintf("%f", json_real_value(value));
         } else if (json_is_integer(value)) {
@@ -433,14 +433,14 @@ static char * h_get_set_clause_from_json_object(const struct _h_connection * con
           } else {
             tmp = msprintf("%s, %s=NULL", where_clause, key);
           }
-          o_free(where_clause);
+          h_free(where_clause);
           if (tmp == NULL) {
             y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_get_set_clause_from_json_object - Error tmp where_clause");
             return NULL;
           }
           where_clause = tmp;
         }
-        o_free(escape);
+        h_free(escape);
       }
     }
     return where_clause;
@@ -452,7 +452,7 @@ static char * h_get_set_clause_from_json_object(const struct _h_connection * con
  * Execute a select query
  * Uses a json_t * parameter for the query parameters
  * Store the result of the query in j_result if specified. j_result must be decref'd after use
- * Duplicate the generated query in generated_query if specified, must be o_free'd after use
+ * Duplicate the generated query in generated_query if specified, must be h_free'd after use
  * return H_OK on success
  */
 int h_select(const struct _h_connection * conn, const json_t * j_query, json_t ** j_result, char ** generated_query) {
@@ -491,43 +491,43 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
         col = json_string_value(value);
         if (col == NULL) {
           y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_select Error col");
-          o_free(where_clause);
-          o_free(columns);
+          h_free(where_clause);
+          h_free(columns);
           return H_ERROR_MEMORY;
         }
       } else {
         y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_select Error column not string");
-        o_free(where_clause);
+        h_free(where_clause);
         return H_ERROR_PARAMS;
       }
       if (index == 0) {
         columns = o_strdup(col);
         if (columns == NULL) {
           y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_select Error allocating columns");
-          o_free(where_clause);
+          h_free(where_clause);
           return H_ERROR_MEMORY;
         }
       } else {
         tmp = msprintf("%s, %s", columns, col);
         if (tmp == NULL) {
           y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_select Error allocating clause");
-          o_free(where_clause);
-          o_free(columns);
+          h_free(where_clause);
+          h_free(columns);
           return H_ERROR_MEMORY;
         }
-        o_free(columns);
+        h_free(columns);
         columns = tmp;
       }
     }
   } else {
     y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_select Error cols not array");
-    o_free(where_clause);
+    h_free(where_clause);
     return H_ERROR_PARAMS;
   }
   
   if (columns == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for columns");
-    o_free(where_clause);
+    h_free(where_clause);
     return H_ERROR_MEMORY;
   }
   
@@ -542,8 +542,8 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
   }
   if (str_where_limit == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for str_where_limit");
-    o_free(columns);
-    o_free(where_clause);
+    h_free(columns);
+    h_free(where_clause);
     return H_ERROR_MEMORY;
   }
 
@@ -554,30 +554,30 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
   }
   if (str_order_by == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for str_order_by");
-    o_free(columns);
-    o_free(where_clause);
-    o_free(str_where_limit);
+    h_free(columns);
+    h_free(where_clause);
+    h_free(str_where_limit);
     return H_ERROR_MEMORY;
   }
   
   query = msprintf("SELECT %s FROM %s WHERE %s %s %s", columns, table, where_clause, str_order_by, str_where_limit);
   if (query == NULL) {
     y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_select Error allocating query");
-    o_free(columns);
-    o_free(where_clause);
-    o_free(str_where_limit);
-    o_free(str_order_by);
+    h_free(columns);
+    h_free(where_clause);
+    h_free(str_where_limit);
+    h_free(str_order_by);
     return H_ERROR_MEMORY;
   } else {
     if (generated_query != NULL) {
       *generated_query = o_strdup(query);
     }
     res = h_query_select_json(conn, query, j_result);
-    o_free(columns);
-    o_free(where_clause);
-    o_free(str_where_limit);
-    o_free(str_order_by);
-    o_free(query);
+    h_free(columns);
+    h_free(where_clause);
+    h_free(str_where_limit);
+    h_free(str_order_by);
+    h_free(query);
     return res;
   }
 }
@@ -586,7 +586,7 @@ int h_select(const struct _h_connection * conn, const json_t * j_query, json_t *
  * h_insert
  * Execute an insert query
  * Uses a json_t * parameter for the query parameters
- * Duplicate the generated query in generated_query if specified, must be o_free'd after use
+ * Duplicate the generated query in generated_query if specified, must be h_free'd after use
  * return H_OK on success
  */
 int h_insert(const struct _h_connection * conn, const json_t * j_query, char ** generated_query) {
@@ -607,7 +607,7 @@ int h_insert(const struct _h_connection * conn, const json_t * j_query, char ** 
             *generated_query = o_strdup(query);
           }
           res = h_query_insert(conn, query);
-          o_free(query);
+          h_free(query);
           if (res != H_OK) {
             y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error executing query (1)");
             return H_ERROR_QUERY;
@@ -627,7 +627,7 @@ int h_insert(const struct _h_connection * conn, const json_t * j_query, char ** 
               *generated_query = o_strdup(query);
             }
             res = h_query_insert(conn, query);
-            o_free(query);
+            h_free(query);
             if (res != H_OK) {
               y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_insert - Error executing query (2)");
               return H_ERROR_QUERY;
@@ -694,7 +694,7 @@ json_t * h_last_insert_id(const struct _h_connection * conn) {
  * h_update
  * Execute an update query
  * Uses a json_t * parameter for the query parameters
- * Duplicate the generated query in generated_query if specified, must be o_free'd after use
+ * Duplicate the generated query in generated_query if specified, must be h_free'd after use
  * return H_OK on success
  */
 int h_update(const struct _h_connection * conn, const json_t * j_query, char ** generated_query) {
@@ -722,12 +722,12 @@ int h_update(const struct _h_connection * conn, const json_t * j_query, char ** 
     where = json_object_get(j_query, "where");
     where_clause = h_get_where_clause_from_json_object(conn, where);
     query = msprintf("UPDATE %s SET %s WHERE %s", table, set_clause, where_clause);
-    o_free(where_clause);
+    h_free(where_clause);
   } else {
     query = msprintf("UPDATE %s SET %s", table, set_clause);
   }
   
-  o_free(set_clause);
+  h_free(set_clause);
   if (query == NULL) {
     y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_update - Error allocating query");
     return H_ERROR_MEMORY;
@@ -736,7 +736,7 @@ int h_update(const struct _h_connection * conn, const json_t * j_query, char ** 
     *generated_query = o_strdup(query);
   }
   res = h_query_update(conn, query);
-  o_free(query);
+  h_free(query);
   return res;
 }
 
@@ -744,7 +744,7 @@ int h_update(const struct _h_connection * conn, const json_t * j_query, char ** 
  * h_delete
  * Execute a delete query
  * Uses a json_t * parameter for the query parameters
- * Duplicate the generated query in generated_query if specified, must be o_free'd after use
+ * Duplicate the generated query in generated_query if specified, must be h_free'd after use
  * return H_OK on success
  */
 int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** generated_query) {
@@ -769,7 +769,7 @@ int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** 
       return H_ERROR_PARAMS;
     }
     query = msprintf("DELETE FROM %s WHERE %s", table, where_clause);
-    o_free(where_clause);
+    h_free(where_clause);
   } else {
     query = msprintf("DELETE FROM %s", table);
   }
@@ -782,6 +782,165 @@ int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** 
     *generated_query = o_strdup(query);
   }
   res = h_query_delete(conn, query);
-  o_free(query);
+  h_free(query);
   return res;
+}
+
+/**
+* h_build_where_clause
+ * Generates a where clause based on the pattern and the values given
+ * @param conn the connection to the database
+ * @param pattern the pattern to build the where clause
+ * the pattern variables available are the following:
+ * - %s: a string value to escape with quotes
+ * - %S: a string value to escape without quotes
+ * - %c: a string value not to escape with quotes
+ * - %C: a string value not to escape without quotes
+ * - %d: an integer value in json_int_t format
+ * - %f: a double value
+ * - %%: the value '%'
+ * @return a heap-allocated string
+ * returned value must be h_free'd after use
+ */
+char * h_build_where_clause(const struct _h_connection * conn, const char * pattern, ...) {
+  char * where_clause = NULL, * pattern_pos = NULL, * escaped = NULL, * prefix = NULL;
+  const char * pattern_save = pattern, * unescaped = NULL;
+  int has_error = 0;
+  json_t * j_value = NULL;
+  json_int_t i_value = 0;
+  double d_value = 0.0;
+  va_list vl;
+  size_t prefix_len;
+
+  if (conn == NULL || o_strnullempty(pattern)) {
+    y_log_message(Y_LOG_LEVEL_DEBUG, "Hoel/h_build_where_clause - Error invalid input parameters");
+    return NULL;
+  }
+  
+  va_start(vl, pattern);
+  while ((pattern_pos = o_strchr(pattern_save, '%')) != NULL && !has_error) {
+    if (*(pattern_pos+1) != '\0') {
+      prefix_len = (size_t)(pattern_pos - pattern_save);
+      prefix = o_strndup(pattern_save, prefix_len);
+      where_clause = mstrcatf(where_clause, "%s", prefix);
+      h_free(prefix);
+      pattern_save += prefix_len;
+      switch (*(pattern_pos+1)) {
+        case 's':
+          unescaped = va_arg(vl, const char *);
+          if ((escaped = h_escape_string_with_quotes(conn, unescaped)) != NULL) {
+            if ((where_clause = mstrcatf(where_clause, "%s", escaped)) != NULL) {
+              h_free(escaped);
+              pattern_save += 2;
+            } else {
+              has_error = 1;
+            }
+          } else {
+            has_error = 1;
+          }
+          break;
+        case 'S':
+          unescaped = va_arg(vl, const char *);
+          if ((escaped = h_escape_string(conn, unescaped)) != NULL) {
+            if ((where_clause = mstrcatf(where_clause, "%s", escaped)) != NULL) {
+              h_free(escaped);
+              pattern_save += 2;
+            } else {
+              has_error = 1;
+            }
+          } else {
+            has_error = 1;
+          }
+          break;
+        case 'c':
+          unescaped = va_arg(vl, const char *);
+          if ((where_clause = mstrcatf(where_clause, "'%s'", unescaped)) != NULL) {
+            pattern_save += 2;
+          } else {
+            has_error = 1;
+          }
+          break;
+        case 'C':
+          unescaped = va_arg(vl, const char *);
+          if ((where_clause = mstrcatf(where_clause, "%s", unescaped)) != NULL) {
+            pattern_save += 2;
+          } else {
+            has_error = 1;
+          }
+          break;
+        case 'd':
+          i_value = va_arg(vl, json_int_t);
+          if ((where_clause = mstrcatf(where_clause, "%"JSON_INTEGER_FORMAT, i_value)) != NULL) {
+            pattern_save += 2;
+          } else {
+            has_error = 1;
+          }
+          break;
+        case 'f':
+          d_value = va_arg(vl, double);
+          if ((where_clause = mstrcatf(where_clause, "%f", d_value)) != NULL) {
+            pattern_save += 2;
+          } else {
+            has_error = 1;
+          }
+          break;
+        case 'j':
+          j_value = va_arg(vl, json_t *);
+          if (j_value != NULL) {
+            if (json_is_string(j_value)) {
+              if ((escaped = h_escape_string_with_quotes(conn, json_string_value(j_value))) != NULL) {
+                if ((where_clause = mstrcatf(where_clause, "%s", escaped)) != NULL) {
+                  h_free(escaped);
+                  pattern_save += 2;
+                } else {
+                  has_error = 1;
+                }
+              } else {
+                has_error = 1;
+              }
+            } else if (json_is_integer(j_value)) {
+              if ((where_clause = mstrcatf(where_clause, "%"JSON_INTEGER_FORMAT, json_integer_value(j_value))) != NULL) {
+                pattern_save += 2;
+              } else {
+                has_error = 1;
+              }
+            } else if (json_is_real(j_value)) {
+              if ((where_clause = mstrcatf(where_clause, "%f", json_real_value(j_value))) != NULL) {
+                pattern_save += 2;
+              } else {
+                has_error = 1;
+              }
+            } else {
+              has_error = 1;
+            }
+          } else {
+            has_error = 1;
+          }
+          break;
+        case '%':
+          if ((where_clause = mstrcatf(where_clause, "%%")) != NULL) {
+            pattern_save += 2;
+          } else {
+            has_error = 1;
+          }
+          break;
+        default:
+          has_error = 1;
+          break;
+      }
+      escaped = NULL;
+      j_value = NULL;
+    } else {
+      has_error = 1;
+    }
+  }
+  va_end(vl);
+
+  if (!has_error) {
+    where_clause = mstrcatf(where_clause, "%s", pattern_save);
+  } else {
+    h_free(where_clause);
+    where_clause = NULL;
+  }
+  return where_clause;
 }
