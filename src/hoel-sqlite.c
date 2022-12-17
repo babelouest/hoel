@@ -59,7 +59,7 @@ struct _h_connection * h_connect_sqlite(const char * db_path) {
     conn->connection = o_malloc(sizeof(struct _h_sqlite));
     if (conn->connection == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "h_connect_sqlite - Error allocating resources");
-      o_free(conn);
+      h_free(conn);
       return NULL;
     }
     if (sqlite3_open_v2(db_path, &((struct _h_sqlite *)conn->connection)->db_handle, SQLITE_OPEN_READWRITE|SQLITE_OPEN_FULLMUTEX, NULL) != SQLITE_OK) {
@@ -68,8 +68,8 @@ struct _h_connection * h_connect_sqlite(const char * db_path) {
                              sqlite3_errcode(((struct _h_sqlite *)conn->connection)->db_handle), 
                              sqlite3_errmsg(((struct _h_sqlite *)conn->connection)->db_handle));
       sqlite3_close(((struct _h_sqlite *)conn->connection)->db_handle);
-      o_free(conn->connection);
-      o_free(conn);
+      h_free(conn->connection);
+      h_free(conn);
       return NULL;
     } else {
       return conn;
@@ -116,7 +116,7 @@ char * h_escape_string_with_quotes_sqlite(const struct _h_connection * conn, con
     return NULL;
   }
   ret = msprintf("'%s'", tmp);
-  o_free(tmp);
+  h_free(tmp);
   if (ret == NULL) {
     y_log_message(Y_LOG_LEVEL_ERROR, "Error escaping with quotes (o_strdup)");
   }
