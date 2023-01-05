@@ -283,6 +283,73 @@ char * h_escape_string(const struct _h_connection * conn, const char * unsafe);
 char * h_escape_string_with_quotes(const struct _h_connection * conn, const char * unsafe);
 ```
 
+### Build a more complicated where clause
+
+When you need to run a query with a where clause using multiple parameters, such as `WHERE col1='a' AND (col2='b' OR col3=5) AND col4=42.3`, you can use the operator `raw`:
+
+```JSON
+{
+  "table": "table1",
+  "columns": ["col1", "col2"]
+  "where": {
+    " ": {
+      "operator", "raw",
+      "value", "col1='a' AND (col2='b' or col3='c') AND col4=5"
+    }
+  }
+}
+```
+
+In some cases, you may need to build the where clause with multiple variables. In hoel 1.4.27, the function `h_build_where_clause` was introduced to help that. Please note that this function is still in Beta.
+
+```C
+/**
+ * h_build_where_clause
+ * Generates a where clause based on the pattern and the values given
+ * @param conn the connection to the database
+ * @param pattern the pattern to build the where clause
+ * the pattern variables available are the following:
+ * - %s: a string value to escape with quotes
+ * - %S: a string value to escape without quotes
+ * - %c: a string value not to escape with quotes
+ * - %C: a string value not to escape without quotes
+ * - %d: an integer value in json_int_t format
+ * - %f: a double value
+ * - %j: a json_t value, the value must be of the type JSON_INTEGER, JSON_REAL or JSON_STRING, string values will be escaped with quotes
+ * - %%: the value '%'
+ * @return a heap-allocated string
+ * returned value must be h_free'd after use
+ */
+char * h_build_where_clause(const struct _h_connection * conn, const char * pattern, ...);
+```
+
+Then, to build the where clause above using `h_build_where_clause`, you can use the following code:
+
+```C
+const char col1[] = "a", col2[] = "b";
+json_int_t col3 = 5;
+double col4 = 42.3;
+char * where_clause = h_build_where_clause("col1=%s AND (col2='S' OR col3=%d) AND col4=%f", col1, col2, col3, col4);
+json_t * j_query = json_pack("{sss[ss]s{s{ssss}}}",
+                             "table", "table1",
+                             "columns",
+                               "col1",
+                               "col2",
+                             "where",
+                               " ",
+                                 "operator", "raw",
+                                 "value", where_clause);
+h_free(where_clause);
+// Execute j_query
+```
+
+Note that if you use constant litteral for integer or double values, you should cast them first:
+
+```C
+const char col1[] = "a", col2[] = "b";
+char * where_clause = h_build_where_clause("col1=%s AND (col2='S' OR col3=%d) AND col4=%f", col1, col2, (json_int_t)5, (double)42.3);
+```
+
 ### Execute a SQL query
 
 To execute a SQL query, you can use the function `h_execute_query` which will run the query in the database specified by the parameter `conn`. If a `result` parameter is specified, the result of the query (if any) will be stored in the `result` structure.
