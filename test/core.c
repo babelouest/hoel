@@ -863,7 +863,7 @@ START_TEST(test_hoel_json_generate_where_clause)
   ck_assert_int_eq(h_insert(conn, j_query, NULL), H_OK);
   json_decref(j_query);
   
-  where_clause = h_build_where_clause(conn, "integer_col = %d AND string_col = %s", 55, "value1");
+  where_clause = h_build_where_clause(conn, "integer_col = %d AND string_col = %s", (json_int_t)55, "value1");
   j_query = json_pack("{sss{s{ssss}}}",
                       "table",
                       "test_table",
