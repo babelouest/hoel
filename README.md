@@ -63,11 +63,12 @@ If there's no package available for your distribution, you can recompile it manu
 
 [CMake](https://cmake.org/download/) minimum 3.5 is required.
 
+Last Hoel release: [https://github.com/babelouest/hoel/releases/latest/](https://github.com/babelouest/hoel/releases/latest/)
+
 Run the CMake script in a sub-directory, example:
 
 ```shell
-$ git clone https://github.com/babelouest/hoel.git
-$ cd hoel/
+$ cd <hoel_source>
 $ mkdir build
 $ cd build
 $ cmake ..
@@ -90,18 +91,21 @@ The available options for CMake are:
 
 Clone, compile and install [Orcania](https://github.com/babelouest/orcania) and [Yder](https://github.com/babelouest/yder) libraries.
 
+
 ### Orcania (Miscellaneous functions)
 
+Last Orcania release: [https://github.com/babelouest/orcania/releases/latest/](https://github.com/babelouest/orcania/releases/latest/)
+
 ```shell
-$ git clone https://github.com/babelouest/orcania.git
 $ cd orcania/src
 $ make && sudo make install
 ```
 
 ### Yder (simple logs library)
 
+Last Yder release: [https://github.com/babelouest/yder/releases/latest/](https://github.com/babelouest/yder/releases/latest/)
+
 ```shell
-$ git clone https://github.com/babelouest/yder.git
 $ cd yder/src
 $ make
 $ sudo make install
@@ -109,10 +113,9 @@ $ sudo make install
 
 ### Hoel
 
-Download Hoel from GitHub repository.
+Last Hoel release: [https://github.com/babelouest/hoel/releases/latest/](https://github.com/babelouest/hoel/releases/latest/)
 
 ```shell
-$ git clone https://github.com/babelouest/hoel.git
 $ cd hoel/src
 $ make
 $ sudo make install
