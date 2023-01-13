@@ -789,17 +789,7 @@ int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** 
 /**
 * h_build_where_clause
  * Generates a where clause based on the pattern and the values given
- * @param conn the connection to the database
- * @param pattern the pattern to build the where clause
- * the pattern variables available are the following:
- * - %s: a string value to escape with quotes
- * - %S: a string value to escape without quotes
- * - %c: a string value not to escape with quotes
- * - %C: a string value not to escape without quotes
- * - %d: an integer value in json_int_t format
- * - %f: a double value
- * - %%: the value '%'
- * @return a heap-allocated string
+ * return a heap-allocated string
  * returned value must be h_free'd after use
  */
 char * h_build_where_clause(const struct _h_connection * conn, const char * pattern, ...) {
