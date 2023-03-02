@@ -53,7 +53,7 @@ jobs:
         rm -rf * && cmake -DWITH_SQLITE3=on -DWITH_MARIADB=on -DWITH_PGSQL=on ..
         make package
         rm -rf *
-        if $(cmake -DWITH_SQLITE3=off -DWITH_MARIADB=off -DWITH_PGSQL=off .. 1>/dev/null 2&>1); then echo "Build with no DB fail" && false; else echo "Build with no DB success"; fi
+        if $(cmake -DWITH_SQLITE3=off -DWITH_MARIADB=off -DWITH_PGSQL=off .. 1>/dev/null 2>&1); then echo "Build with no DB fail" && false; else echo "Build with no DB success"; fi
         cd ../
         make clean debug
         make clean debug DISABLE_SQLITE=1 DISABLE_MARIADB=1
@@ -62,6 +62,6 @@ jobs:
         make clean debug DISABLE_MARIADB=1 DISABLE_POSTGRESQL=1
         make clean debug DISABLE_MARIADB=1
         make clean debug DISABLE_POSTGRESQL=1
-        if $(make clean debug DISABLE_MARIADB=1 DISABLE_POSTGRESQL=1 1>/dev/null 2&>1); then echo "Build with no DB fail" && false; else echo "Build with no DB success"; fi
+        if $(make clean debug DISABLE_MARIADB=1 DISABLE_POSTGRESQL=1 1>/dev/null 2>&1); then echo "Build with no DB fail" && false; else echo "Build with no DB success"; fi
         sqlite3 /tmp/test.db < test/test.sqlite3.sql
         make clean check
