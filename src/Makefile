@@ -65,6 +65,9 @@ VERSION_PATCH=27
 all: release
 
 $(CONFIG_FILE):
+	@if [ "$(ENABLE_SQLITE)" = "0" ] && [ "$(ENABLE_MARIADB)" = "0" ] && [ "$(ENABLE_PGSQL)" = "0" ]; then \
+	(echo "You must enable at least one database backend: Sqlite3, MariaDB or PostgreSQL"; exit 1) \
+	fi
 	@cp $(CONFIG_TEMPLATE) $(CONFIG_FILE)
 	@echo Config file $(CONFIG_FILE) generated
 	@sed -i -e 's/$${PROJECT_VERSION}/$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)/g' $(CONFIG_FILE)        
