@@ -213,7 +213,7 @@ int h_execute_query_mariadb(const struct _h_connection * conn, const char * quer
       cur_row = NULL;
       lengths = mysql_fetch_lengths(result);
       for (col=0; col<num_fields; col++) {
-        data = h_get_mariadb_value(m_row[col], lengths[col], fields[col].type);
+        data = h_get_mariadb_value(m_row[col], lengths[col], (int)fields[col].type);
         res = h_row_add_data(&cur_row, data, (int)col);
         h_clean_data_full(data);
         if (res != H_OK) {
@@ -301,7 +301,7 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
     }
     lengths = mysql_fetch_lengths(result);
     for (col=0; col<num_fields; col++) {
-      h_data = h_get_mariadb_value(m_row[col], lengths[col], fields[col].type);
+      h_data = h_get_mariadb_value(m_row[col], lengths[col], (int)fields[col].type);
       switch (h_data->type) {
         case HOEL_COL_TYPE_INT:
           json_object_set_new(j_data, fields[col].name, json_integer(((struct _h_type_int *)h_data->t_data)->value));
