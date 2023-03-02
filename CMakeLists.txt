@@ -167,7 +167,7 @@ set (CMAKE_EXTRA_INCLUDE_FILES ${PROJECT_BINARY_DIR})
 include_directories(${PROJECT_BINARY_DIR})
 
 if (NOT WITH_PGSQL AND NOT WITH_MARIADB AND NOT WITH_SQLITE3)
-  MESSAGE(FATAL_ERROR "You must enable at least one databasse backend: Sqlite3, MariaDB or PostgreSQL")
+  MESSAGE(FATAL_ERROR "You must enable at least one database backend: Sqlite3, MariaDB or PostgreSQL")
 endif ()
 
 set (PKGCONF_REQ "")
