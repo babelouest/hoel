@@ -4,6 +4,7 @@
 
 - Add `h_build_where_clause`
 - Build with flag `-Wconversion`
+- cmake: remove `DownloadProject` feature, now dependencies must be previously installed
 
 ## 1.4.26
 
