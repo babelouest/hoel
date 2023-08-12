@@ -524,49 +524,41 @@ All `json_t *` returned and updated values must be free after use.
 
 A `j_query` has the following form:
 ```javascript
-{
-  "table": "table_name"             // String, mandatory, the table name where the query is executed
-  "columns": ["col1", "col2"]       // Array of strings, available for h_select, optional. If not specified,will be used
-  "order_by": "col_name [asc|desc]" // String, available for h_select, specify the order by clause, optional
-  "limit": integer_value            // Integer, available for h_select, specify the limit value, optional
-  "offset"                          // Integer, available for h_select, specify the limit value, optional but available only if limit is set
-  "values": [{                      // JSON object or JSON array of JSON objects, available for h_insert, mandatory, specify the values to update
-    "col1": "value1",               // Generates col1='value1' for an update query
-    "col2": value_integer,          // Generates col2=value_integer for an update query
-    "col3", "value3",               // Generates col3='value3' for an update query
-    "col4", null                    // Generates col4=NULL for an update query
-  }]
-  "set": {                          // JSON object, available for h_update, mandatory, specify the values to update
-    "col1": "value1",               // Generates col1='value1' for an update query
-    "col2": value_integer,          // Generates col2=value_integer for an update query
-    "col3", "value3",               // Generates col3='value3' for an update query
-    "col4", null                    // Generates col4=NULL for an update query
-  }
-  "where": {                        // JSON object, available for h_select, h_update and h_delete, mandatory, specify the where clause. All clauses are separated with an AND operator
-    "col1": "value1",               // Generates col1='value1'
-    "col2": value_integer,          // Generates col2=value_integer
-    "col3": null,                   // Generates col3=NULL
-    "col4": {                       // Generates col4<12
-      "operator": "<",
-      "value": 12
-    },
-    "col5": {                       // Generates col5 IS NOT NULL
-      "operator": "NOT NULL"
-    },
-    "col6": {                       // Generates col6 LIKE '%value6%'
-      "operator": "raw",
-      "value": "LIKE '%value6%'"
-    },
-    "col7": {
-      "operator": "IN",             // Generates col7 IN ('value1',42,4.2)
-      "value": [                    // Values can be string, real or integer
-        "value1",
-        42,
-        4.2
-      ]
-    }
-  }
-}
+ * {
+ *   "table": "table_name"             // String, mandatory, the table name where the query is executed
+ *   "columns": ["col1", "col2"]       // Array of strings, available for h_select, optional. If not specified, * will be used, the columns values are not escaped by the library
+ *   "order_by": "col_name [asc|desc]" // String, available for h_select, specify the order by clause, optional, the value is not escaped by the library
+ *   "limit": integer_value            // Integer, available for h_select, specify the limit value, optional
+ *   "offset"                          // Integer, available for h_select, specify the limit value, optional but available only if limit is set
+ *   "values": [{                      // json object or json array of json objects, available for h_insert, mandatory, specify the values to update
+ *     "col1": "value1",               // Generates col1='value1' for an update query
+ *     "col2": value_integer,          // Generates col2=value_integer for an update query
+ *     "col3", "value3",               // Generates col3='value3' for an update query
+ *     "col4", null                    // Generates col4=NULL for an update query
+ *   }]
+ *   "set": {                          // json object, available for h_update, mandatory, specify the values to update
+ *     "col1": "value1",               // Generates col1='value1' for an update query
+ *     "col2": value_integer,          // Generates col2=value_integer for an update query
+ *     "col3", "value3",               // Generates col3='value3' for an update query
+ *     "col4", null                    // Generates col4=NULL for an update query
+ *   }
+ *   "where": {                        // json object, available for h_select, h_update and h_delete, mandatory, specify the where clause. All clauses are separated with an AND operator
+ *     "col1": "value1",               // Generates col1='value1'
+ *     "col2": value_integer,          // Generates col2=value_integer
+ *     "col3": null,                   // Generates col3=NULL
+ *     "col4", {                       // Generates col4<12
+ *       "operator": "<",
+ *       "value": 12
+ *     },
+ *     "col5", {                       // Generates col5 IS NOT NULL
+ *       "operator": "NOT NULL"
+ *     },
+ *     "col6", {                       // Generates col6 LIKE '%value6%'
+ *       "operator": "raw",
+ *       "value": "LIKE '%value6%'"
+ *     }
+ *   }
+ * }
 ```
 
 #### Where clause construction
