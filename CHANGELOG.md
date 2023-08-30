@@ -2,6 +2,7 @@
 
 ## 1.4.28
 
+- Improve cmake script
 - cmake: remove `DownloadProject` feature, now dependencies must be previously installed
 
 ## 1.4.27
