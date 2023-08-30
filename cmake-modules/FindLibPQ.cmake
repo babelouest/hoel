@@ -63,5 +63,15 @@ else(PG_CONFIG_EXECUTABLE)
 	message(SEND_ERROR "pg_config not found. Do you have PostgreSQL development package installed?")
 endif(PG_CONFIG_EXECUTABLE)
 
+if (LIBPQ_FOUND)
+    set(LIBPQ_LIBRARIES ${LIBPQ_LIBRARY})
+    if (NOT TARGET PostgreSQL::PostgreSQL)
+        add_library(PostgreSQL::PostgreSQL UNKNOWN IMPORTED)
+        set_target_properties(PostgreSQL::PostgreSQL PROPERTIES
+                IMPORTED_LOCATION "${LIBPQ_LIBRARY}"
+                INTERFACE_INCLUDE_DIRECTORIES "${LIBPQ_INCLUDE_DIR}")
+    endif ()
+endif ()
+
 # mark cache
 mark_as_advanced(LIBPQ_LIBRARIES_DIRS LIBPQ_LIBRARIES LIBPQ_INCLUDE_DIRS)

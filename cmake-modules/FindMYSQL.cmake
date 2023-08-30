@@ -79,5 +79,16 @@ find_package_handle_standard_args( MYSQL REQUIRED_VARS
 set( MYSQL_INCLUDE_DIRS ${MYSQL_INCLUDE_DIR} )
 set( MYSQL_LIBRARIES ${MYSQL_LIBRARY} )
 
+if (MYSQL_FOUND)
+    set(MYSQL_LIBRARIES ${MYSQL_LIBRARY})
+    set(MYSQL_INCLUDE_DIRS ${MYSQL_INCLUDE_DIR})
+    if (NOT TARGET MysqlDBClient::MysqlDBClient)
+        add_library(MysqlDBClient::MysqlDBClient UNKNOWN IMPORTED)
+        set_target_properties(MysqlDBClient::MysqlDBClient PROPERTIES
+                IMPORTED_LOCATION "${MYSQL_LIBRARY}"
+                INTERFACE_INCLUDE_DIRECTORIES "${MYSQL_INCLUDE_DIR}")
+    endif ()
+endif ()
+
 mark_as_advanced( MYSQL_INCLUDE_DIR MYSQL_LIBRARY )
 

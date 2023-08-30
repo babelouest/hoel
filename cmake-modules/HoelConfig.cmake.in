@@ -1,0 +1,32 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/HoelTargets.cmake")
+
+set(WITH_SQLITE3    @WITH_SQLITE3@)
+set(WITH_MARIADB    @WITH_MARIADB@)
+set(WITH_PGSQL      @WITH_PGSQL@)
+
+set(CMAKE_CURRENT_LIST_DIR ${_original_cmake_module_path})
+
+if(TARGET Yder::Yder-static)
+    set(ORCANIA_INCLUDE_DIRS $<TARGET_PROPERTY:Yder::Yder-static,INTERFACE_INCLUDE_DIRECTORIES>)
+    set(ORCANIA_LIBRARIES Yder::Yder-static)
+endif()
+
+if(TARGET Yder::Yder)
+    set(ORCANIA_INCLUDE_DIRS $<TARGET_PROPERTY:Yder::Yder,INTERFACE_INCLUDE_DIRECTORIES>)
+    set(ORCANIA_LIBRARIES Yder::Yder)
+endif()
+
+include(CMakeFindDependencyMacro)
+
+set(_original_cmake_module_path ${CMAKE_MODULE_PATH})
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
+
+find_dependency(Orcania)
+find_dependency(Jansson)
+
+set(CMAKE_MODULE_PATH ${_original_cmake_module_path})
+
+set(HOEL_VERSION_STRING "@PROJECT_VERSION@")
+set(Hoel_FOUND TRUE)

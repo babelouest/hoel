@@ -14,7 +14,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.14)
 
 project(hoel C)
 
@@ -23,12 +23,14 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror")
 
 # library info
 
+set(HOEL_LIBS )
+
 set(PROJECT_DESCRIPTION "C Database abstraction library with json based language")
 set(PROJECT_HOMEPAGE_URL "https://github.com/babelouest/hoel/")
 set(PROJECT_BUGREPORT_PATH "https://github.com/babelouest/hoel/issues")
 set(LIBRARY_VERSION_MAJOR "1")
 set(LIBRARY_VERSION_MINOR "4")
-set(LIBRARY_VERSION_PATCH "27")
+set(LIBRARY_VERSION_PATCH "28")
 set(ORCANIA_VERSION_REQUIRED "2.3.3")
 set(YDER_VERSION_REQUIRED "1.4.19")
 set(JANSSON_VERSION_REQUIRED "2.4")
@@ -65,6 +67,8 @@ list(APPEND CMAKE_MODULE_PATH "${H_CMAKE_MODULE_PATH}")
 
 include(GNUInstallDirs)
 include(CheckSymbolExists)
+include(CMakeDependentOption)
+include(CMakePackageConfigHelpers)
 
 # check if _GNU_SOURCE is available
 
@@ -101,23 +105,21 @@ set(LIB_SRC
 
 # pthread libraries
 find_package (Threads)
-set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
+list(APPEND HOEL_LIBS ${CMAKE_THREAD_LIBS_INIT})
 
 include(FindJansson)
 set(JANSSON_MIN_VERSION 2.4)
 find_package(Jansson ${JANSSON_MIN_VERSION} REQUIRED)
-if (JANSSON_FOUND)
-  set(LIBS ${JANSSON_LIBRARIES})
-endif ()
+list(APPEND HOEL_LIBS Jansson::Jansson)
 
 option(WITH_SQLITE3 "Use SQLite3 library" ON)
 
 if (WITH_SQLITE3)
   include(FindSQLite3)
   find_package(SQLite3 REQUIRED)
-  if (SQLITE3_FOUND)
-    set(LIBS ${LIBS} ${SQLITE3_LIBRARIES})
-    include_directories(${SQLITE3_INCLUDE_DIR})
+  if (SQLite3_FOUND)
+    list(APPEND HOEL_LIBS SQLite::SQLite3)
+    include_directories(${SQLite3_INCLUDE_DIRS})
     set(_HOEL_SQLITE ON)
   else ()
     message("SQLite3 not found")
@@ -133,7 +135,7 @@ if (WITH_MARIADB)
   include(FindMYSQL)
   find_package(MYSQL REQUIRED)
   if (MYSQL_FOUND)
-    set(LIBS ${LIBS} ${MYSQL_LIBRARIES})
+    list(APPEND HOEL_LIBS MysqlDBClient::MysqlDBClient)
     include_directories(${MYSQL_INCLUDE_DIRS})
     set(_HOEL_MARIADB ON)
   else ()
@@ -150,7 +152,7 @@ if (WITH_PGSQL)
   include(FindLibPQ)
   find_package(LibPQ REQUIRED)
   if(LIBPQ_FOUND)
-    set(LIBS ${LIBS} ${LIBPQ_LIBRARIES})
+    list(APPEND HOEL_LIBS PostgreSQL::PostgreSQL)
     include_directories(${LIBPQ_INCLUDE_DIRS})
     set(_HOEL_PGSQL ON)
   else ()
@@ -182,29 +184,55 @@ if (WITH_PGSQL)
   set (PKGCONF_REQ_PRIVATE "${PKGCONF_REQ_PRIVATE}, libpq")
 endif ()
 
-# static library
-
 option(BUILD_STATIC "Build static library." OFF)
+
+# static library
 
 if (BUILD_STATIC)
     add_library(hoel_static STATIC ${LIB_SRC})
-    target_compile_definitions(hoel_static PUBLIC -DO_STATIC_LIBRARY)
+    add_library(Hoel::Hoel-static ALIAS hoel_static)
+    target_include_directories(hoel_static
+        PUBLIC "$<BUILD_INTERFACE:${INC_DIR}>"
+        PUBLIC "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>"
+        PUBLIC "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
+    target_link_libraries(hoel_static PUBLIC ${HOEL_LIBS})
+    target_compile_definitions(hoel_static PUBLIC O_STATIC_LIBRARY)
     set_target_properties(hoel_static PROPERTIES
-            OUTPUT_NAME hoel)
+            PUBLIC_HEADER "${INC_DIR}/hoel.h;${PROJECT_BINARY_DIR}/hoel-cfg.h"
+            OUTPUT_NAME hoel
+            EXPORT_NAME Hoel-static)
+    if (MSVC)
+        set_target_properties(hoel_static PROPERTIES
+                OUTPUT_NAME hoel-static)
+    endif ()
+    if (NOT MSVC)
+        target_compile_options(hoel_static PRIVATE -Wextra -Wconversion)
+    endif ()
+    set(hoel_lib hoel_static)
 endif ()
 
 # shared library
 
 add_library(hoel SHARED ${LIB_SRC})
+add_library(Hoel::Hoel ALIAS hoel)
+target_include_directories(hoel
+    PUBLIC "$<BUILD_INTERFACE:${INC_DIR}>"
+    PUBLIC "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>"
+    PUBLIC "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
+target_link_libraries(hoel PUBLIC ${HOEL_LIBS})
 set_target_properties(hoel PROPERTIES
-        COMPILE_OPTIONS -Wextra
         PUBLIC_HEADER "${INC_DIR}/hoel.h;${PROJECT_BINARY_DIR}/hoel-cfg.h"
         VERSION "${LIBRARY_VERSION}"
-        SOVERSION "${LIBRARY_SOVERSION}")
+        SOVERSION "${LIBRARY_SOVERSION}"
+        WINDOWS_EXPORT_ALL_SYMBOLS TRUE
+        EXPORT_NAME Hoel)
 if (WIN32)
     set_target_properties(hoel PROPERTIES SUFFIX "-${LIBRARY_VERSION_MAJOR}.dll")
 endif ()
-target_link_libraries(hoel ${LIBS})
+if (NOT MSVC)
+    target_compile_options(hoel PRIVATE -Wextra -Wconversion)
+endif()
+set(hoel_lib hoel)
 
 # documentation
 
@@ -230,27 +258,48 @@ endif ()
 
 # dependencies
 
-include(FindOrcania)
 find_package(Orcania ${ORCANIA_VERSION_REQUIRED} REQUIRED)
-set(LIBS ${LIBS} ${ORCANIA_LIBRARIES})
-include_directories(${ORCANIA_INCLUDE_DIRS})
-target_link_libraries(hoel ${ORCANIA_LIBRARIES})
+if ("${ORCANIA_VERSION_STRING}" VERSION_GREATER_EQUAL "${ORCANIA_VERSION_REQUIRED}")
+    message(STATUS "Orcania found: ${ORCANIA_VERSION_STRING}")
+else ()
+    message( FATAL_ERROR "Orcania version required: ${ORCANIA_VERSION_REQUIRED} - version installed: ${ORCANIA_VERSION_STRING}")
+endif ()
 
-include(FindYder)
+if (BUILD_STATIC)
+    if(TARGET Orcania::Orcania-static)
+        target_link_libraries(hoel_static PUBLIC $<TARGET_NAME:Orcania::Orcania-static>)
+    else()
+        target_link_libraries(hoel_static PUBLIC $<TARGET_NAME:Orcania::Orcania>)
+    endif()
+else()
+    target_link_libraries(hoel PUBLIC $<TARGET_NAME:Orcania::Orcania>)
+endif ()
+
 find_package(Yder ${YDER_VERSION_REQUIRED} REQUIRED)
-set(LIBS ${LIBS} ${YDER_LIBRARIES})
-include_directories(${YDER_INCLUDE_DIRS})
-target_link_libraries(hoel ${YDER_LIBRARIES})
+if ("${YDER_VERSION_STRING}" VERSION_GREATER_EQUAL "${YDER_VERSION_REQUIRED}")
+    message(STATUS "Yder found: ${YDER_VERSION_STRING}")
+else ()
+    message( FATAL_ERROR "Yder version required: ${YDER_VERSION_REQUIRED} - version installed: ${YDER_VERSION_STRING}")
+endif ()
+
+if (BUILD_STATIC)
+    if(TARGET Yder::Yder-static)
+        target_link_libraries(hoel_static PUBLIC $<TARGET_NAME:Yder::Yder-static>)
+    else()
+        target_link_libraries(hoel_static PUBLIC $<TARGET_NAME:Yder::Yder>)
+    endif()
+else()
+    target_link_libraries(hoel PUBLIC $<TARGET_NAME:Yder::Yder>)
+endif ()
 
 # tests
 
 option(BUILD_HOEL_TESTING "Build the testing tree." OFF) # because we don not use include(CTest)
 
 if (BUILD_HOEL_TESTING)
-    include(FindCheck)
-    find_package(Check)
+    find_package(Check REQUIRED)
     if (CHECK_FOUND)
-        if (NOT WIN32)
+        if (NOT WIN32 AND NOT APPLE)
             include(FindSubunit)
             find_package(Subunit REQUIRED)
         endif ()
@@ -260,27 +309,34 @@ if (BUILD_HOEL_TESTING)
         set(CMAKE_CTEST_COMMAND ctest -V)
 
         set(TST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
-        set(LIBS hoel yder orcania ${LIBS} ${CHECK_LIBRARIES})
+        set(TEST_LIBS hoel Check::Check ${HOEL_LIBS})
         if (NOT WIN32)
             find_package(Threads REQUIRED)
-            set(LIBS ${LIBS} ${SUBUNIT_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} m rt)
+            list(APPEND TEST_LIBS ${CMAKE_THREAD_LIBS_INIT} m)
         endif ()
-
+        if (NOT APPLE AND NOT WIN32)
+            list(APPEND TEST_LIBS rt)
+        endif ()
+        if (NOT WIN32 AND NOT APPLE)
+            list(APPEND TEST_LIBS Subunit::Subunit)
+        endif ()
+        
         set(TESTS core multi)
 
         configure_file(
                 "${H_CMAKE_MODULE_PATH}/CTestCustom.cmake.in"
                 "${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake"
                 @ONLY)
-
+    
         foreach (t ${TESTS})
             add_executable(${t} EXCLUDE_FROM_ALL ${TST_DIR}/${t}.c)
             target_include_directories(${t} PUBLIC ${TST_DIR})
-            target_link_libraries(${t} PUBLIC ${LIBS})
+            target_link_libraries(${t} PRIVATE ${TEST_LIBS})
             add_test(NAME ${t}
-                    WORKING_DIRECTORY ${TST_DIR}
-                    COMMAND ${t})
+                     WORKING_DIRECTORY ${TST_DIR}
+                     COMMAND ${t})
         endforeach ()
+
     endif ()
 endif ()
 
@@ -307,24 +363,47 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libhoel.pc
 
 set(TARGETS hoel)
 if (BUILD_STATIC)
-    set(TARGETS ${TARGETS} hoel_static)
+    list(APPEND TARGETS hoel_static)
 endif ()
 
 if (INSTALL_HEADER)
-    install(TARGETS ${TARGETS}
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+	install(TARGETS ${TARGETS} EXPORT HoelExports
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
     install(DIRECTORY examples/
             DESTINATION ${CMAKE_INSTALL_DOCDIR}/examples/ COMPONENT runtime)
     install(FILES README.md
             DESTINATION ${CMAKE_INSTALL_DOCDIR} COMPONENT runtime)
 else ()
-    install(TARGETS ${TARGETS}
+    install(TARGETS ${TARGETS} EXPORT HoelExports
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif ()
+
+if (INSTALL_HEADER)
+    set(HOEL_INSTALL_CMAKEDIR_DEFAULT "${CMAKE_INSTALL_LIBDIR}/cmake/Hoel")
+    if (WIN32 AND NOT MINGW)
+        set(HOEL_INSTALL_CMAKEDIR_DEFAULT "cmake")
+    endif ()
+    set(HOEL_INSTALL_CMAKEDIR ${HOEL_INSTALL_CMAKEDIR_DEFAULT} CACHE STRING "Location where to install the cmake config files")
+
+    install(EXPORT HoelExports DESTINATION "${HOEL_INSTALL_CMAKEDIR}"
+        NAMESPACE "Hoel::"
+        FILE "HoelTargets.cmake")
+
+    configure_package_config_file(cmake-modules/HoelConfig.cmake.in HoelConfig.cmake
+        INSTALL_DESTINATION "${HOEL_INSTALL_CMAKEDIR}")
+    write_basic_package_version_file(HoelConfigVersion.cmake
+        COMPATIBILITY AnyNewerVersion)
+
+    install(FILES
+                cmake-modules/FindJansson.cmake
+                "${PROJECT_BINARY_DIR}/HoelConfig.cmake"
+                "${PROJECT_BINARY_DIR}/HoelConfigVersion.cmake"
+            DESTINATION "${HOEL_INSTALL_CMAKEDIR}")
 endif ()
 
 # uninstall target
