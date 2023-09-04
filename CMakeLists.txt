@@ -3,8 +3,8 @@
 #
 # CMake file used to build all programs
 #
-# Copyright 2018-2020 Nicolas Mora <mail@babelouest.org>
 # Copyright 2018 Silvio Clecio <silvioprog@gmail.com>
+# Copyright 2018-2023 Nicolas Mora <mail@babelouest.org>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the MIT License
@@ -400,6 +400,8 @@ if (INSTALL_HEADER)
         COMPATIBILITY AnyNewerVersion)
 
     install(FILES
+                cmake-modules/FindMYSQL.cmake
+                cmake-modules/FindLibPQ.cmake
                 cmake-modules/FindJansson.cmake
                 "${PROJECT_BINARY_DIR}/HoelConfig.cmake"
                 "${PROJECT_BINARY_DIR}/HoelConfigVersion.cmake"
