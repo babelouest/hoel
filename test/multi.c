@@ -49,21 +49,21 @@
 
 #define UNSAFE_STRING "un'safe' (\"string\")#!/$%*];"
 
-#define SELECT_DATA_1 "SELECT integer_col, string_col, date_col FROM test_table WHERE integer_col = 1"
-#define SELECT_DATA_2 "SELECT integer_col, string_col, date_col FROM test_table WHERE integer_col = 2"
-#define SELECT_DATA_ERROR "SELECT integer_col, string_col, date_col FROM test_table WHERE integer_col = 'error'"
+#define SELECT_DATA_1 "SELECT integer_col, double_col, string_col, date_col FROM test_table WHERE integer_col = 1"
+#define SELECT_DATA_2 "SELECT integer_col, double_col, string_col, date_col FROM test_table WHERE integer_col = 2"
+#define SELECT_DATA_ERROR "SELECT integer_col, double_col, string_col, date_col FROM test_table WHERE integer_col = 'error'"
 #define SELECT_DATA_ALL "SELECT * FROM test_table"
 
-#define INSERT_DATA_1 "INSERT INTO test_table (integer_col, string_col, date_col) VALUES (1, 'value1', "NOW")"
-#define INSERT_DATA_2 "INSERT INTO test_table (integer_col, string_col, date_col) VALUES (2, 'value2', "DATE_FIXED")"
-#define INSERT_DATA_ERROR "INSERT INTO test_table (integer_col, string_col, date_col) VALUES ('error', 'value error', "NOW")"
+#define INSERT_DATA_1 "INSERT INTO test_table (integer_col, double_col, string_col, date_col) VALUES (1, 4.2, 'value1', "NOW")"
+#define INSERT_DATA_2 "INSERT INTO test_table (integer_col, double_col, string_col, date_col) VALUES (2, 5.4, 'value2', "DATE_FIXED")"
+#define INSERT_DATA_ERROR "INSERT INTO test_table (integer_col, double_col, string_col, date_col) VALUES ('error', 'error_double', 'value error', "NOW")"
 
 #define DELETE_DATA_1 "DELETE FROM test_table WHERE integer_col = 1"
 #define DELETE_DATA_2 "DELETE FROM test_table WHERE integer_col = 2"
 #define DELETE_DATA_ERROR "DELETE FROM test_table WHERE wrong_table = 1"
 #define DELETE_DATA_ALL "DELETE FROM test_table"
 
-#define UPDATE_DATA_1 "UPDATE test_table SET string_col='new value1' WHERE integer_col = 1"
+#define UPDATE_DATA_1 "UPDATE test_table SET string_col='new value1', double_col=5.4 WHERE integer_col = 1"
 
 START_TEST(test_hoel_escape_string)
 {
@@ -182,6 +182,7 @@ START_TEST(test_hoel_escape_string)
                         "string_col",
                         UNSAFE_STRING " - updated");
   ck_assert_int_eq(h_select(conn, j_query, &j_result, &str_query), H_OK);
+  json_decref(j_query);
   ck_assert_ptr_ne(NULL, o_strstr(str_query, escaped));
   ck_assert_ptr_eq(NULL, o_strstr(str_query, UNSAFE_STRING));
   h_free(str_query);
@@ -192,7 +193,7 @@ START_TEST(test_hoel_escape_string)
   ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 44);
   json_decref(j_result);
   
-  j_query = json_pack("{sss{sis{sss[si]}}}",
+  j_query = json_pack("{sss{sis{sss[ss]}}}",
                       "table",
                       "test_table",
                       "where",
@@ -202,7 +203,7 @@ START_TEST(test_hoel_escape_string)
                           "operator", "IN",
                           "value",
                             UNSAFE_STRING " - updated",
-                            42);
+                            "42");
   ck_assert_int_eq(h_select(conn, j_query, &j_result, &str_query), H_OK);
   ck_assert_ptr_ne(NULL, o_strstr(str_query, escaped));
   ck_assert_ptr_eq(NULL, o_strstr(str_query, UNSAFE_STRING));
@@ -213,7 +214,25 @@ START_TEST(test_hoel_escape_string)
   ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), UNSAFE_STRING " - updated");
   ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 44);
   json_decref(j_result);
+  json_decref(j_query);
+  
+  // Test that a unsafe string is unsafe
+  j_query = json_pack("{sss{s{ssss}}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "string_col",
+                          "operator", "raw",
+                          "value", UNSAFE_STRING);
+  ck_assert_ptr_ne(NULL, j_query);
+  ck_assert_int_ne(h_select(conn, j_query, NULL, NULL), H_OK);
+  json_decref(j_query);
 
+  j_query = json_pack("{sss{si}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "integer_col", 44);
   ck_assert_int_eq(h_delete(conn, j_query, NULL), H_OK);
   json_decref(j_query);
   
@@ -300,18 +319,20 @@ START_TEST(test_hoel_insert)
   ck_assert_int_eq(h_query_insert(conn, NULL), H_ERROR_PARAMS);
   ck_assert_int_eq(h_query_select(conn, SELECT_DATA_1, &result), H_OK);
   ck_assert_int_eq(result.nb_rows, 1);
-  ck_assert_int_eq(result.nb_columns, 3);
+  ck_assert_int_eq(result.nb_columns, 4);
   ck_assert_int_eq(result.data[0][0].type, HOEL_COL_TYPE_INT);
   ck_assert_int_eq(((struct _h_type_int *)result.data[0][0].t_data)->value, 1);
-  ck_assert_int_eq(result.data[0][1].type, HOEL_COL_TYPE_TEXT);
-  ck_assert_str_eq(((struct _h_type_text *)result.data[0][1].t_data)->value, "value1");
+  ck_assert_int_eq(result.data[0][1].type, HOEL_COL_TYPE_DOUBLE);
+  ck_assert_double_eq(((struct _h_type_double *)result.data[0][1].t_data)->value, 4.2);
+  ck_assert_int_eq(result.data[0][2].type, HOEL_COL_TYPE_TEXT);
+  ck_assert_str_eq(((struct _h_type_text *)result.data[0][2].t_data)->value, "value1");
   ck_assert_int_eq(h_clean_result(&result), H_OK);
 #ifdef PGSQL
   ck_assert_int_eq(h_query_select(conn, SELECT_DATA_ERROR, &result), H_ERROR_QUERY);
 #else
   ck_assert_int_eq(h_query_select(conn, SELECT_DATA_ERROR, &result), H_OK);
   ck_assert_int_eq(result.nb_rows, 0);
-  ck_assert_int_eq(result.nb_columns, 3);
+  ck_assert_int_eq(result.nb_columns, 4);
   ck_assert_int_eq(h_clean_result(&result), H_OK);
 #endif
   ck_assert_int_eq(h_query_delete(conn, DELETE_DATA_1), H_OK);
@@ -344,16 +365,18 @@ START_TEST(test_hoel_update)
   ck_assert_int_eq(h_query_insert(conn, NULL), H_ERROR_PARAMS);
   ck_assert_int_eq(h_query_select(conn, SELECT_DATA_1, &result), H_OK);
   ck_assert_int_eq(result.nb_rows, 1);
-  ck_assert_int_eq(result.nb_columns, 3);
+  ck_assert_int_eq(result.nb_columns, 4);
   ck_assert_int_eq(((struct _h_type_int *)result.data[0][0].t_data)->value, 1);
-  ck_assert_str_eq(((struct _h_type_text *)result.data[0][1].t_data)->value, "value1");
+  ck_assert_double_eq(((struct _h_type_double *)result.data[0][1].t_data)->value, 4.2);
+  ck_assert_str_eq(((struct _h_type_text *)result.data[0][2].t_data)->value, "value1");
   ck_assert_int_eq(h_clean_result(&result), H_OK);
   ck_assert_int_eq(h_query_update(conn, UPDATE_DATA_1), H_OK);
   ck_assert_int_eq(h_query_select(conn, SELECT_DATA_1, &result), H_OK);
   ck_assert_int_eq(result.nb_rows, 1);
-  ck_assert_int_eq(result.nb_columns, 3);
+  ck_assert_int_eq(result.nb_columns, 4);
   ck_assert_int_eq(((struct _h_type_int *)result.data[0][0].t_data)->value, 1);
-  ck_assert_str_eq(((struct _h_type_text *)result.data[0][1].t_data)->value, "new value1");
+  ck_assert_double_eq(((struct _h_type_double *)result.data[0][1].t_data)->value, 5.4);
+  ck_assert_str_eq(((struct _h_type_text *)result.data[0][2].t_data)->value, "new value1");
   ck_assert_int_eq(h_clean_result(&result), H_OK);
   ck_assert_int_eq(h_query_delete(conn, DELETE_DATA_1), H_OK);
   h_close_db(conn);
@@ -385,19 +408,23 @@ START_TEST(test_hoel_delete)
   ck_assert_int_eq(h_query_insert(conn, INSERT_DATA_2), H_OK);
   ck_assert_int_eq(h_query_select(conn, SELECT_DATA_1, &result), H_OK);
   ck_assert_int_eq(result.nb_rows, 1);
-  ck_assert_int_eq(result.nb_columns, 3);
+  ck_assert_int_eq(result.nb_columns, 4);
   ck_assert_int_eq(result.data[0][0].type, HOEL_COL_TYPE_INT);
   ck_assert_int_eq(((struct _h_type_int *)result.data[0][0].t_data)->value, 1);
-  ck_assert_int_eq(result.data[0][1].type, HOEL_COL_TYPE_TEXT);
-  ck_assert_str_eq(((struct _h_type_text *)result.data[0][1].t_data)->value, "value1");
+  ck_assert_int_eq(result.data[0][1].type, HOEL_COL_TYPE_DOUBLE);
+  ck_assert_double_eq(((struct _h_type_double *)result.data[0][1].t_data)->value, 4.2);
+  ck_assert_int_eq(result.data[0][2].type, HOEL_COL_TYPE_TEXT);
+  ck_assert_str_eq(((struct _h_type_text *)result.data[0][2].t_data)->value, "value1");
   ck_assert_int_eq(h_clean_result(&result), H_OK);
   ck_assert_int_eq(h_query_select(conn, SELECT_DATA_2, &result), H_OK);
   ck_assert_int_eq(result.nb_rows, 1);
-  ck_assert_int_eq(result.nb_columns, 3);
+  ck_assert_int_eq(result.nb_columns, 4);
   ck_assert_int_eq(result.data[0][0].type, HOEL_COL_TYPE_INT);
   ck_assert_int_eq(((struct _h_type_int *)result.data[0][0].t_data)->value, 2);
-  ck_assert_int_eq(result.data[0][1].type, HOEL_COL_TYPE_TEXT);
-  ck_assert_str_eq(((struct _h_type_text *)result.data[0][1].t_data)->value, "value2");
+  ck_assert_int_eq(result.data[0][1].type, HOEL_COL_TYPE_DOUBLE);
+  ck_assert_double_eq(((struct _h_type_double *)result.data[0][1].t_data)->value, 5.4);
+  ck_assert_int_eq(result.data[0][2].type, HOEL_COL_TYPE_TEXT);
+  ck_assert_str_eq(((struct _h_type_text *)result.data[0][2].t_data)->value, "value2");
   ck_assert_int_eq(h_clean_result(&result), H_OK);
   ck_assert_int_eq(h_query_delete(conn, DELETE_DATA_1), H_OK);
   ck_assert_int_eq(h_query_select(conn, SELECT_DATA_ALL, &result), H_OK);
@@ -432,17 +459,17 @@ START_TEST(test_hoel_json_insert)
 #endif
   
   char * str_query = NULL;
-  json_t * j_query = json_pack("{sss{sisss{ss}}}",
+  json_t * j_query = json_pack("{sss{sisss{ss}sf}}",
                                "table",
                                "test_table",
                                "values",
-                                 "integer_col",
-                                 1,
-                                 "string_col",
-                                 "value1",
+                                 "integer_col", 1,
+                                 "string_col", "value1",
                                  "date_col",
                                    "raw",
-                                   NOW), * j_result = NULL;
+                                   NOW,
+                                  "double_col", 4.2),
+          * j_result = NULL;
   ck_assert_int_eq(h_insert(conn, j_query, &str_query), H_OK);
   json_decref(j_query);
   j_query = json_pack("{sss{si}}",
@@ -457,8 +484,9 @@ START_TEST(test_hoel_json_insert)
   ck_assert_int_eq(json_array_size(j_result), 1);
   ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), "value1");
   ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 1);
+  ck_assert_double_eq(json_real_value(json_object_get(json_array_get(j_result, 0), "double_col")), 4.2);
   json_decref(j_result);
-  ck_assert_int_eq(o_strlen(str_query), o_strlen("INSERT INTO test_table (integer_col,string_col,date_col) VALUES (1,'value1',"NOW")"));
+  ck_assert_int_eq(o_strlen(str_query), o_strlen("INSERT INTO test_table (integer_col,string_col,date_col,double_col) VALUES (1,'value1',"NOW",4.200000)"));
   h_free(str_query);
   ck_assert_int_eq(h_delete(conn, j_query, NULL), H_OK);
   json_decref(j_query);
@@ -487,17 +515,16 @@ START_TEST(test_hoel_json_update)
 #endif
   
   char * str_query = NULL;
-  json_t * j_query = json_pack("{sss{sisss{ss}}}",
+  json_t * j_query = json_pack("{sss{sisss{ss}sf}}",
                                "table",
                                "test_table",
                                "values",
-                                 "integer_col",
-                                 1,
-                                 "string_col",
-                                 "value1",
+                                 "integer_col", 1,
+                                 "string_col", "value1",
                                  "date_col",
                                    "raw",
-                                   NOW),
+                                   NOW,
+                                  "double_col", 4.2),
          * j_result = NULL;
   ck_assert_int_eq(h_insert(conn, j_query, NULL), H_OK);
   json_decref(j_query);
@@ -514,19 +541,19 @@ START_TEST(test_hoel_json_update)
   ck_assert_int_eq(json_array_size(j_result), 1);
   ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), "value1");
   ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 1);
+  ck_assert_double_eq(json_real_value(json_object_get(json_array_get(j_result, 0), "double_col")), 4.2);
   json_decref(j_result);
-  j_query = json_pack("{sss{ss}s{si}}",
+  j_query = json_pack("{sss{sssf}s{si}}",
                       "table",
                       "test_table",
                       "set",
-                        "string_col",
-                        "new value1",
+                        "string_col", "new value1",
+                        "double_col", 5.4,
                       "where",
-                        "integer_col",
-                        1);
+                        "integer_col", 1);
   ck_assert_int_eq(h_update(conn, j_query, &str_query), H_OK);
   json_decref(j_query);
-  ck_assert_int_eq(o_strlen(str_query), o_strlen("UPDATE test_table SET string_col='new value1' WHERE integer_col='1'"));
+  ck_assert_int_eq(o_strlen(str_query), o_strlen("UPDATE test_table SET string_col='new value1', double_col=5.400000 WHERE integer_col='1'"));
   h_free(str_query);
   j_query = json_pack("{sss{si}}",
                       "table",
@@ -539,6 +566,7 @@ START_TEST(test_hoel_json_update)
   ck_assert_int_eq(json_array_size(j_result), 1);
   ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), "new value1");
   ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 1);
+  ck_assert_double_eq(json_real_value(json_object_get(json_array_get(j_result, 0), "double_col")), 5.4);
   json_decref(j_result);
   ck_assert_int_eq(h_delete(conn, j_query, NULL), H_OK);
   json_decref(j_query);
@@ -567,31 +595,29 @@ START_TEST(test_hoel_json_delete)
 #endif
   
   char * str_query = NULL;
-  json_t * j_query = json_pack("{sss{sisss{ss}}}",
+  json_t * j_query = json_pack("{sss{sisss{ss}sf}}",
                                "table",
                                "test_table",
                                "values",
-                                 "integer_col",
-                                 1,
-                                 "string_col",
-                                 "value1",
+                                 "integer_col", 1,
+                                 "string_col", "value1",
                                  "date_col",
                                    "raw",
-                                   NOW),
+                                   NOW,
+                                 "double_col", 4.2),
          * j_result = NULL;
   ck_assert_int_eq(h_insert(conn, j_query, NULL), H_OK);
   json_decref(j_query);
-  j_query = json_pack("{sss{sisss{ss}}}",
+  j_query = json_pack("{sss{sisss{ss}sf}}",
                       "table",
                       "test_table",
                       "values",
-                        "integer_col",
-                        2,
-                        "string_col",
-                        "value2",
+                        "integer_col", 2,
+                        "string_col", "value2",
                         "date_col",
                           "raw",
-                          DATE_FIXED);
+                          DATE_FIXED,
+                         "double_col", 5.4);
   ck_assert_int_eq(h_insert(conn, j_query, NULL), H_OK);
   json_decref(j_query);
   j_query = json_pack("{ss}",
@@ -621,6 +647,7 @@ START_TEST(test_hoel_json_delete)
   ck_assert_int_eq(json_array_size(j_result), 1);
   ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), "value2");
   ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 2);
+  ck_assert_double_eq(json_real_value(json_object_get(json_array_get(j_result, 0), "double_col")), 5.4);
 #ifdef SQLITE
   ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "date_col")), 1466556776);
 #endif
@@ -661,22 +688,21 @@ START_TEST(test_hoel_json_select)
 #endif
   
   char * str_query = NULL;
-  json_t * j_query = json_pack("{sss{sisss{ss}}}",
+  json_t * j_query = json_pack("{sss{sisss{ss}sf}}",
                                "table",
                                "test_table",
                                "values",
-                                 "integer_col",
-                                 1,
-                                 "string_col",
-                                 "value1",
+                                 "integer_col", 1,
+                                 "string_col", "value1",
                                  "date_col",
                                    "raw",
-                                   NOW),
+                                   NOW,
+                                 "double_col", 4.2),
          * j_result = NULL;
   ck_assert_ptr_ne(conn, NULL);
   ck_assert_int_eq(h_insert(conn, j_query, NULL), H_OK);
   json_decref(j_query);
-  j_query = json_pack("{sss{sisss{ss}}}",
+  j_query = json_pack("{sss{sisss{ss}sf}}",
                       "table",
                       "test_table",
                       "values",
@@ -686,7 +712,8 @@ START_TEST(test_hoel_json_select)
                         "value2",
                         "date_col",
                           "raw",
-                          DATE_FIXED);
+                          DATE_FIXED,
+                        "double_col", 5.4);
   ck_assert_int_eq(h_insert(conn, j_query, NULL), H_OK);
   json_decref(j_query);
   
@@ -698,6 +725,7 @@ START_TEST(test_hoel_json_select)
   ck_assert_int_eq(json_array_size(j_result), 2);
   ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), "value1");
   ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 1);
+  ck_assert_double_eq(json_real_value(json_object_get(json_array_get(j_result, 0), "double_col")), 4.2);
   json_decref(j_query);
   json_decref(j_result);
   h_free(str_query);
@@ -713,6 +741,7 @@ START_TEST(test_hoel_json_select)
   ck_assert_int_eq(json_array_size(j_result), 1);
   ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), "value1");
   ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 1);
+  ck_assert_double_eq(json_real_value(json_object_get(json_array_get(j_result, 0), "double_col")), 4.2);
   json_decref(j_query);
   json_decref(j_result);
   h_free(str_query);
@@ -728,6 +757,7 @@ START_TEST(test_hoel_json_select)
   ck_assert_int_eq(json_array_size(j_result), 1);
   ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), "value1");
   ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 1);
+  ck_assert_double_eq(json_real_value(json_object_get(json_array_get(j_result, 0), "double_col")), 4.2);
   json_decref(j_query);
   json_decref(j_result);
   h_free(str_query);
@@ -757,6 +787,7 @@ START_TEST(test_hoel_json_select)
   ck_assert_int_eq(json_array_size(j_result), 2);
   ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), "value1");
   ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 1);
+  ck_assert_double_eq(json_real_value(json_object_get(json_array_get(j_result, 0), "double_col")), 4.2);
   json_decref(j_query);
   json_decref(j_result);
   h_free(str_query);
@@ -794,6 +825,7 @@ START_TEST(test_hoel_json_select)
   ck_assert_int_eq(json_array_size(j_result), 2);
   ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), "value1");
   ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 1);
+  ck_assert_double_eq(json_real_value(json_object_get(json_array_get(j_result, 0), "double_col")), 4.2);
   json_decref(j_query);
   json_decref(j_result);
   h_free(str_query);
