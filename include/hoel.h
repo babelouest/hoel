@@ -315,9 +315,10 @@ int h_query_select_json(const struct _h_connection * conn, const char * query, j
  * 
  * A j_query has the following form
  * {
- *   "table": "table_name"             // String, mandatory, the table name where the query is executed
+ *   "table": "table_name"             // Non empty string, mandatory, the table name where the query is executed
  *   "columns": ["col1", "col2"]       // Array of strings, available for h_select, optional. If not specified, * will be used, the columns values are not escaped by the library
- *   "order_by": "col_name [asc|desc]" // String, available for h_select, specify the order by clause, optional, the value is not escaped by the library
+ *   "order_by": "col_name [asc|desc]" // Non empty string, available for h_select, specify the order by clause, optional, the value is not escaped by the library
+ *   "group_by": "col_name"            // Non empty string, available for h_select, specify the group by clause, optional, the value is not escaped by the library
  *   "limit": integer_value            // Integer, available for h_select, specify the limit value, optional
  *   "offset"                          // Integer, available for h_select, specify the limit value, optional but available only if limit is set
  *   "values": [{                      // json object or json array of json objects, available for h_insert, mandatory, specify the values to update
