@@ -466,7 +466,7 @@ START_TEST(test_hoel_json_select)
                       "table",
                       "test_table");
   ck_assert_int_eq(h_select(conn, j_query, &j_result, &str_query), H_OK);
-  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE 1=1  "));
+  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE 1=1"));
   ck_assert_int_eq(json_array_size(j_result), 2);
   ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), "value1");
   ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 1);
@@ -481,7 +481,7 @@ START_TEST(test_hoel_json_select)
                       "where",
                         "integer_col", 1);
   ck_assert_int_eq(h_select(conn, j_query, &j_result, &str_query), H_OK);
-  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE integer_col='1'  "));
+  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE integer_col='1'"));
   ck_assert_int_eq(json_array_size(j_result), 1);
   ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), "value1");
   ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 1);
@@ -496,7 +496,7 @@ START_TEST(test_hoel_json_select)
                       "where",
                         "string_col", "value1");
   ck_assert_int_eq(h_select(conn, j_query, &j_result, &str_query), H_OK);
-  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE string_col='value1'  "));
+  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE string_col='value1'"));
   ck_assert_int_eq(json_array_size(j_result), 1);
   ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), "value1");
   ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 1);
@@ -512,7 +512,7 @@ START_TEST(test_hoel_json_select)
                         "string_col",
                         "value'to'escape");
   ck_assert_int_eq(h_select(conn, j_query, &j_result, &str_query), H_OK);
-  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE string_col='value''to''escape'  "));
+  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE string_col='value''to''escape'"));
   ck_assert_int_eq(json_array_size(j_result), 0);
   json_decref(j_query);
   json_decref(j_result);
@@ -526,7 +526,7 @@ START_TEST(test_hoel_json_select)
                           "operator",
                           "NOT NULL");
   ck_assert_int_eq(h_select(conn, j_query, &j_result, &str_query), H_OK);
-  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE integer_col IS NOT NULL  "));
+  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE integer_col IS NOT NULL"));
   ck_assert_int_eq(json_array_size(j_result), 2);
   ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), "value1");
   ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 1);
@@ -545,7 +545,7 @@ START_TEST(test_hoel_json_select)
                             "value",
                             ">6");
   ck_assert_int_eq(h_select(conn, j_query, &j_result, &str_query), H_OK);
-  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE integer_col >6  "));
+  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE integer_col >6"));
   ck_assert_int_eq(json_array_size(j_result), 0);
   json_decref(j_query);
   json_decref(j_result);
@@ -564,7 +564,7 @@ START_TEST(test_hoel_json_select)
                           "value",
                           ">=1");
   ck_assert_int_eq(h_select(conn, j_query, &j_result, &str_query), H_OK);
-  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE string_col IS NOT NULL AND integer_col >=1  "));
+  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE string_col IS NOT NULL AND integer_col >=1"));
   ck_assert_int_eq(json_array_size(j_result), 2);
   ck_assert_str_eq(json_string_value(json_object_get(json_array_get(j_result, 0), "string_col")), "value1");
   ck_assert_int_eq(json_integer_value(json_object_get(json_array_get(j_result, 0), "integer_col")), 1);
@@ -580,7 +580,7 @@ START_TEST(test_hoel_json_select)
                         "integer_col",
                         json_null());
   ck_assert_int_eq(h_select(conn, j_query, &j_result, &str_query), H_OK);
-  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE integer_col IS NULL  "));
+  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE integer_col IS NULL"));
   ck_assert_int_eq(json_array_size(j_result), 0);
   json_decref(j_query);
   json_decref(j_result);
@@ -599,7 +599,7 @@ START_TEST(test_hoel_json_select)
                             42,
                             66);
   ck_assert_int_eq(h_select(conn, j_query, &j_result, &str_query), H_OK);
-  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE integer_col IN (42,66)  "));
+  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE integer_col IN (42,66)"));
   ck_assert_int_eq(json_array_size(j_result), 0);
   json_decref(j_query);
   json_decref(j_result);
