@@ -1,5 +1,9 @@
 # Hoel Changelog
 
+## 1.4.29
+
+- Add option `group_by` for `h_select`
+
 ## 1.4.28
 
 - Improve cmake script
