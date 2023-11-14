@@ -3,6 +3,7 @@
 ## 1.4.29
 
 - Add option `group_by` for `h_select`
+- cmake: split package build options in 3 (tar.gz, deb and rpm), and set all packages build to off by default
 
 ## 1.4.28
 
