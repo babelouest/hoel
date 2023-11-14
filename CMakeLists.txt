@@ -380,7 +380,8 @@ else ()
     install(TARGETS ${TARGETS} EXPORT HoelExports
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 endif ()
 
 if (INSTALL_HEADER)
@@ -435,65 +436,49 @@ endif ()
 set(PACKAGE_IGNORED_FILES
         "${CMAKE_CURRENT_BINARY_DIR}/;/.git/;.gitignore;~$;${CPACK_SOURCE_IGNORE_FILES}")
 
+set(CPACK_GENERATOR )
 set(CPACK_PACKAGE_NAME "libhoel")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Database abstraction library in C")
-set(CPACK_GENERATOR "TGZ;DEB")
 set(CPACK_PACKAGE_VERSION_MAJOR ${LIBRARY_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${LIBRARY_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${LIBRARY_VERSION_PATCH})
+set(CPACK_PACKAGE_FILE_NAME ${PACKAGE_FILE_NAME})
+
+option(BUILD_TGZ "Build a TAR.GZ for your system" OFF)
+if (BUILD_TGZ)
+    list(APPEND CPACK_GENERATOR TGZ)
+    set(CPACK_SOURCE_GENERATOR "TGZ")
+    set(CPACK_SOURCE_PACKAGE_FILE_NAME ${PACKAGE_FILE_NAME})
+    set(CPACK_SOURCE_IGNORE_FILES ${PACKAGE_IGNORED_FILES})
+endif ()
+
+option(BUILD_DEB "Build a DEB for your system" OFF)
+if (BUILD_DEB)
+    list(APPEND CPACK_GENERATOR DEB)
+    set(CPACK_DEBIAN_PACKAGE_MAINTAINER "mail@babelouest.org")
+    set(CPACK_DEBIAN_PACKAGE_DESCRIPTION ${PROJECT_DESCRIPTION})
+    set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/babelouest/hoel")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.14), liborcania (>= ${ORCANIA_VERSION_REQUIRED}), libyder (>= ${YDER_VERSION_REQUIRED})")
+
+    if (WITH_SQLITE3)
+        set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libsqlite3-dev|libsqlite3-0 (>= 3.5.9)")
+    endif ()
+
+    if (WITH_MARIADB)
+        set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, default-libmysqlclient-dev|libmariadb-dev|default-mysql-client|libmariadb3|libmariadb2")
+    endif ()
+
+    if (WITH_PGSQL)
+        set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libpq-dev|libpq5 (>= 9.0~)")
+    endif ()
+endif ()
 
 option(BUILD_RPM "Build a RPM for your system" OFF)
 if (BUILD_RPM)
-  set(CPACK_GENERATOR "TGZ;DEB;RPM")
-  set(CPACK_RPM_PACKAGE_LICENSE "LGPL")
-  set(CPACK_RPM_PACKAGE_URL "http://babelouest.github.io/hoel/")
+    list(APPEND CPACK_GENERATOR RPM)
+    set(CPACK_RPM_PACKAGE_LICENSE "LGPL")
+    set(CPACK_RPM_PACKAGE_URL "http://babelouest.github.io/hoel/")
 endif ()
-
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "mail@babelouest.org")
-set(CPACK_DEBIAN_PACKAGE_DESCRIPTION ${PROJECT_DESCRIPTION})
-set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/babelouest/hoel")
-
-if (INSTALL_HEADER)
-  set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.14), liborcania (>= ${ORCANIA_VERSION_REQUIRED}), libyder (>= ${YDER_VERSION_REQUIRED})")
-  if (WITH_SQLITE3)
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libsqlite3-dev (>= 3.5.9)")
-  endif ()
-
-  if (WITH_MARIADB)
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, default-libmysqlclient-dev|libmariadb-dev")
-  endif ()
-
-  if (WITH_PGSQL)
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libpq-dev (>= 9.0~)")
-  endif ()
-
-  if (NOT ${RELEASE_CODENAME} STREQUAL "stretch" AND NOT ${RELEASE_CODENAME} STREQUAL "bionic")
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libjansson-dev (>= ${JANSSON_VERSION_REQUIRED})")
-  endif ()
-else ()
-  set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.14), liborcania (>= ${ORCANIA_VERSION_REQUIRED}), libyder (>= ${YDER_VERSION_REQUIRED})")
-  if (WITH_SQLITE3)
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libsqlite3-0 (>= 3.5.9)")
-  endif ()
-
-  if (WITH_MARIADB)
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, default-mysql-client|libmariadb3|libmariadb2")
-  endif ()
-
-  if (WITH_PGSQL)
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libpq5 (>= 9.0~)")
-  endif ()
-
-  if (NOT ${RELEASE_CODENAME} STREQUAL "stretch" AND NOT ${RELEASE_CODENAME} STREQUAL "bionic")
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libjansson4 (>= ${JANSSON_VERSION_REQUIRED})")
-  endif ()
-endif ()
-
-set(CPACK_PACKAGE_FILE_NAME ${PACKAGE_FILE_NAME})
-
-set(CPACK_SOURCE_GENERATOR "TGZ")
-set(CPACK_SOURCE_PACKAGE_FILE_NAME ${PACKAGE_FILE_NAME})
-set(CPACK_SOURCE_IGNORE_FILES ${PACKAGE_IGNORED_FILES})
 
 include(CPack)
 
@@ -506,5 +491,7 @@ message(STATUS "PostgreSQL library support: ${WITH_PGSQL}")
 message(STATUS "Build static library:       ${BUILD_STATIC}")
 message(STATUS "Build testing tree:         ${BUILD_HOEL_TESTING}")
 message(STATUS "Install the header files:   ${INSTALL_HEADER}")
+message(STATUS "Build TAR.GZ package:       ${BUILD_TGZ}")
+message(STATUS "Build DEB package:          ${BUILD_DEB}")
 message(STATUS "Build RPM package:          ${BUILD_RPM}")
 message(STATUS "Build documentation:        ${BUILD_HOEL_DOCUMENTATION}")
