@@ -79,6 +79,6 @@ struct _h_data * h_new_data_datetime(const struct tm * datetime);
  * return pointer to the new structure
  * return NULL on error
  */
-struct _h_data * h_new_data_null();
+struct _h_data * h_new_data_null(void);
 
 #endif /* __H_PRIVATE_H_ */

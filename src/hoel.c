@@ -588,7 +588,7 @@ struct _h_data * h_new_data_blob(const void * value, const size_t length) {
  * return pointer to the new structure
  * return NULL on error
  */
-struct _h_data * h_new_data_null() {
+struct _h_data * h_new_data_null(void) {
   struct _h_data * data = o_malloc(sizeof(struct _h_data));
   if (data != NULL) {
     data->type = HOEL_COL_TYPE_NULL;

@@ -244,7 +244,7 @@ int h_execute_query_mariadb(const struct _h_connection * conn, const char * quer
  */
 int h_execute_query_json_mariadb(const struct _h_connection * conn, const char * query, json_t ** j_result) {
   MYSQL_RES * result;
-  uint num_fields, col, row;
+  uint num_fields, col;
   MYSQL_ROW m_row;
   MYSQL_FIELD * fields;
   unsigned long * lengths;
@@ -290,7 +290,7 @@ int h_execute_query_json_mariadb(const struct _h_connection * conn, const char *
   num_fields = mysql_num_fields(result);
   fields = mysql_fetch_fields(result);
 
-  for (row = 0; (m_row = mysql_fetch_row(result)) != NULL; row++) {
+  while ((m_row = mysql_fetch_row(result)) != NULL) {
     j_data = json_object();
     if (j_data == NULL) {
       y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for j_data");
