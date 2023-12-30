@@ -97,37 +97,45 @@ struct _h_connection * h_connect_pgsql(const char * conninfo) {
         conn = NULL;
       } else {
         ntuples = PQntuples(res);
-        ((struct _h_pgsql *)conn->connection)->list_type = o_malloc(((size_t)ntuples+1)*sizeof(struct _h_pg_type));
-        if (((struct _h_pgsql *)conn->connection)->list_type != NULL) {
-          ((struct _h_pgsql *)conn->connection)->nb_type = (unsigned int)ntuples;
-          for(i = 0; i < ntuples; i++) {
-            char * cur_type_name = PQgetvalue(res, i, 1);
-            ((struct _h_pgsql *)conn->connection)->list_type[i].pg_type = (Oid)strtol(PQgetvalue(res, i, 0), NULL, 10);
-            if (o_strcmp(cur_type_name, "bool") == 0) {
-              ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_BOOL;
-            } else if (o_strncmp(cur_type_name, "int", 3) == 0 || (o_strncmp(cur_type_name+1, "id", 2) == 0 && o_strlen(cur_type_name) == 3)) {
-              ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_INT;
-            } else if (o_strcmp(cur_type_name, "numeric") == 0 || o_strncmp(cur_type_name, "float", 5) == 0) {
-              ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_DOUBLE;
-            } else if (o_strcmp(cur_type_name, "date") == 0 || o_strncmp(cur_type_name, "time", 4) == 0) {
-              ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_DATE;
-            } else if (o_strcmp(cur_type_name, "bytea") == 0) {
-              ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_BLOB;
-            } else if (o_strcmp(cur_type_name, "bool") == 0) {
-              ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_BOOL;
-            } else {
-              ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_TEXT;
+        if (ntuples >= 0) {
+          ((struct _h_pgsql *)conn->connection)->list_type = o_malloc(((size_t)ntuples+1)*sizeof(struct _h_pg_type));
+          if (((struct _h_pgsql *)conn->connection)->list_type != NULL) {
+            ((struct _h_pgsql *)conn->connection)->nb_type = (unsigned int)ntuples;
+            for(i = 0; i < ntuples; i++) {
+              char * cur_type_name = PQgetvalue(res, i, 1);
+              ((struct _h_pgsql *)conn->connection)->list_type[i].pg_type = (Oid)strtol(PQgetvalue(res, i, 0), NULL, 10);
+              if (o_strcmp(cur_type_name, "bool") == 0) {
+                ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_BOOL;
+              } else if (o_strncmp(cur_type_name, "int", 3) == 0 || (o_strncmp(cur_type_name+1, "id", 2) == 0 && o_strlen(cur_type_name) == 3)) {
+                ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_INT;
+              } else if (o_strcmp(cur_type_name, "numeric") == 0 || o_strncmp(cur_type_name, "float", 5) == 0) {
+                ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_DOUBLE;
+              } else if (o_strcmp(cur_type_name, "date") == 0 || o_strncmp(cur_type_name, "time", 4) == 0) {
+                ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_DATE;
+              } else if (o_strcmp(cur_type_name, "bytea") == 0) {
+                ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_BLOB;
+              } else if (o_strcmp(cur_type_name, "bool") == 0) {
+                ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_BOOL;
+              } else {
+                ((struct _h_pgsql *)conn->connection)->list_type[i].h_type = HOEL_COL_TYPE_TEXT;
+              }
             }
+            /* Initialize MUTEX for connection */
+            pthread_mutexattr_init ( &mutexattr );
+            pthread_mutexattr_settype( &mutexattr, PTHREAD_MUTEX_RECURSIVE );
+            if (pthread_mutex_init(&(((struct _h_pgsql *)conn->connection)->lock), &mutexattr) != 0) {
+              y_log_message(Y_LOG_LEVEL_ERROR, "Impossible to initialize Mutex Lock for PostgreSQL connection");
+            }
+            pthread_mutexattr_destroy( &mutexattr );
+          } else {
+            y_log_message(Y_LOG_LEVEL_ERROR, "Error allocating resources for list_type");
+            PQfinish(((struct _h_pgsql *)conn->connection)->db_handle);
+            h_free(conn->connection);
+            h_free(conn);
+            conn = NULL;
           }
-          /* Initialize MUTEX for connection */
-          pthread_mutexattr_init ( &mutexattr );
-          pthread_mutexattr_settype( &mutexattr, PTHREAD_MUTEX_RECURSIVE );
-          if (pthread_mutex_init(&(((struct _h_pgsql *)conn->connection)->lock), &mutexattr) != 0) {
-            y_log_message(Y_LOG_LEVEL_ERROR, "Impossible to initialize Mutex Lock for PostgreSQL connection");
-          }
-          pthread_mutexattr_destroy( &mutexattr );
         } else {
-          y_log_message(Y_LOG_LEVEL_ERROR, "Error allocating resources for list_type");
+          y_log_message(Y_LOG_LEVEL_ERROR, "Error PQntuples");
           PQfinish(((struct _h_pgsql *)conn->connection)->db_handle);
           h_free(conn->connection);
           h_free(conn);
@@ -203,7 +211,7 @@ static unsigned short h_get_type_from_oid(const struct _h_connection * conn, Oid
  */
 int h_execute_query_pgsql(const struct _h_connection * conn, const char * query, struct _h_result * result) {
   PGresult * res;
-  int nfields, ntuples, i, j, h_res, ret = H_OK;
+  int nfields, ntuples, i, j, h_res, ret = H_OK, nlength;
   struct _h_data * data, * cur_row = NULL;
   
   if (pthread_mutex_lock(&(((struct _h_pgsql *)conn->connection)->lock))) {
@@ -239,7 +247,9 @@ int h_execute_query_pgsql(const struct _h_connection * conn, const char * query,
                   data = h_new_data_double(strtod(val, NULL));
                   break;
                 case HOEL_COL_TYPE_BLOB:
-                  data = h_new_data_blob(val, (size_t)PQgetlength(res, i, j));
+                  if ((nlength = PQgetlength(res, i, j)) >= 0) {
+                    data = h_new_data_blob(val, (size_t)nlength);
+                  }
                   break;
                 case HOEL_COL_TYPE_BOOL:
                   if (o_strcasecmp(val, "t") == 0) {
@@ -253,7 +263,9 @@ int h_execute_query_pgsql(const struct _h_connection * conn, const char * query,
                 case HOEL_COL_TYPE_DATE:
                 case HOEL_COL_TYPE_TEXT:
                 default:
-                  data = h_new_data_text(val, (size_t)PQgetlength(res, i, j));
+                  if ((nlength = PQgetlength(res, i, j)) >= 0) {
+                    data = h_new_data_text(val, (size_t)nlength);
+                  }
                   break;
               }
             }
@@ -286,7 +298,7 @@ int h_execute_query_pgsql(const struct _h_connection * conn, const char * query,
  */
 int h_execute_query_json_pgsql(const struct _h_connection * conn, const char * query, json_t ** j_result) {
   PGresult *res;
-  int nfields, ntuples, i, j, ret = H_OK;
+  int nfields, ntuples, i, j, ret = H_OK, nlength;
   json_t * j_data;
   
   if (pthread_mutex_lock(&(((struct _h_pgsql *)conn->connection)->lock))) {
@@ -331,7 +343,9 @@ int h_execute_query_json_pgsql(const struct _h_connection * conn, const char * q
                       json_object_set_new(j_data, PQfname(res, j), json_real(strtod(PQgetvalue(res, i, j), NULL)));
                       break;
                     case HOEL_COL_TYPE_BLOB:
-                      json_object_set_new(j_data, PQfname(res, j), json_stringn(PQgetvalue(res, i, j), (size_t)PQgetlength(res, i, j)));
+                      if ((nlength = PQgetlength(res, i, j)) >= 0) {
+                        json_object_set_new(j_data, PQfname(res, j), json_stringn(PQgetvalue(res, i, j), (size_t)nlength));
+                      }
                       break;
                     case HOEL_COL_TYPE_BOOL:
                       if (o_strcasecmp(PQgetvalue(res, i, j), "t") == 0) {
