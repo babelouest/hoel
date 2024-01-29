@@ -1,5 +1,10 @@
 # Hoel Changelog
 
+## 1.4.30
+
+- Minor bugfixes
+- Build with flag `-Wpedantic`
+
 ## 1.4.29
 
 - Add option `group_by` for `h_select`

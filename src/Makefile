@@ -60,7 +60,7 @@ OBJECTS=hoel-sqlite.o hoel-mariadb.o hoel-pgsql.o hoel-simple-json.o hoel.o
 OUTPUT=libhoel.so
 VERSION_MAJOR=1
 VERSION_MINOR=4
-VERSION_PATCH=29
+VERSION_PATCH=30
 
 all: release
 
