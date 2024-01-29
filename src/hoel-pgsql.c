@@ -212,7 +212,7 @@ static unsigned short h_get_type_from_oid(const struct _h_connection * conn, Oid
 int h_execute_query_pgsql(const struct _h_connection * conn, const char * query, struct _h_result * result) {
   PGresult * res;
   int nfields, ntuples, i, j, h_res, ret = H_OK, nlength;
-  struct _h_data * data, * cur_row = NULL;
+  struct _h_data * data = NULL, * cur_row = NULL;
   
   if (pthread_mutex_lock(&(((struct _h_pgsql *)conn->connection)->lock))) {
     ret = H_ERROR_QUERY;
@@ -269,8 +269,12 @@ int h_execute_query_pgsql(const struct _h_connection * conn, const char * query,
                   break;
               }
             }
-            h_res = h_row_add_data(&cur_row, data, j);
-            h_clean_data_full(data);
+            if (data != NULL) {
+              h_res = h_row_add_data(&cur_row, data, j);
+              h_clean_data_full(data);
+            } else {
+              h_res = H_ERROR_PARAMS;
+            }
             if (h_res != H_OK) {
               PQclear(res);
               ret = h_res;
