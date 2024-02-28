@@ -922,6 +922,32 @@ START_TEST(test_hoel_json_select)
   json_decref(j_result);
   h_free(str_query);
   
+  j_query = json_pack("{sss{so}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "integer_col",
+                        json_true());
+  ck_assert_int_eq(h_select(conn, j_query, &j_result, &str_query), H_OK);
+  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE integer_col=1"));
+  ck_assert_int_eq(json_array_size(j_result), 1);
+  json_decref(j_query);
+  json_decref(j_result);
+  h_free(str_query);
+
+  j_query = json_pack("{sss{so}}",
+                      "table",
+                      "test_table",
+                      "where",
+                        "integer_col",
+                        json_false());
+  ck_assert_int_eq(h_select(conn, j_query, &j_result, &str_query), H_OK);
+  ck_assert_int_eq(o_strlen(str_query), o_strlen("SELECT * FROM test_table WHERE integer_col=0"));
+  ck_assert_int_eq(json_array_size(j_result), 0);
+  json_decref(j_query);
+  json_decref(j_result);
+  h_free(str_query);
+
   str_query = NULL;
   j_result = NULL;
   j_query = json_pack("{sss{s{sss[ii]}}}",
