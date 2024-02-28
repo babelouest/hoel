@@ -326,9 +326,9 @@ static char * h_get_where_clause_from_json_object(const struct _h_connection * c
           } else if (json_is_real(value)) {
             clause = msprintf("%s='%f'", key, json_real_value(value));
           } else if (json_is_true(value)) {
-            clause = msprintf("%s=1");
+            clause = msprintf("%s=1", key);
           } else if (json_is_false(value)) {
-            clause = msprintf("%s=0");
+            clause = msprintf("%s=0", key);
           }
           if (clause == NULL) {
             y_log_message(Y_LOG_LEVEL_ERROR, "Hoel - Error allocating memory for clause");
