@@ -10,7 +10,7 @@ HOEL_INCLUDE=../include
 HOEL_LOCATION=../src
 HOEL_LIBRARY=$(HOEL_LOCATION)/libhoel.so
 CC=gcc
-CFLAGS=-Wall -I$(HOEL_INCLUDE) -D_REENTRANT -DDEBUG -g -O0
+CFLAGS=-Wall -Werror -Wextra -I$(HOEL_INCLUDE) -D_REENTRANT -DDEBUG -g -O0
 HOEL_DB_TEST=/tmp/test.db
 LDFLAGS=-lc $(shell pkg-config --libs liborcania) $(shell pkg-config --libs libyder) $(shell pkg-config --libs libhoel) $(shell pkg-config --libs jansson) -L$(HOEL_LIBRARY) $(shell pkg-config --libs check)
 VALGRIND_COMMAND=valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all
