@@ -647,7 +647,8 @@ END_TEST
 START_TEST(test_hoel_json_escape)
 {
   struct _h_connection * conn;
-  char * str_query = NULL, * escaped, * str_query_wip;
+  char * str_query = NULL, * escaped;
+  const char * str_query_wip;
   json_t * j_query, * j_result = NULL;
   
   conn = h_connect_sqlite(DEFAULT_BD_PATH);
