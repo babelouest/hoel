@@ -805,7 +805,8 @@ int h_delete(const struct _h_connection * conn, const json_t * j_query, char ** 
  * returned value must be h_free'd after use
  */
 char * h_build_where_clause(const struct _h_connection * conn, const char * pattern, ...) {
-  char * where_clause = NULL, * pattern_pos = NULL, * escaped = NULL, * prefix = NULL;
+  char * where_clause = NULL, * escaped = NULL, * prefix = NULL;
+  const char * pattern_pos = NULL;
   const char * pattern_save = pattern, * unescaped = NULL;
   int has_error = 0;
   json_t * j_value = NULL;
