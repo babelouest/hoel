@@ -1,5 +1,9 @@
 # Hoel
 
+## NOTICE: This project is no longer being maintained. ⚠️
+
+This project is now closed for me, I have no time nor motivation to maintain it, so I prefer to close this repository.
+
 ![.github/workflows/ccpp.yml](https://github.com/babelouest/hoel/workflows/.github/workflows/ccpp.yml/badge.svg)
 
 Database abstraction library written in C.
